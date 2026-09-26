@@ -39,5 +39,21 @@ class DatabaseSeeder extends Seeder
                 'role' => 'teacher',
             ]
         );
+        User::updateOrCreate(
+            ['email' => 'teacher1@email.com'],
+            [
+                'name' => 'Guru Example',
+                'password' => bcrypt('12345678'),
+                'role' => 'teacher',
+            ]
+        );
+        User::updateOrCreate(
+            ['email' => 'teacher2@email.com'],
+            [
+                'name' => 'Guru Example',
+                'password' => bcrypt('12345678'),
+                'role' => 'teacher',
+            ]
+        );
     }
 }
