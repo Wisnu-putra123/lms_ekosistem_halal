@@ -4,8 +4,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Teacher\CourseController;
+use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
+use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
+use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
 use App\Http\Controllers\Teacher\MeetingController;
+use App\Http\Controllers\Teacher\MaterialController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -58,24 +62,48 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+        Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
+        Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
+
+        // Material
+        Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
+
+        // Tugas Upload (Submissions)
+        // Route::get('/submissions/{assignment}', [StudentTaskSubmissionController::class, 'show'])->name('submissions.show');
+        // Route::post('/submissions/{assignment}/submit', [StudentTaskSubmissionController::class, 'submit'])->name('submissions.submit');
+
+        // // Kuis (Quizzes)
+        // Route::get('/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('quizzes.show');
+        // Route::post('/quizzes/{quiz}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+        // Route::get('/quiz-attempts/{attempt}', [StudentQuizController::class, 'take'])->name('quizzes.take');
+        // Route::post('/quiz-attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
     });
 
     Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
-        Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
-        Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
-        Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
-        Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
-        Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
-        Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
-        Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
-        Route::post('/courses/{course}/regenerate-key', [CourseController::class, 'regenerateKey'])->name('courses.regenerateKey');
+        Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
+        Route::post('/courses', [TeacherCourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course}', [TeacherCourseController::class, 'show'])->name('courses.show');
+        Route::get('/courses/{course}/edit', [TeacherCourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/courses/{course}', [TeacherCourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course}', [TeacherCourseController::class, 'destroy'])->name('courses.destroy');
+        Route::post('/courses/{course}/regenerate-key', [TeacherCourseController::class, 'regenerateKey'])->name('courses.regenerateKey');
 
         // CRUD Pertemuan (Meetings)
         Route::post('/courses/{course}/meetings', [MeetingController::class, 'store'])->name('courses.meetings.store');
         Route::put('/meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
         Route::delete('/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
+
+        Route::get('/meetings/{meeting}/materials/create', [MaterialController::class, 'create'])->name('meetings.materials.create');
+        Route::post('/meetings/{meeting}/materials', [MaterialController::class, 'store'])->name('meetings.materials.store');
+        Route::get('/materials/{material}', [MaterialController::class, 'show'])->name('materials.show');
+        Route::get('/materials/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
+        Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
+        Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
     });
 });
 
