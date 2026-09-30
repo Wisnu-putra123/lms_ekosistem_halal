@@ -131,28 +131,137 @@
                 </div>
 
                 <!-- Body Accordion (Kontainer Isi Materi, Tugas, Kuis) -->
-                <div x-show="expanded" x-collapse class="border-t border-slate-100 bg-slate-50/50 p-6 space-y-4">
+                <div x-show="expanded" x-collapse class="border-t border-slate-100 bg-slate-50/50 p-6 space-y-5">
+                    
+                    <!-- Deskripsi / Pengantar Pertemuan -->
                     @if($meeting->description)
-                        <div class="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-slate-200/60">
-                            <span class="font-semibold text-slate-700">Pengantar / Deskripsi:</span>
-                            <p class="mt-1">{{ $meeting->description }}</p>
+                        <div class="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-slate-200/60 shadow-sm">
+                            <span class="font-semibold text-slate-700 block mb-0.5">Pengantar / Deskripsi:</span>
+                            <p>{{ $meeting->description }}</p>
                         </div>
                     @endif
 
-                    <!-- Placeholder Tempat Materi, Tugas & Kuis -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div class="p-4 bg-white border border-dashed border-slate-300 rounded-xl flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-700">Materi (0)</span>
-                            <a href="#" class="text-xs font-semibold text-amber-600 hover:text-amber-700">+ Tambah</a>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        
+                        <!-- ================= 1. SECTION MATERI ================= -->
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                        </svg>
+                                        <span class="text-xs font-bold text-slate-800">Materi ({{ $meeting->materials->count() }})</span>
+                                    </div>
+                                    <a href="{{ route('teacher.meetings.materials.create', $meeting->id) }}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition">
+                                        + Tambah
+                                    </a>
+                                </div>
+
+                                <!-- Daftar Materi -->
+                                @forelse($meeting->materials as $material)
+                                    <div class="group flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100 hover:border-emerald-200 transition">
+                                        <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                                            <!-- Icon Indicator (Embedded / Teks) -->
+                                            <div class="w-7 h-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                                                @if($material->media && $material->media->external_url)
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                @endif
+                                            </div>
+                                            <span class="text-xs font-medium text-slate-700 truncate group-hover:text-emerald-600 transition">{{ $material->title }}</span>
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="flex items-center space-x-1.5 flex-shrink-0">
+                                            <a href="{{ route('teacher.materials.show', $material->id) }}" class="p-1 text-slate-400 hover:text-slate-600 transition" title="Lihat">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </a>
+                                            <a href="{{ route('teacher.materials.edit', $material->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition" title="Edit">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 0L20 4.828a2 2 0 010 2.828l-8.586 8.586z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 5l2 2"/></svg>
+                                            </a>
+                                            <form action="{{ route('teacher.materials.destroy', $material->id) }}" method="POST" class="m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus materi ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1 text-slate-400 hover:text-red-600 transition" title="Hapus">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center border border-dashed border-slate-200 rounded-lg">
+                                        <p class="text-xs text-slate-400">Belum ada materi dibuat</p>
+                                    </div>
+                                @endforelse
+                            </div>
                         </div>
-                        <div class="p-4 bg-white border border-dashed border-slate-300 rounded-xl flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-700">Tugas (0)</span>
-                            <a href="#" class="text-xs font-semibold text-amber-600 hover:text-amber-700">+ Tambah</a>
+
+                        <!-- ================= 2. SECTION TUGAS (SUBMISSION) ================= -->
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                        </svg>
+                                        <span class="text-xs font-bold text-slate-800">Tugas ({{ $meeting->assignments ? $meeting->assignments->where('type', 'submission')->count() : 0 }})</span>
+                                    </div>
+                                    <a href="#" class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
+                                        + Tambah
+                                    </a>
+                                </div>
+
+                                <!-- Loop Tugas (Saat Fitur Tugas Dibuat) -->
+                                @if(isset($meeting->assignments) && $meeting->assignments->where('type', 'submission')->count() > 0)
+                                    @foreach($meeting->assignments->where('type', 'submission') as $assignment)
+                                        <div class="flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100">
+                                            <span class="text-xs font-medium text-slate-700 truncate">{{ $assignment->title }}</span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="p-4 text-center border border-dashed border-slate-200 rounded-lg">
+                                        <p class="text-xs text-slate-400">Belum ada tugas dibuat</p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <div class="p-4 bg-white border border-dashed border-slate-300 rounded-xl flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-700">Kuis (0)</span>
-                            <a href="#" class="text-xs font-semibold text-amber-600 hover:text-amber-700">+ Tambah</a>
+
+                        <!-- ================= 3. SECTION KUIS (QUIZ) ================= -->
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span class="text-xs font-bold text-slate-800">Kuis ({{ $meeting->assignments ? $meeting->assignments->where('type', 'quiz')->count() : 0 }})</span>
+                                    </div>
+                                    <a href="#" class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition">
+                                        + Tambah
+                                    </a>
+                                </div>
+
+                                <!-- Loop Kuis (Saat Fitur Kuis Dibuat) -->
+                                @if(isset($meeting->assignments) && $meeting->assignments->where('type', 'quiz')->count() > 0)
+                                    @foreach($meeting->assignments->where('type', 'quiz') as $quiz)
+                                        <div class="flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100">
+                                            <span class="text-xs font-medium text-slate-700 truncate">{{ $quiz->title }}</span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="p-4 text-center border border-dashed border-slate-200 rounded-lg">
+                                        <p class="text-xs text-slate-400">Belum ada kuis dibuat</p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
