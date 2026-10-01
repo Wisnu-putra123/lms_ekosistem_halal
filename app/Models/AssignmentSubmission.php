@@ -13,6 +13,7 @@ class AssignmentSubmission extends Model
         'assignment_id',
         'user_id',
         'media_id',
+        'submission_text',
         'submitted_at',
         'feedback',
         'score',
