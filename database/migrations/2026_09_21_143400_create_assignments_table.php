@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('assignments', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('course_id')
                 ->constrained('courses')
                 ->cascadeOnDelete();
@@ -35,10 +36,23 @@ return new class extends Migration
                 'submission'
             ]);
 
+            /*
+             * Waktu assignment dapat dikerjakan.
+             */
             $table->dateTime('available_from')->nullable();
             $table->dateTime('available_until')->nullable();
 
+            /*
+             * Sistem penilaian.
+             *
+             * max_score:
+             * Nilai maksimum yang dapat diperoleh Student.
+             *
+             * passing_score:
+             * Nilai minimum/KKM agar assignment dianggap lulus.
+             */
             $table->decimal('max_score', 5, 2)->default(100);
+            $table->decimal('passing_score', 5, 2)->default(70);
 
             $table->enum('status', [
                 'draft',

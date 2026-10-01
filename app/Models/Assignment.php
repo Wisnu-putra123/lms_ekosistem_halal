@@ -19,6 +19,7 @@ class Assignment extends Model
         'available_from',
         'available_until',
         'max_score',
+        'passing_score',
         'status',
     ];
 
@@ -26,6 +27,7 @@ class Assignment extends Model
         'available_from' => 'datetime',
         'available_until' => 'datetime',
         'max_score' => 'decimal:2',
+        'passing_score' => 'decimal:2',
     ];
 
     public function course()
