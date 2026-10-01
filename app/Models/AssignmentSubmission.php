@@ -12,7 +12,6 @@ class AssignmentSubmission extends Model
     protected $fillable = [
         'assignment_id',
         'user_id',
-        'media_id',
         'submission_text',
         'submitted_at',
         'feedback',
@@ -28,21 +27,34 @@ class AssignmentSubmission extends Model
         'score' => 'decimal:2',
     ];
 
+    /**
+     * Assignment yang dikerjakan.
+     */
     public function assignment()
     {
         return $this->belongsTo(Assignment::class);
     }
 
+    /**
+     * Student yang melakukan submission.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function media()
+    /**
+     * File-file yang dikumpulkan Student.
+     */
+    public function attachments()
     {
-        return $this->belongsTo(Media::class);
+        return $this->hasMany(SubmissionAttachment::class)
+            ->orderBy('sort_order');
     }
 
+    /**
+     * Teacher yang memberikan nilai.
+     */
     public function grader()
     {
         return $this->belongsTo(

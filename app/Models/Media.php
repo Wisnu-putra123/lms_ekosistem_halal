@@ -78,4 +78,14 @@ class Media extends Model
     {
         return $this->hasMany(Certificate::class);
     }
+
+    public function assignmentAttachments()
+    {
+        return $this->hasMany(AssignmentAttachment::class);
+    }
+
+    public function submissionAttachments()
+    {
+        return $this->hasMany(SubmissionAttachment::class);
+    }
 }
