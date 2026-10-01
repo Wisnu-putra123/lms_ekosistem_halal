@@ -21,10 +21,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->foreignId('media_id')
-                ->nullable()
-                ->constrained('media')
-                ->nullOnDelete();
 
             $table->longText('submission_text')->nullable();
 

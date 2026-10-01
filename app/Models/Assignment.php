@@ -54,4 +54,10 @@ class Assignment extends Model
     {
         return $this->hasMany(AssignmentSubmission::class);
     }
+
+        public function attachments()
+    {
+        return $this->hasMany(AssignmentAttachment::class)
+            ->orderBy('sort_order');
+    }
 }
