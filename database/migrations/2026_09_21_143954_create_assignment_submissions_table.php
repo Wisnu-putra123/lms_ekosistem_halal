@@ -26,6 +26,8 @@ return new class extends Migration
                 ->constrained('media')
                 ->nullOnDelete();
 
+            $table->longText('submission_text')->nullable();
+
             $table->timestamp('submitted_at')->nullable();
 
             $table->text('feedback')->nullable();
