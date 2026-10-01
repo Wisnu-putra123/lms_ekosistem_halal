@@ -28,7 +28,6 @@ return new class extends Migration
 
             $table->unsignedInteger('max_attempts')->default(1);
 
-            $table->decimal('passing_score', 5, 2)->nullable();
             $table->timestamps();
         });
     }
