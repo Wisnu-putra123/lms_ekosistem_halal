@@ -16,6 +16,7 @@ class Assignment extends Model
         'title',
         'description',
         'type',
+        'submission_method',
         'available_from',
         'available_until',
         'max_score',

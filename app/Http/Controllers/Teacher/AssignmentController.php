@@ -27,6 +27,7 @@ class AssignmentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'submission_method' => ['required', 'in:file,text,both'],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -34,6 +35,10 @@ class AssignmentController extends Controller
             'status' => ['required', 'in:draft,published,closed'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:pdf,doc,docx,ppt,pptx,zip,rar,png,jpg,jpeg', 'max:10240'],
+        ], [
+            'title.required' => 'Judul tugas wajib diisi.',
+            'submission_method.required' => 'Metode pengumpulan wajib dipilih.',
+            'passing_score.lte' => 'Nilai kelulusan tidak boleh melebihi nilai maksimal.',
         ]);
 
         DB::beginTransaction();
@@ -45,6 +50,7 @@ class AssignmentController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'type' => 'submission',
+                'submission_method' => $validated['submission_method'],
                 'available_from' => $validated['available_from'] ?? null,
                 'available_until' => $validated['available_until'] ?? null,
                 'max_score' => $validated['max_score'] ?? 100.00,
@@ -101,6 +107,7 @@ class AssignmentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'submission_method' => ['required', 'in:file,text,both'],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -116,6 +123,7 @@ class AssignmentController extends Controller
             $assignment->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
+                'submission_method' => $validated['submission_method'],
                 'available_from' => $validated['available_from'] ?? null,
                 'available_until' => $validated['available_until'] ?? null,
                 'max_score' => $validated['max_score'],
