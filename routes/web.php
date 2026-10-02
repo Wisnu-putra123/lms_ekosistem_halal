@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
+use App\Http\Controllers\Teacher\AssignmentController;
+
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
 use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
@@ -97,13 +99,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/courses/{course}/meetings', [MeetingController::class, 'store'])->name('courses.meetings.store');
         Route::put('/meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
         Route::delete('/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
-
+        
+        // Manajement Materi
         Route::get('/meetings/{meeting}/materials/create', [MaterialController::class, 'create'])->name('meetings.materials.create');
         Route::post('/meetings/{meeting}/materials', [MaterialController::class, 'store'])->name('meetings.materials.store');
         Route::get('/materials/{material}', [MaterialController::class, 'show'])->name('materials.show');
         Route::get('/materials/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
         Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
         Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+
+        // Management Assignment Submission
+        Route::get('/meetings/{meeting}/assignments/create', [AssignmentController::class, 'create'])->name('meetings.assignments.create');
+        Route::post('/meetings/{meeting}/assignments', [AssignmentController::class, 'store'])->name('meetings.assignments.store');
+        Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
+        Route::get('/assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
+        Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
+        Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
     });
 });
 
