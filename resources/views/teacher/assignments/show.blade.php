@@ -18,7 +18,7 @@
             <a href="{{ route('teacher.assignments.edit', $assignment->id) }}" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition">
                 Edit Tugas
             </a>
-            <form action="{{ route('teacher.assignments.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus tugas ini?')">
+            <form action="{{ route('teacher.assignments.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus tempat submission tugas ini beserta seluruh lampirannya?')">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition">
@@ -49,7 +49,19 @@
         </div>
 
         <!-- Metric Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <span class="text-[10px] font-semibold text-slate-400 uppercase">Metode Pengumpulan</span>
+                <div class="text-xs font-bold text-blue-700 mt-1 uppercase">
+                    @if($assignment->submission_method === 'file')
+                        Unggah Berkas
+                    @elseif($assignment->submission_method === 'text')
+                        Teks Editor
+                    @else
+                        Berkas & Teks
+                    @endif
+                </div>
+            </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Nilai Maksimal</span>
                 <div class="text-base font-bold text-slate-800 mt-0.5">{{ number_format($assignment->max_score, 0) }}</div>
@@ -72,7 +84,7 @@
             </div>
         </div>
 
-        <!-- Deskripsi -->
+        <!-- Deskripsi / Instruksi -->
         @if($assignment->description)
             <div class="space-y-1">
                 <h3 class="text-xs font-bold text-slate-700 uppercase">Instruksi / Petunjuk Pengerjaan:</h3>

@@ -36,6 +36,12 @@ return new class extends Migration
                 'submission'
             ]);
 
+            $table->enum('submission_method', [
+                'file',
+                'text',
+                'both'
+            ])->default('file');
+
             /*
              * Waktu assignment dapat dikerjakan.
              */
