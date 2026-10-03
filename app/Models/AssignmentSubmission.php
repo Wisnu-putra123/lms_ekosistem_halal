@@ -48,8 +48,8 @@ class AssignmentSubmission extends Model
      */
     public function attachments()
     {
-        return $this->hasMany(SubmissionAttachment::class)
-            ->orderBy('sort_order');
+        // Tambahkan 'submission_id' sebagai parameter kedua
+        return $this->hasMany(SubmissionAttachment::class, 'submission_id')->orderBy('sort_order');
     }
 
     /**
@@ -57,9 +57,6 @@ class AssignmentSubmission extends Model
      */
     public function grader()
     {
-        return $this->belongsTo(
-            User::class,
-            'graded_by'
-        );
+        return $this->belongsTo(User::class, 'graded_by');
     }
 }

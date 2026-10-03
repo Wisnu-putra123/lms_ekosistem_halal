@@ -4,14 +4,18 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
+
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\AssignmentController;
+use App\Http\Controllers\Teacher\MeetingController;
+use App\Http\Controllers\Teacher\MaterialController;
+use App\Http\Controllers\Teacher\SubmissionGradingController;
 
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
 use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
-use App\Http\Controllers\Teacher\MeetingController;
-use App\Http\Controllers\Teacher\MaterialController;
+use App\Http\Controllers\Student\TaskSubmissionController;
+
 use Illuminate\Support\Facades\Route;
 
 
@@ -72,6 +76,12 @@ Route::middleware('auth')->group(function () {
         // Material
         Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
 
+        // Rute Submission Student
+        Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
+        Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
+        Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
+        Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
+
         // Tugas Upload (Submissions)
         // Route::get('/submissions/{assignment}', [StudentTaskSubmissionController::class, 'show'])->name('submissions.show');
         // Route::post('/submissions/{assignment}/submit', [StudentTaskSubmissionController::class, 'submit'])->name('submissions.submit');
@@ -115,6 +125,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
         Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
         Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+
+        // Penilaian Submission oleh Teacher
+        Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
+        Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
+        Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
     });
 });
 
