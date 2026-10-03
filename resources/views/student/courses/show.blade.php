@@ -124,7 +124,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <a href="{{ route('student.submissions.show', $assignment->id) }}" class="text-[11px] text-emerald-600 font-bold hover:underline flex-shrink-0">
+                                        <a href="" class="text-[11px] text-emerald-600 font-bold hover:underline flex-shrink-0">
                                             Kirim Tugas &rarr;
                                         </a>
                                     </div>
