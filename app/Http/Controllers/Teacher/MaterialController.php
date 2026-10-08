@@ -10,6 +10,7 @@ use App\Helpers\EmbedHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MaterialController extends Controller
 {
@@ -29,19 +30,23 @@ class MaterialController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'content' => 'nullable|string', // Isi Teks / Trix / CKEditor
-            'external_url' => 'nullable|url', // Link Drive, YouTube, dll.
+            'content' => 'nullable|string',
+            'media_type' => 'nullable|in:file,embed',
+            'external_url' => 'nullable|required_if:media_type,embed|url',
+            'file' => 'nullable|required_if:media_type,file|file|mimes:pdf,doc,docx,ppt,pptx,zip,rar,png,jpg,jpeg|max:20480',
             'sort_order' => 'nullable|integer',
         ], [
             'title.required' => 'Judul materi wajib diisi.',
+            'external_url.required_if' => 'URL eksternal wajib diisi jika memilih jenis Embedded Link.',
             'external_url.url' => 'Format URL eksternal tidak valid.',
+            'file.required_if' => 'Berkas lampiran wajib diunggah jika memilih jenis File Upload.',
+            'file.max' => 'Ukuran berkas tidak boleh melebihi 20MB.',
         ]);
 
         DB::transaction(function () use ($validated, $meeting, $request) {
             $mediaId = null;
 
-            // Jika menginput URL Media / Embedded Link
-            if (!empty($validated['external_url'])) {
+            if ($request->input('media_type') === 'embed' && !empty($validated['external_url'])) {
                 $embedUrl = EmbedHelper::formatToEmbedUrl($validated['external_url']);
 
                 $media = Media::create([
@@ -52,12 +57,24 @@ class MaterialController extends Controller
                 ]);
 
                 $mediaId = $media->id;
+            } elseif ($request->input('media_type') === 'file' && $request->hasFile('file')) {
+                $uploadedFile = $request->file('file');
+                $filePath = $uploadedFile->store('materials', 'public');
+
+                $media = Media::create([
+                    'type' => 'document',
+                    'file_name' => $uploadedFile->getClientOriginalName(),
+                    'file_path' => $filePath,
+                    'mime_type' => $uploadedFile->getMimeType(),
+                    'file_size' => $uploadedFile->getSize(),
+                    'uploaded_by' => Auth::id(),
+                ]);
+
+                $mediaId = $media->id;
             }
 
-            // Hitung urutan materi jika tidak diisi
             $sortOrder = $validated['sort_order'] ?? ($meeting->materials()->max('sort_order') + 1);
 
-            // Simpan ke tabel materials
             Material::create([
                 'meeting_id' => $meeting->id,
                 'title' => $validated['title'],
@@ -78,7 +95,7 @@ class MaterialController extends Controller
      */
     public function show(Material $material)
     {
-        $material->load(['meeting', 'media']);
+        $material->load(['meeting.course', 'media']);
         return view('teacher.materials.show', compact('material'));
     }
 
@@ -87,7 +104,7 @@ class MaterialController extends Controller
      */
     public function edit(Material $material)
     {
-        $material->load('media');
+        $material->load(['meeting.course', 'media']);
         return view('teacher.materials.edit', compact('material'));
     }
 
@@ -100,24 +117,36 @@ class MaterialController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'external_url' => 'nullable|url',
+            'media_type' => 'nullable|in:file,embed,none',
+            'external_url' => 'nullable|required_if:media_type,embed|url',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,rar,png,jpg,jpeg|max:20480',
             'sort_order' => 'nullable|integer',
+        ], [
+            'title.required' => 'Judul materi wajib diisi.',
+            'external_url.required_if' => 'URL eksternal wajib diisi jika memilih Embedded Link.',
+            'file.max' => 'Ukuran berkas tidak boleh melebihi 20MB.',
         ]);
 
-        DB::transaction(function () use ($validated, $material) {
+        DB::transaction(function () use ($validated, $material, $request) {
             $mediaId = $material->media_id;
+            $mediaTypeChoice = $request->input('media_type', 'none');
 
-            if (!empty($validated['external_url'])) {
+            if ($mediaTypeChoice === 'embed' && !empty($validated['external_url'])) {
                 $embedUrl = EmbedHelper::formatToEmbedUrl($validated['external_url']);
 
+                // Hapus berkas file lama jika sebelumnya berbentuk file upload
+                if ($material->media && $material->media->type !== 'embed' && $material->media->file_path) {
+                    Storage::disk('public')->delete($material->media->file_path);
+                }
+
                 if ($material->media) {
-                    // Update media lama
                     $material->media->update([
+                        'type' => 'embed',
                         'external_url' => $embedUrl,
+                        'file_path' => null,
                         'file_name' => 'Embedded Content: ' . $validated['title'],
                     ]);
                 } else {
-                    // Buat record media baru
                     $media = Media::create([
                         'type' => 'embed',
                         'file_name' => 'Embedded Content: ' . $validated['title'],
@@ -126,17 +155,50 @@ class MaterialController extends Controller
                     ]);
                     $mediaId = $media->id;
                 }
+            } elseif ($mediaTypeChoice === 'file') {
+                if ($request->hasFile('file')) {
+                    // Hapus file fisik lama
+                    if ($material->media && $material->media->file_path) {
+                        Storage::disk('public')->delete($material->media->file_path);
+                    }
+
+                    $uploadedFile = $request->file('file');
+                    $filePath = $uploadedFile->store('materials', 'public');
+
+                    if ($material->media) {
+                        $material->media->update([
+                            'type' => 'document',
+                            'file_name' => $uploadedFile->getClientOriginalName(),
+                            'file_path' => $filePath,
+                            'external_url' => null,
+                            'mime_type' => $uploadedFile->getMimeType(),
+                            'file_size' => $uploadedFile->getSize(),
+                        ]);
+                    } else {
+                        $media = Media::create([
+                            'type' => 'document',
+                            'file_name' => $uploadedFile->getClientOriginalName(),
+                            'file_path' => $filePath,
+                            'mime_type' => $uploadedFile->getMimeType(),
+                            'file_size' => $uploadedFile->getSize(),
+                            'uploaded_by' => Auth::id(),
+                        ]);
+                        $mediaId = $media->id;
+                    }
+                }
             } else {
-                // Jika URL dihapus, hapus relasi media-nya
+                // Jika tidak memilih media / memilih hapus media
                 if ($material->media) {
                     $oldMedia = $material->media;
+                    if ($oldMedia->file_path) {
+                        Storage::disk('public')->delete($oldMedia->file_path);
+                    }
                     $mediaId = null;
                     $material->update(['media_id' => null]);
                     $oldMedia->delete();
                 }
             }
 
-            // Update tabel materials
             $material->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
@@ -162,6 +224,9 @@ class MaterialController extends Controller
             $material->delete();
 
             if ($media) {
+                if ($media->file_path) {
+                    Storage::disk('public')->delete($media->file_path);
+                }
                 $media->delete();
             }
         });

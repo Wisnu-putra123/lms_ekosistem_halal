@@ -7,6 +7,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentAttachment;
 use App\Models\Meeting;
 use App\Models\Media;
+use App\Helpers\CourseProgressHelper; // Import Helper
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +78,9 @@ class AssignmentController extends Controller
                     ]);
                 }
             }
+
+            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
 
             DB::commit();
             return redirect()->route('teacher.courses.show', $meeting->course_id)->with('success', 'Tempat submission tugas berhasil dibuat!');
@@ -165,6 +169,9 @@ class AssignmentController extends Controller
                 }
             }
 
+            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI (Jika misal status tugas diubah dari/ke draft)
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
+
             DB::commit();
             return redirect()->route('teacher.assignments.show', $assignment->id)->with('success', 'Tempat submission berhasil diperbarui!');
         } catch (\Exception $e) {
@@ -179,6 +186,8 @@ class AssignmentController extends Controller
 
         DB::beginTransaction();
         try {
+            $courseId = $assignment->course_id;
+
             foreach ($assignment->attachments as $attachment) {
                 if ($attachment->media) {
                     Storage::disk('public')->delete($attachment->media->file_path);
@@ -186,8 +195,10 @@ class AssignmentController extends Controller
                 }
             }
 
-            $courseId = $assignment->course_id;
             $assignment->delete();
+
+            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($courseId);
 
             DB::commit();
 
