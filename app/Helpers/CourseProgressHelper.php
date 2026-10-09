@@ -9,31 +9,20 @@ use App\Models\Enrollment;
 
 class CourseProgressHelper
 {
-    /**
-     * Hitung & perbarui persentase progress untuk SATU siswa di suatu course.
-     */
     public static function updateStudentProgress(int $courseId, int $userId): void
     {
-        // 1. Cari data enrollment siswa
         $enrollment = Enrollment::where('course_id', $courseId)
             ->where('user_id', $userId)
             ->where('status', 'active')
             ->first();
 
-        if (!$enrollment) {
-            return;
-        }
+        if (!$enrollment) return;
 
         self::calculateAndSaveProgress($enrollment, $courseId, $userId);
     }
 
-    /**
-     * Hitung & perbarui persentase progress untuk SEMUA siswa aktif di suatu course.
-     * Dipanggil saat Teacher menambah, mengubah status, atau menghapus assignment.
-     */
     public static function recalculateAllActiveStudentsProgress(int $courseId): void
     {
-        // Ambil seluruh siswa aktif di kelas ini
         $activeEnrollments = Enrollment::where('course_id', $courseId)
             ->where('status', 'active')
             ->get();
@@ -43,39 +32,34 @@ class CourseProgressHelper
         }
     }
 
-    /**
-     * Internal logic kalkulasi persentase dan penulisan ke database.
-     */
     private static function calculateAndSaveProgress(Enrollment $enrollment, int $courseId, int $userId): void
     {
-        // 1. Hitung total assignment published di course ini
+        // 1. Hitung total assignment resmi di course ini
         $totalAssignments = Assignment::where('course_id', $courseId)
-            ->where('status', 'published')
+            ->whereIn('status', ['published', 'closed'])
             ->count();
 
-        // Jika tidak ada assignment published, reset progress ke 0%
         if ($totalAssignments === 0) {
             CourseProgress::updateOrCreate(
                 ['enrollment_id' => $enrollment->id],
-                [
-                    'progress_percentage' => 0.00,
-                    'last_activity_at' => now(),
-                    'completed_at' => null,
-                ]
+                ['progress_percentage' => 0.00, 'last_activity_at' => now(), 'completed_at' => null]
             );
             return;
         }
 
-        // 2. Hitung berapa assignment published yang sudah dikerjakan dan LULUS (score >= passing_score)
-        $passedAssignmentsCount = AssignmentSubmission::whereHas('assignment', function ($query) use ($courseId) {
-                $query->where('course_id', $courseId)->where('status', 'published');
-            })
-            ->where('user_id', $userId)
-            ->where('status', 'graded')
-            ->whereRaw('score >= (SELECT passing_score FROM assignments WHERE assignments.id = assignment_submissions.assignment_id)')
+        // 2. Hitung jumlah assignment di mana NILAI MAKSIMAL (MAX SCORE) siswa >= passing_score
+        $passedAssignmentsCount = AssignmentSubmission::join('assignments', 'assignments.id', '=', 'assignment_submissions.assignment_id')
+            ->where('assignments.course_id', $courseId)
+            ->whereIn('assignments.status', ['published', 'closed'])
+            ->where('assignment_submissions.user_id', $userId)
+            ->where('assignment_submissions.status', 'graded')
+            ->selectRaw('assignment_submissions.assignment_id, MAX(assignment_submissions.score) as max_score, assignments.passing_score')
+            ->groupBy('assignment_submissions.assignment_id', 'assignments.passing_score')
+            ->havingRaw('MAX(assignment_submissions.score) >= assignments.passing_score')
+            ->get()
             ->count();
 
-        // 3. Hitung persentase progres
+        // 3. Persentase progres
         $progressPercentage = min(100, round(($passedAssignmentsCount / $totalAssignments) * 100, 2));
 
         // 4. Simpan ke database

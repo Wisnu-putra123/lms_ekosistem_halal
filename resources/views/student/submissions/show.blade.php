@@ -43,20 +43,22 @@
                 <h1 class="text-xl font-bold text-slate-800 mt-1">{{ $assignment->title }}</h1>
             </div>
 
-            <!-- Status Pengumpulan Student -->
+            <!-- Status Kelulusan Berdasarkan Best Score -->
             <div>
-                @if(!$submission)
+                @if($submissions->isEmpty())
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Belum Mengumpulkan</span>
-                @elseif($submission->status === 'graded')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Sudah Dinilai</span>
+                @elseif(!is_null($bestScore) && $bestScore >= $assignment->passing_score)
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">LULUS (Skor Terbaik: {{ number_format($bestScore, 0) }})</span>
+                @elseif(!is_null($bestScore))
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">BELUM LULUS (Skor Terbaik: {{ number_format($bestScore, 0) }})</span>
                 @else
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Sudah Dikumpulkan</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Menunggu Penilaian</span>
                 @endif
             </div>
         </div>
 
         <!-- Metric Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Metode Pengumpulan</span>
                 <div class="text-xs font-bold text-slate-800 mt-1 uppercase">
@@ -67,6 +69,13 @@
                     @else
                         Berkas & Teks
                     @endif
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <span class="text-[10px] font-semibold text-slate-400 uppercase">Batas Attempt</span>
+                <div class="text-xs font-bold text-slate-800 mt-1">
+                    {{ $assignment->max_attempts ? $submissions->count() . ' / ' . $assignment->max_attempts . 'x Attempt' : $submissions->count() . 'x Attempt (Tanpa Batas)' }}
                 </div>
             </div>
 
@@ -123,134 +132,66 @@
         @endif
     </div>
 
-    <!-- 2. STATUS PENILAIAN & FEEDBACK TEACHER (JIKA SUDAH DINILAI) -->
-    @if($submission && $submission->status === 'graded')
-        <div class="p-6 rounded-2xl border shadow-sm space-y-4 {{ $submission->score >= $assignment->passing_score ? 'bg-emerald-50/70 border-emerald-200' : 'bg-red-50/70 border-red-200' }}">
-            <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                <div class="flex items-center space-x-2">
-                    <svg class="w-5 h-5 {{ $submission->score >= $assignment->passing_score ? 'text-emerald-600' : 'text-red-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <h3 class="text-sm font-bold text-slate-800">Hasil Penilaian Pengajar</h3>
-                </div>
-
-                @if($submission->score >= $assignment->passing_score)
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-sm">LULUS</span>
-                @else
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white shadow-sm">BELUM LULUS</span>
-                @endif
+    <!-- 2. RIWAYAT SUBMISSION & FORM SUBMISSION (MULTI-ATTEMPT) -->
+    <div x-data="{ 
+            isCreatingNew: false, 
+            openAttempts: [{{ $submissions->pluck('id')->implode(',') }}],
+            toggleAttempt(id) {
+                if (this.openAttempts.includes(id)) {
+                    this.openAttempts = this.openAttempts.filter(i => i !== id);
+                } else {
+                    this.openAttempts.push(id);
+                }
+            },
+            expandAll() {
+                this.openAttempts = [{{ $submissions->pluck('id')->implode(',') }}];
+            },
+            collapseAll() {
+                this.openAttempts = [];
+            }
+         }" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
+            <div>
+                <h2 class="text-base font-bold text-slate-800">Jawaban & Riwayat Percobaan</h2>
+                <p class="text-xs text-slate-500">Nilai tertinggi dari seluruh attempt yang lulus akan dihitung sebagai progress kelulusan Anda.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <span class="text-[11px] font-semibold text-slate-500 uppercase">Nilai Akhir:</span>
-                    <div class="text-2xl font-black {{ $submission->score >= $assignment->passing_score ? 'text-emerald-700' : 'text-red-700' }}">
-                        {{ number_format($submission->score, 2) }} <span class="text-xs text-slate-400 font-normal">/ {{ number_format($assignment->max_score, 0) }}</span>
+            <div class="flex items-center space-x-2">
+                @if($submissions->isNotEmpty())
+                    <div class="flex items-center space-x-1 border-r border-slate-200 pr-2">
+                        <button type="button" @click="expandAll()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition">
+                            Buka Semua
+                        </button>
+                        <button type="button" @click="collapseAll()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition">
+                            Tutup Semua
+                        </button>
                     </div>
-                </div>
+                @endif
 
-                <div>
-                    <span class="text-[11px] font-semibold text-slate-500 uppercase">Catatan / Feedback Pengajar:</span>
-                    <p class="text-xs text-slate-700 mt-1 italic bg-white/80 p-3 rounded-xl border border-slate-200/60">
-                        {{ $submission->feedback ? '"' . $submission->feedback . '"' : 'Tidak ada catatan feedback tertulis.' }}
-                    </p>
-                </div>
+                @if($canSubmitNewAttempt && (!$latestSubmission || $latestSubmission->status === 'graded'))
+                    <button type="button" @click="isCreatingNew = true" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span>Kirim Attempt Baru</span>
+                    </button>
+                @endif
             </div>
         </div>
-    @endif
 
-    <!-- 3. FORM SUBMISSION / EDIT / RESUBMIT -->
-    <div x-data="{ isEditing: {{ $submission ? 'false' : 'true' }} }" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        
-        <!-- Mode Tampilan (Sudah Dikumpulkan) -->
-        <template x-if="!isEditing">
-            <div class="space-y-6">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Jawaban Anda</h2>
-                        <p class="text-xs text-slate-400">
-                            Dikumpulkan pada {{ $submission?->submitted_at ? \Carbon\Carbon::parse($submission->submitted_at)->format('d M Y, H:i') : '-' }} WIB
-                        </p>
-                    </div>
-
-                    @if($submission)
-                        <div class="flex items-center space-x-2">
-                            <button type="button" @click="isEditing = true" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition">
-                                Edit Jawaban
-                            </button>
-
-                            <form action="{{ route('student.submissions.destroy', [$assignment->id, $submission->id]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengumpulan tugas ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-3.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition">
-                                    Batalkan Pengumpulan
-                                </button>
-                            </form>
-                        </div>
-                    @endif
-                </div>
-
-                @if($submission)
-                    <!-- Teks Jawaban Terkumpul -->
-                    @if(in_array($assignment->submission_method, ['text', 'both']) && $submission->submission_text)
-                        <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-700 uppercase">Teks Jawaban:</span>
-                            <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 leading-relaxed whitespace-pre-line">
-                                {{ $submission->submission_text }}
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Lampiran Berkas Terkumpul -->
-                    @if(in_array($assignment->submission_method, ['file', 'both']) && $submission->attachments && $submission->attachments->count() > 0)
-                        <div class="space-y-2">
-                            <span class="text-xs font-bold text-slate-700 uppercase">Berkas Jawaban Terlampir:</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                @foreach($submission->attachments as $att)
-                                    @if($att->media)
-                                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                                            <div class="flex items-center space-x-2 overflow-hidden pr-2">
-                                                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                </svg>
-                                                <span class="text-xs font-semibold text-slate-800 truncate">{{ $att->media->file_name }}</span>
-                                            </div>
-                                            <a href="{{ asset('storage/' . $att->media->file_path) }}" download class="text-[11px] font-bold text-emerald-600 hover:underline flex-shrink-0">Unduh</a>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                @else
-                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800">
-                        Anda belum mengirimkan jawaban untuk tugas ini. Silakan klik tombol atau gunakan formulir di bawah.
-                    </div>
-                @endif
-            </div>
-        </template>
-
-        <!-- Mode Form Input (Store / Update) -->
-        <template x-if="isEditing">
-            <div>
-                <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">{{ $submission ? 'Edit Pengumpulan Tugas' : 'Form Pengumpulan Tugas' }}</h2>
-                        <p class="text-xs text-slate-500">Isi formulir pengumpulan sesuai petunjuk yang diberikan.</p>
-                    </div>
-                    @if($submission)
-                        <button type="button" @click="isEditing = false" class="text-xs font-semibold text-slate-500 hover:text-slate-800">
-                            Batal Edit
+        <!-- FORM CREATING NEW ATTEMPT (JIKA BELUM ADA ATTEMPT ATAU MAU BUAT BARU) -->
+        <template x-if="isCreatingNew || {{ $submissions->isEmpty() ? 'true' : 'false' }}">
+            <div class="bg-slate-50 p-6 rounded-2xl border border-emerald-200 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                    <h3 class="text-sm font-bold text-slate-800">Form Pengumpulan Attempt Baru</h3>
+                    @if($submissions->isNotEmpty())
+                        <button type="button" @click="isCreatingNew = false" class="text-xs font-semibold text-slate-500 hover:text-slate-800">
+                            Batal
                         </button>
                     @endif
                 </div>
 
-                <form action="{{ $submission ? route('student.submissions.update', [$assignment->id, $submission->id]) : route('student.submissions.store', $assignment->id) }}" 
-                      method="POST" enctype="multipart/form-data" class="space-y-6">
+                <form action="{{ route('student.submissions.store', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
-                    @if($submission)
-                        @method('PUT')
-                    @endif
 
                     <!-- Input Teks Jawaban -->
                     @if(in_array($assignment->submission_method, ['text', 'both']))
@@ -263,31 +204,11 @@
                                     <span class="text-slate-400 font-normal">(Isi teks atau unggah berkas di bawah)</span>
                                 @endif
                             </label>
-                            <textarea name="submission_text" rows="6" placeholder="Ketikkan jawaban tugas Anda di sini..."
-                                      class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('submission_text') border-red-500 @enderror">{{ old('submission_text', $submission ? $submission->submission_text : '') }}</textarea>
+                            <textarea name="submission_text" rows="5" placeholder="Ketikkan jawaban tugas Anda di sini..."
+                                      class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('submission_text') border-red-500 @enderror">{{ old('submission_text') }}</textarea>
                             @error('submission_text')
                                 <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                             @enderror
-                        </div>
-                    @endif
-
-                    <!-- Hapus Berkas Lama -->
-                    @if($submission && $submission->attachments && $submission->attachments->count() > 0 && in_array($assignment->submission_method, ['file', 'both']))
-                        <div class="space-y-2">
-                            <label class="block text-xs font-semibold text-slate-700">Lampiran Berkas Saat Ini:</label>
-                            <div class="space-y-1.5">
-                                @foreach($submission->attachments as $att)
-                                    @if($att->media)
-                                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                                            <span class="text-xs text-slate-700 font-medium truncate">{{ $att->media->file_name }}</span>
-                                            <label class="inline-flex items-center space-x-1.5 text-xs text-red-600 cursor-pointer font-semibold">
-                                                <input type="checkbox" name="delete_attachments[]" value="{{ $att->id }}" class="rounded text-red-600 focus:ring-red-500">
-                                                <span>Hapus Berkas</span>
-                                            </label>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
                         </div>
                     @endif
 
@@ -295,87 +216,250 @@
                     @if(in_array($assignment->submission_method, ['file', 'both']))
                         <div x-data="attachmentUploader()" class="space-y-3">
                             <label class="block text-xs font-semibold text-slate-700">
-                                {{ $submission ? 'Tambah Berkas Lampiran Baru (Opsional)' : 'Unggah Berkas Lampiran Jawaban' }}
-                                @if(!$submission && $assignment->submission_method === 'file')
+                                Unggah Berkas Lampiran Jawaban
+                                @if($assignment->submission_method === 'file')
                                     <span class="text-red-500">*</span>
-                                @elseif(!$submission && $assignment->submission_method === 'both')
-                                    <span class="text-slate-400 font-normal">(Unggah berkas atau isi teks di atas)</span>
                                 @endif
                             </label>
 
-                            <div class="border-2 border-dashed border-slate-200 hover:border-emerald-400 rounded-2xl p-5 text-center transition bg-slate-50/50 relative cursor-pointer">
+                            <div class="border-2 border-dashed border-slate-200 hover:border-emerald-400 rounded-2xl p-5 text-center transition bg-white relative cursor-pointer">
                                 <input type="file" x-ref="fileInput" @change="addFiles($event)" multiple
                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 <div class="space-y-1.5 pointer-events-none">
                                     <div class="w-9 h-9 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                        </svg>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                     </div>
                                     <div class="text-xs text-slate-700 font-semibold">+ Pilih Berkas Jawaban</div>
-                                    <p class="text-[10px] text-slate-400">Dapat memilih berkas satu per satu atau sekaligus (PDF, DOCX, ZIP maks 10MB)</p>
+                                    <p class="text-[10px] text-slate-400">PDF, DOCX, PPTX, ZIP, maks 10MB per file</p>
                                 </div>
                             </div>
 
                             <div x-ref="hiddenInputsContainer" class="hidden"></div>
 
-                            <!-- Preview Berkas -->
+                            <!-- Preview Berkas Terpilih -->
                             <template x-if="fileList.length > 0">
-                                <div class="space-y-2 pt-2 border-t border-slate-100">
+                                <div class="space-y-2 pt-2 border-t border-slate-200">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                            Berkas Baru Terpilih (<span x-text="fileList.length"></span>)
-                                        </span>
-                                        <button type="button" @click="removeAllFiles()" class="text-[11px] font-semibold text-red-500 hover:underline">
-                                            Hapus Semua
-                                        </button>
+                                        <span class="text-xs font-bold text-slate-700 uppercase">Berkas Terpilih (<span x-text="fileList.length"></span>)</span>
+                                        <button type="button" @click="removeAllFiles()" class="text-[11px] font-semibold text-red-500 hover:underline">Hapus Semua</button>
                                     </div>
-
                                     <div class="space-y-1.5">
                                         <template x-for="(f, index) in fileList" :key="index">
-                                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between hover:bg-slate-100 transition">
-                                                <div class="flex items-center space-x-3 overflow-hidden pr-2">
-                                                    <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                                        </svg>
-                                                    </div>
-                                                    <div class="overflow-hidden">
-                                                        <div class="text-xs font-semibold text-slate-800 truncate" x-text="f.name"></div>
-                                                        <div class="text-[10px] text-slate-400" x-text="(f.size / 1024 / 1024).toFixed(2) + ' MB'"></div>
-                                                    </div>
-                                                </div>
-
-                                                <button type="button" @click="removeFile(index)" class="p-1 text-slate-400 hover:text-red-600 transition">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                    </svg>
+                                            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                                                <span class="text-xs font-semibold text-slate-800 truncate" x-text="f.name"></span>
+                                                <button type="button" @click="removeFile(index)" class="p-1 text-slate-400 hover:text-red-600">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                                 </button>
                                             </div>
                                         </template>
                                     </div>
                                 </div>
                             </template>
-                            @error('attachments')
-                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     @endif
 
-                    <!-- Submit Button -->
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                        @if($submission)
-                            <button type="button" @click="isEditing = false" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                    <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+                        @if($submissions->isNotEmpty())
+                            <button type="button" @click="isCreatingNew = false" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">
                                 Batal
                             </button>
                         @endif
                         <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition">
-                            {{ $submission ? 'Perbarui Tugas' : 'Kumpulkan Tugas Sekarang' }}
+                            Kumpulkan Tugas Sekarang
                         </button>
                     </div>
                 </form>
             </div>
         </template>
+
+        <!-- LIST DAFTAR ATTEMPT PENGERJAAN -->
+        @if($submissions->isNotEmpty())
+            <div class="space-y-4">
+                @foreach($submissions as $sub)
+                    <div x-data="{ isEditingThis: false }" class="p-5 rounded-2xl border transition space-y-4 {{ $sub->status === 'graded' ? ($sub->score >= $assignment->passing_score ? 'bg-emerald-50/40 border-emerald-200' : 'bg-red-50/40 border-red-200') : 'bg-slate-50/80 border-slate-200' }}">
+                        
+                        <!-- Header Attempt Card -->
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                            <div class="flex items-center space-x-3">
+                                <button type="button" @click="toggleAttempt({{ $sub->id }})" class="p-1 hover:bg-slate-200/60 rounded-md transition text-slate-500">
+                                    <svg class="w-4 h-4 transform transition-transform" :class="openAttempts.includes({{ $sub->id }}) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <span class="px-2.5 py-1 bg-slate-800 text-white rounded-lg font-bold text-xs">
+                                    Attempt #{{ $sub->attempt_number }}
+                                </span>
+                                <span class="text-xs text-slate-500 hidden sm:inline-block">
+                                    Dikumpulkan: {{ \Carbon\Carbon::parse($sub->submitted_at)->format('d M Y, H:i') }} WIB
+                                </span>
+                            </div>
+
+                            <div class="flex items-center space-x-2">
+                                @if($sub->status === 'graded')
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold {{ $sub->score >= $assignment->passing_score ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800' }}">
+                                        Skor: {{ number_format($sub->score, 2) }} / {{ number_format($assignment->max_score, 0) }}
+                                    </span>
+                                @else
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Menunggu Penilaian</span>
+                                    
+                                    <!-- Edit & Hapus Attempt jika belum dinilai -->
+                                    <button type="button" @click="isEditingThis = !isEditingThis; if(!openAttempts.includes({{ $sub->id }})) openAttempts.push({{ $sub->id }})" class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" title="Edit Attempt Ini">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+
+                                    <form action="{{ route('student.submissions.destroy', [$assignment->id, $sub->id]) }}" method="POST" onsubmit="return confirm('Batalkan & hapus attempt submission ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Batalkan Attempt Ini">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- BODY CONTAINER UNTUK TIAP ATTEMPT (BISA EXPAND/COLLAPSE) -->
+                        <div x-show="openAttempts.includes({{ $sub->id }})" x-collapse class="space-y-4 pt-1">
+
+                            <!-- VIEW MODE (TAMPILAN JAWABAN BIASA) -->
+                            <div x-show="!isEditingThis" class="space-y-4">
+                                <!-- Teks Jawaban Siswa -->
+                                @if($sub->submission_text)
+                                    <div class="space-y-1">
+                                        <span class="text-[11px] font-bold text-slate-600 uppercase">Teks Jawaban:</span>
+                                        <div class="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-line">
+                                            {{ $sub->submission_text }}
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Lampiran Berkas Jawaban Siswa -->
+                                @if($sub->attachments && $sub->attachments->count() > 0)
+                                    <div class="space-y-1.5">
+                                        <span class="text-[11px] font-bold text-slate-600 uppercase">Berkas Jawaban Terlampir:</span>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            @foreach($sub->attachments as $att)
+                                                @if($att->media)
+                                                    <div class="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                                                        <span class="font-semibold text-slate-800 truncate">{{ $att->media->file_name }}</span>
+                                                        <a href="{{ asset('storage/' . $att->media->file_path) }}" download class="text-[11px] font-bold text-emerald-600 hover:underline">Unduh</a>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Feedback & Lampiran Berkas Pengajar -->
+                                @if($sub->status === 'graded')
+                                    <div class="pt-3 border-t border-slate-200/80 space-y-2">
+                                        <span class="text-[11px] font-bold text-slate-700 uppercase">Catatan & Lampiran Feedback Pengajar:</span>
+                                        <p class="text-xs text-slate-700 italic bg-white p-3 rounded-xl border border-slate-200">
+                                            {{ $sub->feedback ? '"' . $sub->feedback . '"' : 'Tidak ada catatan tertulis.' }}
+                                        </p>
+
+                                        @if($sub->feedbackAttachments && $sub->feedbackAttachments->count() > 0)
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                                @foreach($sub->feedbackAttachments as $fAtt)
+                                                    @if($fAtt->media)
+                                                        <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
+                                                            <span class="font-semibold text-slate-800 truncate">{{ $fAtt->media->file_name }}</span>
+                                                            <a href="{{ asset('storage/' . $fAtt->media->file_path) }}" download class="text-[11px] font-bold text-amber-700 hover:underline">Unduh Feedback</a>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- EDIT MODE (FORM EDIT YANG TERDAPAT DI DALAM CONTAINER ATTEMPT) -->
+                            <div x-show="isEditingThis" class="p-4 bg-white rounded-xl border border-amber-300 space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                    <h4 class="text-xs font-bold text-amber-800">Edit Jawaban Attempt #{{ $sub->attempt_number }}</h4>
+                                    <button type="button" @click="isEditingThis = false" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">
+                                        Batal Edit
+                                    </button>
+                                </div>
+
+                                <form action="{{ route('student.submissions.update', [$assignment->id, $sub->id]) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <!-- Edit Teks Jawaban -->
+                                    @if(in_array($assignment->submission_method, ['text', 'both']))
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Perbarui Teks Jawaban</label>
+                                            <textarea name="submission_text" rows="4" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('submission_text', $sub->submission_text) }}</textarea>
+                                        </div>
+                                    @endif
+
+                                    <!-- Berkas Terpasang Saat Ini -->
+                                    @if($sub->attachments && $sub->attachments->count() > 0)
+                                        <div class="space-y-1.5 pt-1">
+                                            <span class="text-[11px] font-bold text-slate-600 uppercase">Berkas Terpasang (Centang untuk menghapus):</span>
+                                            <div class="space-y-1">
+                                                @foreach($sub->attachments as $att)
+                                                    @if($att->media)
+                                                        <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
+                                                            <span class="truncate font-medium text-slate-700">{{ $att->media->file_name }}</span>
+                                                            <label class="text-red-600 font-semibold text-[11px] cursor-pointer hover:underline flex items-center space-x-1 flex-shrink-0">
+                                                                <input type="checkbox" name="delete_attachments[]" value="{{ $att->id }}" class="rounded text-red-600 focus:ring-red-500">
+                                                                <span>Hapus</span>
+                                                            </label>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Unggah Tambahan Berkas Baru -->
+                                    @if(in_array($assignment->submission_method, ['file', 'both']))
+                                        <div x-data="attachmentUploader()" class="space-y-2 pt-1 border-t border-slate-100">
+                                            <label class="block text-xs font-semibold text-slate-700">Tambah Berkas Lampiran Baru</label>
+                                            <div class="border-2 border-dashed border-slate-200 hover:border-amber-400 rounded-xl p-4 text-center transition bg-slate-50 relative cursor-pointer">
+                                                <input type="file" x-ref="fileInput" @change="addFiles($event)" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                <div class="text-xs text-slate-700 font-semibold">+ Pilih Berkas Baru</div>
+                                            </div>
+
+                                            <div x-ref="hiddenInputsContainer" class="hidden"></div>
+
+                                            <template x-if="fileList.length > 0">
+                                                <div class="space-y-1.5">
+                                                    <span class="text-[11px] font-bold text-slate-600">Berkas Baru Ditambahkan (<span x-text="fileList.length"></span>):</span>
+                                                    <template x-for="(f, index) in fileList" :key="index">
+                                                        <div class="p-2 bg-amber-50 rounded-lg border border-amber-200 flex items-center justify-between text-xs">
+                                                            <span class="truncate font-medium text-slate-800" x-text="f.name"></span>
+                                                            <button type="button" @click="removeFile(index)" class="text-red-500 hover:text-red-700">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    @endif
+
+                                    <div class="pt-2 flex justify-end space-x-2">
+                                        <button type="button" @click="isEditingThis = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                                            Batal
+                                        </button>
+                                        <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition">
+                                            Simpan Perubahan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
     </div>
 
 </div>

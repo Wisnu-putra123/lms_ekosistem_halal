@@ -17,6 +17,7 @@ class Assignment extends Model
         'description',
         'type',
         'submission_method',
+        'max_attempts',
         'available_from',
         'available_until',
         'max_score',
@@ -25,6 +26,7 @@ class Assignment extends Model
     ];
 
     protected $casts = [
+        'max_attempts' => 'integer',
         'available_from' => 'datetime',
         'available_until' => 'datetime',
         'max_score' => 'decimal:2',
@@ -56,9 +58,25 @@ class Assignment extends Model
         return $this->hasMany(AssignmentSubmission::class);
     }
 
-        public function attachments()
+    public function attachments()
     {
         return $this->hasMany(AssignmentAttachment::class)
             ->orderBy('sort_order');
+    }
+
+    public function allowsTextSubmission(): bool
+    {
+        return in_array($this->submission_method, [
+            'text',
+            'both'
+        ]);
+    }
+
+    public function allowsFileSubmission(): bool
+    {
+        return in_array($this->submission_method, [
+            'file',
+            'both'
+        ]);
     }
 }

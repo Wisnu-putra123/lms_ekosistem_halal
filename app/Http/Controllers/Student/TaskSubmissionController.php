@@ -7,6 +7,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\SubmissionAttachment;
 use App\Models\Media;
+use App\Helpers\CourseProgressHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 class TaskSubmissionController extends Controller
 {
     /**
-     * Tampilkan detail tugas beserta form submission / status jawaban student
+     * Tampilkan detail tugas beserta seluruh riwayat submission/attempt siswa.
      */
     public function show(Assignment $assignment)
     {
@@ -25,36 +26,67 @@ class TaskSubmissionController extends Controller
 
         $assignment->load(['attachments.media', 'meeting', 'course']);
 
-        $submission = AssignmentSubmission::where('assignment_id', $assignment->id)
+        // Ambil seluruh riwayat attempt milik siswa (diurutkan dari attempt terbaru)
+        $submissions = AssignmentSubmission::where('assignment_id', $assignment->id)
             ->where('user_id', Auth::id())
-            ->with(['attachments.media'])
-            ->first();
+            ->with(['attachments.media', 'feedbackAttachments.media'])
+            ->orderBy('attempt_number', 'desc')
+            ->get();
 
-        return view('student.submissions.show', compact('assignment', 'submission'));
+        // Attempt terakhir
+        $latestSubmission = $submissions->first();
+
+        // Cari skor tertinggi dari seluruh attempt yang sudah dinilai
+        $bestScore = $submissions->where('status', 'graded')->max('score');
+
+        // Pengecekan apakah siswa masih bisa mengirim attempt baru
+        $hasMaxAttempts = !is_null($assignment->max_attempts);
+        $attemptsCount = $submissions->count();
+        $canSubmitNewAttempt = !$hasMaxAttempts || ($attemptsCount < $assignment->max_attempts);
+
+        return view('student.submissions.show', compact(
+            'assignment', 
+            'submissions', 
+            'latestSubmission', 
+            'bestScore', 
+            'canSubmitNewAttempt'
+        ));
     }
 
     /**
-     * Simpan Submission Jawaban Baru
+     * Simpan Submission Jawaban Baru (Attempt Baru)
      */
     public function store(Request $request, Assignment $assignment)
     {
+        // 1. Cek Batas Attempt
+        $existingSubmissions = AssignmentSubmission::where('assignment_id', $assignment->id)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $currentAttemptCount = $existingSubmissions->count();
+
+        if (!is_null($assignment->max_attempts) && $currentAttemptCount >= $assignment->max_attempts) {
+            return back()->with('error', 'Anda telah mencapai batas maksimal percobaan pengerjaan tugas ini (' . $assignment->max_attempts . 'x).');
+        }
+
+        // Cek apakah ada submission terakhir yang masih berstatus 'submitted' (belum dinilai)
+        $lastSubmission = $existingSubmissions->sortByDesc('attempt_number')->first();
+        if ($lastSubmission && $lastSubmission->status === 'submitted') {
+            return back()->with('error', 'Pengumpulan sebelumnya masih menunggu penilaian dari pengajar. Silakan gunakan fitur edit jika ingin memperbarui jawaban attempt ini.');
+        }
+
+        // Validasi format pengumpulan
         $this->validateSubmissionMethod($request, $assignment);
 
-        // Cek apakah sudah pernah membuat submission
-        $existing = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('user_id', Auth::id())
-            ->exists();
-
-        if ($existing) {
-            return back()->with('error', 'Anda sudah mengumpulkan tugas ini. Silakan gunakan fitur edit jika ingin mengubah jawaban.');
-        }
+        $nextAttemptNumber = $currentAttemptCount + 1;
 
         DB::beginTransaction();
         try {
-            // 1. Simpan data submission utama
+            // 1. Simpan data submission attempt baru
             $submission = AssignmentSubmission::create([
                 'assignment_id' => $assignment->id,
                 'user_id' => Auth::id(),
+                'attempt_number' => $nextAttemptNumber,
                 'submission_text' => $request->input('submission_text'),
                 'submitted_at' => now(),
                 'status' => 'submitted',
@@ -85,7 +117,7 @@ class TaskSubmissionController extends Controller
             DB::commit();
 
             return redirect()->route('student.submissions.show', $assignment->id)
-                ->with('success', 'Tugas berhasil dikumpulkan!');
+                ->with('success', 'Tugas attempt #' . $nextAttemptNumber . ' berhasil dikumpulkan!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal mengumpulkan tugas: ' . $e->getMessage())->withInput();
@@ -93,13 +125,17 @@ class TaskSubmissionController extends Controller
     }
 
     /**
-     * Update Submission Jawaban (Resubmit / Edit)
+     * Update Submission Jawaban pada Attempt Tertentu (Edit/Re-upload sebelum dinilai)
      */
     public function update(Request $request, Assignment $assignment, AssignmentSubmission $submission)
     {
         // Otorisasi pemilik submission
         if ($submission->user_id !== Auth::id() || $submission->assignment_id !== $assignment->id) {
             abort(403, 'Akses tidak diizinkan.');
+        }
+
+        if ($submission->status === 'graded') {
+            return back()->with('error', 'Jawaban pada attempt ini sudah dinilai dan tidak dapat diubah lagi.');
         }
 
         $this->validateSubmissionMethod($request, $assignment);
@@ -110,10 +146,10 @@ class TaskSubmissionController extends Controller
             $submission->update([
                 'submission_text' => $request->input('submission_text'),
                 'submitted_at' => now(),
-                'status' => 'submitted', // Reset status kembali ke submitted jika diedit
+                'status' => 'submitted',
             ]);
 
-            // 2. Hapus lampiran yang dicentang untuk dihapus oleh siswa
+            // 2. Hapus lampiran yang dicentang oleh siswa
             if ($request->filled('delete_attachments')) {
                 $attachmentsToDelete = SubmissionAttachment::whereIn('id', $request->input('delete_attachments'))
                     ->where('submission_id', $submission->id)
@@ -155,7 +191,7 @@ class TaskSubmissionController extends Controller
             DB::commit();
 
             return redirect()->route('student.submissions.show', $assignment->id)
-                ->with('success', 'Pengumpulan tugas berhasil diperbarui!');
+                ->with('success', 'Pengumpulan tugas attempt #' . $submission->attempt_number . ' berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal memperbarui jawaban: ' . $e->getMessage())->withInput();
@@ -163,7 +199,7 @@ class TaskSubmissionController extends Controller
     }
 
     /**
-     * Hapus Seluruh Submission (Resubmit dari Awal)
+     * Hapus Attempt Submission Tertentu
      */
     public function destroy(Assignment $assignment, AssignmentSubmission $submission)
     {
@@ -171,8 +207,15 @@ class TaskSubmissionController extends Controller
             abort(403, 'Akses tidak diizinkan.');
         }
 
+        if ($submission->status === 'graded') {
+            return back()->with('error', 'Attempt ini sudah dinilai dan tidak dapat dihapus.');
+        }
+
         DB::beginTransaction();
         try {
+            $courseId = $assignment->course_id;
+            $studentId = Auth::id();
+
             // Hapus berkas lampiran siswa
             foreach ($submission->attachments as $attachment) {
                 if ($attachment->media) {
@@ -183,10 +226,13 @@ class TaskSubmissionController extends Controller
 
             $submission->delete();
 
+            // Hitung ulang progress pengerjaan siswa
+            CourseProgressHelper::updateStudentProgress($courseId, $studentId);
+
             DB::commit();
 
             return redirect()->route('student.submissions.show', $assignment->id)
-                ->with('success', 'Pengumpulan tugas berhasil dibatalkan/dihapus.');
+                ->with('success', 'Attempt pengumpulan tugas berhasil dibatalkan/dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menghapus pengumpulan tugas.');
@@ -194,7 +240,7 @@ class TaskSubmissionController extends Controller
     }
 
     /**
-     * Helper Validasi berdasarkan submission_method (file, text, atau both)
+     * Helper Validasi berdasarkan submission_method
      */
     private function validateSubmissionMethod(Request $request, Assignment $assignment)
     {
@@ -204,22 +250,16 @@ class TaskSubmissionController extends Controller
         ];
 
         if ($assignment->submission_method === 'text') {
-            // Metode Teks: Wajib isi teks
             $rules['submission_text'] = ['required', 'string'];
         } elseif ($assignment->submission_method === 'file') {
-            // Metode File: Wajib unggah file (jika belum ada file yang tersimpan)
             $rules['submission_text'] = ['nullable', 'string'];
             if (!$request->isMethod('PUT') && !$request->hasFile('attachments')) {
                 $rules['attachments'] = ['required', 'array', 'min:1'];
             }
         } else { // 'both'
-            // Metode Keduanya: Minimal SALAH SATU terisi (Teks ATAU File)
-            
             if ($request->isMethod('PUT')) {
-                // Pada mode Edit: Izinkan jika teks diisi ATAU file baru diunggah ATAU masih ada lampiran lama yang tidak dihapus
                 $rules['submission_text'] = ['nullable', 'string'];
             } else {
-                // Pada pengumpulan baru: Teks wajib jika TIDAK ADA file, dan File wajib jika TIDAK ADA teks
                 $rules['submission_text'] = ['nullable', 'required_without:attachments', 'string'];
                 $rules['attachments'] = ['nullable', 'required_without:submission_text', 'array', 'min:1'];
             }

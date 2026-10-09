@@ -6,13 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('quiz_attempts', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('quiz_id')
                 ->constrained('quizzes')
                 ->cascadeOnDelete();
@@ -21,24 +19,47 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->dateTime('started_at');
-            $table->dateTime('expires_at')->nullable();
-            $table->dateTime('submitted_at')->nullable();
+            /*
+             * Nomor pengerjaan.
+             *
+             * Contoh:
+             * Attempt 1
+             * Attempt 2
+             * Attempt 3
+             */
+            $table->unsignedInteger('attempt_number');
 
-            $table->decimal('score', 5, 2)->nullable();
+            $table->dateTime('started_at');
+
+            $table->dateTime('expires_at')
+                ->nullable();
+
+            $table->dateTime('submitted_at')
+                ->nullable();
+
+            $table->decimal('score', 5, 2)
+                ->nullable();
 
             $table->enum('status', [
                 'in_progress',
                 'submitted',
                 'expired'
             ])->default('in_progress');
+
             $table->timestamps();
+
+            /*
+             * Satu Student tidak boleh mempunyai
+             * dua Attempt 1 pada Quiz yang sama.
+             */
+            $table->unique([
+                'quiz_id',
+                'user_id',
+                'attempt_number'
+            ]);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('quiz_attempts');

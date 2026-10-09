@@ -12,6 +12,7 @@ class AssignmentSubmission extends Model
     protected $fillable = [
         'assignment_id',
         'user_id',
+        'attempt_number',
         'submission_text',
         'submitted_at',
         'feedback',
@@ -22,41 +23,55 @@ class AssignmentSubmission extends Model
     ];
 
     protected $casts = [
+        'attempt_number' => 'integer',
         'submitted_at' => 'datetime',
         'graded_at' => 'datetime',
         'score' => 'decimal:2',
     ];
 
-    /**
-     * Assignment yang dikerjakan.
-     */
     public function assignment()
     {
         return $this->belongsTo(Assignment::class);
     }
 
-    /**
-     * Student yang melakukan submission.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * File-file yang dikumpulkan Student.
+     * File yang dikumpulkan Student.
      */
     public function attachments()
     {
-        // Tambahkan 'submission_id' sebagai parameter kedua
-        return $this->hasMany(SubmissionAttachment::class, 'submission_id')->orderBy('sort_order');
+        return $this->hasMany(
+            SubmissionAttachment::class,
+            'submission_id'
+        )->orderBy('sort_order');
     }
 
     /**
-     * Teacher yang memberikan nilai.
+     * File feedback yang diberikan Teacher.
      */
+    public function feedbackAttachments()
+    {
+        return $this->hasMany(
+            SubmissionFeedbackAttachment::class,
+            'submission_id'
+        )->orderBy('sort_order');
+    }
+
     public function grader()
     {
-        return $this->belongsTo(User::class, 'graded_by');
+        return $this->belongsTo(
+            User::class,
+            'graded_by'
+        );
+    }
+
+    public function isPassed(): bool
+    {
+        return $this->score !== null
+            && $this->score >= $this->assignment->passing_score;
     }
 }

@@ -6,14 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('assignment_submissions', function (Blueprint $table) {
             $table->id();
-             $table->foreignId('assignment_id')
+
+            $table->foreignId('assignment_id')
                 ->constrained('assignments')
                 ->cascadeOnDelete();
 
@@ -21,21 +19,41 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
+            /*
+             * Nomor pengerjaan submission.
+             */
+            $table->unsignedInteger('attempt_number');
 
-            $table->longText('submission_text')->nullable();
+            /*
+             * Jawaban berupa teks.
+             *
+             * Bisa menyimpan HTML dari Rich Text Editor.
+             */
+            $table->longText('submission_text')
+                ->nullable();
 
-            $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('submitted_at')
+                ->nullable();
 
-            $table->text('feedback')->nullable();
+            /*
+             * Feedback dari Teacher.
+             */
+            $table->longText('feedback')
+                ->nullable();
 
-            $table->decimal('score', 5, 2)->nullable();
+            /*
+             * Nilai attempt ini.
+             */
+            $table->decimal('score', 5, 2)
+                ->nullable();
 
             $table->foreignId('graded_by')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
 
-            $table->dateTime('graded_at')->nullable();
+            $table->dateTime('graded_at')
+                ->nullable();
 
             $table->enum('status', [
                 'draft',
@@ -46,13 +64,21 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['assignment_id', 'user_id']);
+            /*
+             * Satu Student dapat mempunyai banyak attempt,
+             * tetapi nomor attempt tidak boleh duplikat.
+             */
+            $table->unique(
+                [
+                    'assignment_id',
+                    'user_id',
+                    'attempt_number'
+                ],
+                'assignment_attempt_unique'
+            );
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('assignment_submissions');
