@@ -18,41 +18,29 @@ class Quiz extends Model
     ];
 
     protected $casts = [
-        'duration_minutes' => 'integer',
-        'question_count' => 'integer',
         'shuffle_questions' => 'boolean',
         'shuffle_answers' => 'boolean',
     ];
 
     public function assignment()
     {
-        return $this->belongsTo(Assignment::class);
+        return $this->belongsTo(Assignment::class, 'assignment_id');
+    }
+
+    public function quizQuestions()
+    {
+        return $this->hasMany(QuizQuestion::class, 'quiz_id')->orderBy('sort_order');
     }
 
     public function questions()
     {
-        return $this->belongsToMany(
-            Question::class,
-            'quiz_questions',
-            'quiz_id',
-            'question_id'
-        )
-        ->withPivot('sort_order')
-        ->withTimestamps();
+        return $this->belongsToMany(Question::class, 'quiz_questions', 'quiz_id', 'question_id')
+                    ->withPivot('sort_order')
+                    ->withTimestamps();
     }
 
     public function attempts()
     {
-        return $this->hasMany(QuizAttempt::class);
-    }
-
-    /**
-     * Nilai terbaik seorang Student.
-     */
-    public function bestScoreForUser(int $userId)
-    {
-        return $this->attempts()
-            ->where('user_id', $userId)
-            ->max('score');
+        return $this->hasMany(QuizAttempt::class, 'quiz_id');
     }
 }

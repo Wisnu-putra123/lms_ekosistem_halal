@@ -9,25 +9,19 @@ class QuizQuestion extends Model
 {
     use HasFactory;
 
-    protected $table = 'quiz_questions';
-
     protected $fillable = [
         'quiz_id',
         'question_id',
         'sort_order',
     ];
 
-    protected $casts = [
-        'sort_order' => 'integer',
-    ];
-
     public function quiz()
     {
-        return $this->belongsTo(Quiz::class);
+        return $this->belongsTo(Quiz::class, 'quiz_id');
     }
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Question::class, 'question_id');
     }
 }
