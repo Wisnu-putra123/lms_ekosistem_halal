@@ -25,7 +25,7 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
         <div class="border-b border-slate-100 pb-4 mb-6">
             <h1 class="text-lg font-bold text-slate-800">Tambah Tempat Submission Baru</h1>
-            <p class="text-xs text-slate-500">Atur petunjuk, metode pengumpulan, parameter penilaian, serta lampirkan berkas instruksi tugas.</p>
+            <p class="text-xs text-slate-500">Atur petunjuk, metode pengumpulan, batas attempt, parameter penilaian, serta lampirkan berkas instruksi tugas.</p>
         </div>
 
         <form action="{{ route('teacher.meetings.assignments.store', $meeting->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -56,7 +56,6 @@
                 <p class="text-xs text-amber-700 mb-3">Tentukan format pengumpulan yang diizinkan untuk dikirimkan oleh siswa.</p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <!-- Opsi 1: Hanya File -->
                     <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
                         <input type="radio" name="submission_method" value="file" {{ old('submission_method', 'file') == 'file' ? 'checked' : '' }} required class="text-amber-600 focus:ring-amber-500">
                         <div class="ml-3">
@@ -65,7 +64,6 @@
                         </div>
                     </label>
 
-                    <!-- Opsi 2: Hanya Teks -->
                     <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
                         <input type="radio" name="submission_method" value="text" {{ old('submission_method') == 'text' ? 'checked' : '' }} class="text-amber-600 focus:ring-amber-500">
                         <div class="ml-3">
@@ -74,7 +72,6 @@
                         </div>
                     </label>
 
-                    <!-- Opsi 3: Keduanya -->
                     <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
                         <input type="radio" name="submission_method" value="both" {{ old('submission_method') == 'both' ? 'checked' : '' }} class="text-amber-600 focus:ring-amber-500">
                         <div class="ml-3">
@@ -88,7 +85,18 @@
                 @enderror
             </div>
 
-            <!-- 4. Tanggal Dibuka & Ditutup (Optional) -->
+            <!-- 4. BATAS PERCOBAAN PENGERJAAN (Max Attempts) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Batas Percobaan Pengerjaan (Max Attempts)</label>
+                <input type="number" name="max_attempts" value="{{ old('max_attempts') }}" min="1" placeholder="Kosongkan jika Tanpa Batas (Infinite Attempts)"
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 @error('max_attempts') border-red-500 @enderror">
+                <p class="text-[10px] text-slate-400 mt-1">*Kosongkan jika siswa diperbolehkan mencoba/retake tugas tanpa batasan jumlah attempt.</p>
+                @error('max_attempts')
+                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- 5. Tanggal Dibuka & Ditutup (Optional) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200/80">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Waktu Dibuka (Opsional)</label>
@@ -106,7 +114,7 @@
                 </div>
             </div>
 
-            <!-- 5. Penilaian: Nilai Maksimal & Passing Grade -->
+            <!-- 6. Penilaian: Nilai Maksimal & Passing Grade -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nilai Maksimal <span class="text-red-500">*</span></label>
@@ -125,11 +133,10 @@
                 </div>
             </div>
 
-            <!-- 6. LAMPIRAN BERKAS PENGAJAR (Upload satu-satu / bertahap + daftar di bawah) -->
+            <!-- 7. LAMPIRAN BERKAS PENGAJAR -->
             <div x-data="attachmentUploader()" class="space-y-3">
                 <label class="block text-xs font-semibold text-slate-700">Lampirkan Berkas Soal / Acuan (Opsional)</label>
 
-                <!-- Box Dropzone Input File -->
                 <div class="border-2 border-dashed border-slate-200 hover:border-amber-400 rounded-2xl p-5 text-center transition bg-slate-50/50 relative">
                     <input type="file" x-ref="fileInput" @change="addFiles($event)" multiple
                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
@@ -140,14 +147,12 @@
                             </svg>
                         </div>
                         <div class="text-xs text-slate-700 font-semibold">+ Pilih atau Seret Berkas ke Sini</div>
-                        <p class="text-[10px] text-slate-400">Anda dapat memilih file satu per satu secara bertahap atau sekaligus (PDF, DOCX, PPTX, ZIP, gambar maks 10MB)</p>
+                        <p class="text-[10px] text-slate-400">PDF, DOCX, PPTX, ZIP, gambar maks 10MB per berkas</p>
                     </div>
                 </div>
 
-                <!-- Hidden Input Container untuk Mengirimkan Files ke Request Laravel -->
                 <div x-ref="hiddenInputsContainer" class="hidden"></div>
 
-                <!-- Daftar Berkas Terpilih (Daftar Nama File di Bawah) -->
                 <template x-if="fileList.length > 0">
                     <div class="space-y-2 pt-2 border-t border-slate-100">
                         <div class="flex items-center justify-between">
@@ -186,7 +191,7 @@
                 </template>
             </div>
 
-            <!-- 7. Status Publikasi -->
+            <!-- 8. Status Publikasi -->
             <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1">Status Publikasi <span class="text-red-500">*</span></label>
                 <select name="status" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
@@ -210,7 +215,6 @@
 
 </div>
 
-<!-- Alpine JS Component Script untuk Pengelolaan Dynamic Multiple File Input -->
 <script>
     function attachmentUploader() {
         return {
@@ -218,14 +222,13 @@
             addFiles(event) {
                 const selectedFiles = Array.from(event.target.files);
                 selectedFiles.forEach(file => {
-                    // Hindari penambahan berkas duplikat (berdasarkan nama & ukuran)
                     const exists = this.fileList.some(f => f.name === file.name && f.size === file.size);
                     if (!exists) {
                         this.fileList.push(file);
                     }
                 });
                 this.syncFormInputs();
-                this.$refs.fileInput.value = ''; // Reset input agar pengajar bisa klik & pilih berkas lagi
+                this.$refs.fileInput.value = '';
             },
             removeFile(index) {
                 this.fileList.splice(index, 1);
@@ -236,7 +239,6 @@
                 this.syncFormInputs();
             },
             syncFormInputs() {
-                // Konversi array fileList Alpine ke DataTransfer Object untuk dimasukkan ke input file request Laravel
                 const dt = new DataTransfer();
                 this.fileList.forEach(file => dt.items.add(file));
 

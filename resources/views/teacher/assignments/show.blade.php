@@ -49,9 +49,9 @@
         </div>
 
         <!-- Metric Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-                <span class="text-[10px] font-semibold text-slate-400 uppercase">Metode Pengumpulan</span>
+                <span class="text-[10px] font-semibold text-slate-400 uppercase">Metode</span>
                 <div class="text-xs font-bold text-blue-700 mt-1 uppercase">
                     @if($assignment->submission_method === 'file')
                         Unggah Berkas
@@ -60,6 +60,12 @@
                     @else
                         Berkas & Teks
                     @endif
+                </div>
+            </div>
+            <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <span class="text-[10px] font-semibold text-slate-400 uppercase">Batas Attempt</span>
+                <div class="text-xs font-bold text-slate-800 mt-1">
+                    {{ $assignment->max_attempts ? $assignment->max_attempts . 'x Attempt' : 'Tanpa Batas' }}
                 </div>
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
@@ -115,15 +121,16 @@
         @endif
     </div>
 
-    <!-- Tabel Pengumpulan Siswa (Submissions) -->
+    <!-- Tabel Pengumpulan Siswa (Submissions - Multi Attempt) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-base font-bold text-slate-800">Daftar Pengumpulan Siswa ({{ $assignment->submissions->count() }})</h2>
+        <h2 class="text-base font-bold text-slate-800">Daftar Attempt Pengumpulan Siswa ({{ $assignment->submissions->count() }})</h2>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
                         <th class="py-3 px-4">Nama Siswa</th>
+                        <th class="py-3 px-4">Attempt Ke-</th>
                         <th class="py-3 px-4">Waktu Mengumpulkan</th>
                         <th class="py-3 px-4">Status</th>
                         <th class="py-3 px-4">Nilai</th>
@@ -135,6 +142,11 @@
                         <tr class="hover:bg-slate-50 transition">
                             <td class="py-3.5 px-4 font-semibold text-slate-800">
                                 {{ $sub->user->name ?? 'Siswa' }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md font-bold text-[11px]">
+                                    Attempt #{{ $sub->attempt_number }}
+                                </span>
                             </td>
                             <td class="py-3.5 px-4">
                                 {{ $sub->submitted_at ? \Carbon\Carbon::parse($sub->submitted_at)->format('d M Y H:i') : '-' }}
@@ -155,7 +167,6 @@
                             </td>
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end space-x-2">
-                                    <!-- Icon Beri/Edit Nilai -->
                                     <a href="{{ route('teacher.submissions.grade', $sub->id) }}" 
                                     class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" 
                                     title="Review & Beri Nilai">
@@ -164,11 +175,10 @@
                                         </svg>
                                     </a>
 
-                                    <!-- Icon Hapus Submission -->
-                                    <form action="{{ route('teacher.submissions.destroy', $sub->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus submission siswa ini?')">
+                                    <form action="{{ route('teacher.submissions.destroy', $sub->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus attempt submission siswa ini?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-1.5 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Hapus Submission">
+                                        <button type="submit" class="p-1.5 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Hapus Submission Attempt">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
@@ -179,7 +189,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-8 text-center text-xs text-slate-400">Belum ada siswa yang mengumpulkan tugas ini.</td>
+                            <td colspan="6" class="py-8 text-center text-xs text-slate-400">Belum ada siswa yang mengumpulkan tugas ini.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -7,7 +7,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentAttachment;
 use App\Models\Meeting;
 use App\Models\Media;
-use App\Helpers\CourseProgressHelper; // Import Helper
+use App\Helpers\CourseProgressHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +29,7 @@ class AssignmentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'submission_method' => ['required', 'in:file,text,both'],
+            'max_attempts' => ['nullable', 'integer', 'min:1'], // NULL = Unlimited attempts
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -40,6 +41,8 @@ class AssignmentController extends Controller
             'title.required' => 'Judul tugas wajib diisi.',
             'submission_method.required' => 'Metode pengumpulan wajib dipilih.',
             'passing_score.lte' => 'Nilai kelulusan tidak boleh melebihi nilai maksimal.',
+            'max_attempts.integer' => 'Batas percobaan pengerjaan harus berupa angka.',
+            'max_attempts.min' => 'Batas percobaan pengerjaan minimal 1.',
         ]);
 
         DB::beginTransaction();
@@ -52,6 +55,7 @@ class AssignmentController extends Controller
                 'description' => $validated['description'] ?? null,
                 'type' => 'submission',
                 'submission_method' => $validated['submission_method'],
+                'max_attempts' => $validated['max_attempts'] ?? null,
                 'available_from' => $validated['available_from'] ?? null,
                 'available_until' => $validated['available_until'] ?? null,
                 'max_score' => $validated['max_score'] ?? 100.00,
@@ -83,7 +87,8 @@ class AssignmentController extends Controller
             CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
 
             DB::commit();
-            return redirect()->route('teacher.courses.show', $meeting->course_id)->with('success', 'Tempat submission tugas berhasil dibuat!');
+            return redirect()->route('teacher.courses.show', $meeting->course_id)
+                ->with('success', 'Tempat submission tugas berhasil dibuat!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membuat submission: ' . $e->getMessage())->withInput();
@@ -112,6 +117,7 @@ class AssignmentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'submission_method' => ['required', 'in:file,text,both'],
+            'max_attempts' => ['nullable', 'integer', 'min:1'], // NULL = Unlimited attempts
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -120,6 +126,12 @@ class AssignmentController extends Controller
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:pdf,doc,docx,ppt,pptx,zip,rar,png,jpg,jpeg', 'max:10240'],
             'delete_attachments' => ['nullable', 'array'],
+        ], [
+            'title.required' => 'Judul tugas wajib diisi.',
+            'submission_method.required' => 'Metode pengumpulan wajib dipilih.',
+            'passing_score.lte' => 'Nilai kelulusan tidak boleh melebihi nilai maksimal.',
+            'max_attempts.integer' => 'Batas percobaan pengerjaan harus berupa angka.',
+            'max_attempts.min' => 'Batas percobaan pengerjaan minimal 1.',
         ]);
 
         DB::beginTransaction();
@@ -128,6 +140,7 @@ class AssignmentController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'submission_method' => $validated['submission_method'],
+                'max_attempts' => $validated['max_attempts'] ?? null,
                 'available_from' => $validated['available_from'] ?? null,
                 'available_until' => $validated['available_until'] ?? null,
                 'max_score' => $validated['max_score'],
@@ -135,7 +148,7 @@ class AssignmentController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            // Hapus lampiran yang dicentang
+            // Hapus lampiran tugas yang dicentang hapus
             if (!empty($validated['delete_attachments'])) {
                 $attachmentsToDelete = AssignmentAttachment::whereIn('id', $validated['delete_attachments'])->get();
                 foreach ($attachmentsToDelete as $att) {
@@ -147,7 +160,7 @@ class AssignmentController extends Controller
                 }
             }
 
-            // Tambah lampiran baru
+            // Tambah lampiran tugas baru
             if ($request->hasFile('attachments')) {
                 $lastOrder = $assignment->attachments()->max('sort_order') ?? 0;
                 foreach ($request->file('attachments') as $index => $file) {
@@ -169,11 +182,12 @@ class AssignmentController extends Controller
                 }
             }
 
-            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI (Jika misal status tugas diubah dari/ke draft)
+            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
             CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
 
             DB::commit();
-            return redirect()->route('teacher.assignments.show', $assignment->id)->with('success', 'Tempat submission berhasil diperbarui!');
+            return redirect()->route('teacher.assignments.show', $assignment->id)
+                ->with('success', 'Tempat submission berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal memperbarui submission: ' . $e->getMessage())->withInput();
@@ -202,7 +216,8 @@ class AssignmentController extends Controller
 
             DB::commit();
 
-            return redirect()->route('teacher.courses.show', $courseId)->with('success', 'Tempat submission berhasil dihapus.');
+            return redirect()->route('teacher.courses.show', $courseId)
+                ->with('success', 'Tempat submission berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menghapus tugas.');

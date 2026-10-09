@@ -15,15 +15,13 @@ class Quiz extends Model
         'question_count',
         'shuffle_questions',
         'shuffle_answers',
-        'max_attempts',
     ];
 
     protected $casts = [
-        'shuffle_questions' => 'boolean',
-        'shuffle_answers' => 'boolean',
         'duration_minutes' => 'integer',
         'question_count' => 'integer',
-        'max_attempts' => 'integer',
+        'shuffle_questions' => 'boolean',
+        'shuffle_answers' => 'boolean',
     ];
 
     public function assignment()
@@ -46,5 +44,15 @@ class Quiz extends Model
     public function attempts()
     {
         return $this->hasMany(QuizAttempt::class);
+    }
+
+    /**
+     * Nilai terbaik seorang Student.
+     */
+    public function bestScoreForUser(int $userId)
+    {
+        return $this->attempts()
+            ->where('user_id', $userId)
+            ->max('score');
     }
 }

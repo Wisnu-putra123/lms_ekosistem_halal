@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('assignments', function (Blueprint $table) {
@@ -36,29 +33,46 @@ return new class extends Migration
                 'submission'
             ]);
 
+            /*
+             * Cara Student mengerjakan submission.
+             *
+             * text  = text editor saja
+             * file  = upload file saja
+             * both  = text + file
+             *
+             * Tidak terlalu berpengaruh untuk type = quiz.
+             */
             $table->enum('submission_method', [
-                'file',
                 'text',
+                'file',
                 'both'
             ])->default('file');
 
             /*
-             * Waktu assignment dapat dikerjakan.
+             * Jumlah maksimum pengerjaan.
+             *
+             * Berlaku untuk quiz maupun submission.
              */
-            $table->dateTime('available_from')->nullable();
-            $table->dateTime('available_until')->nullable();
+            $table->unsignedInteger('max_attempts')
+                ->nullable();
+
+            /*
+             * Waktu assignment tersedia.
+             */
+            $table->dateTime('available_from')
+                ->nullable();
+
+            $table->dateTime('available_until')
+                ->nullable();
 
             /*
              * Sistem penilaian.
-             *
-             * max_score:
-             * Nilai maksimum yang dapat diperoleh Student.
-             *
-             * passing_score:
-             * Nilai minimum/KKM agar assignment dianggap lulus.
              */
-            $table->decimal('max_score', 5, 2)->default(100);
-            $table->decimal('passing_score', 5, 2)->default(70);
+            $table->decimal('max_score', 5, 2)
+                ->default(100);
+
+            $table->decimal('passing_score', 5, 2)
+                ->default(70);
 
             $table->enum('status', [
                 'draft',
@@ -70,9 +84,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('assignments');

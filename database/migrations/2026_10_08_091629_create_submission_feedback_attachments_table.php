@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('submission_attachments', function (Blueprint $table) {
+        Schema::create('submission_feedback_attachments', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('submission_id')
@@ -33,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('submission_attachments');
+        Schema::dropIfExists('submission_feedback_attachments');
     }
 };
