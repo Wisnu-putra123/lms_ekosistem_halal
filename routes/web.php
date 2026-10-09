@@ -10,11 +10,14 @@ use App\Http\Controllers\Teacher\AssignmentController;
 use App\Http\Controllers\Teacher\MeetingController;
 use App\Http\Controllers\Teacher\MaterialController;
 use App\Http\Controllers\Teacher\SubmissionGradingController;
+use App\Http\Controllers\Teacher\QuizController;
+use App\Http\Controllers\Teacher\QuestionController;
 
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
 use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
 use App\Http\Controllers\Student\TaskSubmissionController;
+use App\Http\Controllers\Student\StudentQuizController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +85,14 @@ Route::middleware('auth')->group(function () {
         Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
         Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
 
+        // Student Quiz Pengerjaan
+        Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
+        Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+        Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
+        Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
+        Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
+        Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
+
         // Tugas Upload (Submissions)
         // Route::get('/submissions/{assignment}', [StudentTaskSubmissionController::class, 'show'])->name('submissions.show');
         // Route::post('/submissions/{assignment}/submit', [StudentTaskSubmissionController::class, 'submit'])->name('submissions.submit');
@@ -130,6 +141,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
         Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
         Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
+
+        // Quiz Management
+        Route::get('/meetings/{meeting}/quizzes/create', [QuizController::class, 'create'])->name('meetings.quizzes.create');
+        Route::post('/meetings/{meeting}/quizzes', [QuizController::class, 'store'])->name('meetings.quizzes.store');
+        Route::get('/quizzes/{assignment}', [QuizController::class, 'show'])->name('quizzes.show');
+        Route::get('/quizzes/{assignment}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
+        Route::put('/quizzes/{assignment}', [QuizController::class, 'update'])->name('quizzes.update');
+        Route::delete('/quizzes/{assignment}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+
+        // Bank Soal Management (Questions)
+        Route::get('/quizzes/{assignment}/questions/create', [QuestionController::class, 'create'])->name('quizzes.questions.create');
+        Route::post('/quizzes/{assignment}/questions', [QuestionController::class, 'store'])->name('quizzes.questions.store');
+        Route::get('/quizzes/{assignment}/questions/{question}/edit', [QuestionController::class, 'edit'])->name('quizzes.questions.edit');
+        Route::put('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'update'])->name('quizzes.questions.update');
+        Route::delete('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'destroy'])->name('quizzes.questions.destroy');
     });
 });
 

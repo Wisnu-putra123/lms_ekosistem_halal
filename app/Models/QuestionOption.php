@@ -19,16 +19,15 @@ class QuestionOption extends Model
 
     protected $casts = [
         'is_correct' => 'boolean',
-        'sort_order' => 'integer',
     ];
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Question::class, 'question_id');
     }
 
     public function media()
     {
-        return $this->belongsTo(Media::class);
+        return $this->belongsTo(Media::class, 'media_id');
     }
 }

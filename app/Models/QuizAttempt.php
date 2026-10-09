@@ -21,7 +21,6 @@ class QuizAttempt extends Model
     ];
 
     protected $casts = [
-        'attempt_number' => 'integer',
         'started_at' => 'datetime',
         'expires_at' => 'datetime',
         'submitted_at' => 'datetime',
@@ -30,29 +29,16 @@ class QuizAttempt extends Model
 
     public function quiz()
     {
-        return $this->belongsTo(Quiz::class);
+        return $this->belongsTo(Quiz::class, 'quiz_id');
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function questions()
+    public function attemptQuestions()
     {
-        return $this->hasMany(
-            QuizAttemptQuestion::class,
-            'attempt_id'
-        )->orderBy('question_order');
-    }
-
-    public function isPassed(): bool
-    {
-        $passingScore = $this->quiz
-            ->assignment
-            ->passing_score;
-
-        return $this->score !== null
-            && $this->score >= $passingScore;
+        return $this->hasMany(QuizAttemptQuestion::class, 'attempt_id')->orderBy('question_order');
     }
 }

@@ -10,7 +10,6 @@ class Question extends Model
     use HasFactory;
 
     protected $fillable = [
-        'quiz_id',
         'created_by',
         'question_type',
         'question_text',
@@ -21,14 +20,9 @@ class Question extends Model
     ];
 
     protected $casts = [
-        'points' => 'decimal:2',
         'is_active' => 'boolean',
+        'points' => 'decimal:2',
     ];
-
-    public function quiz()
-    {
-        return $this->belongsTo(Quiz::class);
-    }
 
     public function creator()
     {
@@ -37,27 +31,18 @@ class Question extends Model
 
     public function media()
     {
-        return $this->belongsTo(Media::class);
+        return $this->belongsTo(Media::class, 'media_id');
     }
 
     public function options()
     {
-        return $this->hasMany(QuestionOption::class);
+        return $this->hasMany(QuestionOption::class, 'question_id')->orderBy('sort_order');
     }
 
     public function quizzes()
     {
-        return $this->belongsToMany(
-            Quiz::class,
-            'quiz_questions',
-            'question_id',
-            'quiz_id'
-        )->withPivot('sort_order')
-         ->withTimestamps();
-    }
-
-    public function attemptQuestions()
-    {
-        return $this->hasMany(QuizAttemptQuestion::class);
+        return $this->belongsToMany(Quiz::class, 'quiz_questions', 'question_id', 'quiz_id')
+                    ->withPivot('sort_order')
+                    ->withTimestamps();
     }
 }

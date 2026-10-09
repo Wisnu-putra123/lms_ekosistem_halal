@@ -20,8 +20,6 @@ class QuizAttemptQuestion extends Model
     ];
 
     protected $casts = [
-        'question_order' => 'integer',
-        'selected_option_id' => 'integer',
         'is_correct' => 'boolean',
         'points_earned' => 'decimal:2',
         'answered_at' => 'datetime',
@@ -29,22 +27,16 @@ class QuizAttemptQuestion extends Model
 
     public function attempt()
     {
-        return $this->belongsTo(
-            QuizAttempt::class,
-            'attempt_id'
-        );
+        return $this->belongsTo(QuizAttempt::class, 'attempt_id');
     }
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Question::class, 'question_id');
     }
 
     public function selectedOption()
     {
-        return $this->belongsTo(
-            QuestionOption::class,
-            'selected_option_id'
-        );
+        return $this->belongsTo(QuestionOption::class, 'selected_option_id');
     }
 }
