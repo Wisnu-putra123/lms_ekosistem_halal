@@ -55,5 +55,14 @@ class DatabaseSeeder extends Seeder
                 'role' => 'teacher',
             ]
         );
+
+        $this->call([
+            UserSeeder::class,
+            CourseSeeder::class,
+            MeetingSeeder::class,
+            SubmissionSeeder::class,
+            QuizSeeder::class,
+        ]);
+
     }
 }

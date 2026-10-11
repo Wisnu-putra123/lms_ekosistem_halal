@@ -46,7 +46,7 @@ return new class extends Migration
                 'text',
                 'file',
                 'both'
-            ])->default('file');
+            ])->default('file')->nullable();
 
             /*
              * Jumlah maksimum pengerjaan.

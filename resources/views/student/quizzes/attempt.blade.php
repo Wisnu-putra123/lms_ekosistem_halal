@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Mengerjakan Quiz - ' . \$assignment->title)
+@section('title', 'Mengerjakan Quiz - ' . $assignment->title)
 
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -10,11 +10,11 @@
     <!-- Header & Floating Timer Sticky Bar -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-lg flex items-center justify-between sticky top-4 z-40">
         <div>
-            <span class="text-[10px] font-bold tracking-wider text-amber-400 uppercase">Attempt #{{ \$attempt->attempt_number }}</span>
-            <h1 class="text-sm sm:text-base font-bold truncate max-w-md">{{ \$assignment->title }}</h1>
+            <span class="text-[10px] font-bold tracking-wider text-amber-400 uppercase">Attempt #{{ $attempt->attempt_number }}</span>
+            <h1 class="text-sm sm:text-base font-bold truncate max-w-md">{{ $assignment->title }}</h1>
         </div>
 
-        @if(\$attempt->expires_at)
+        @if($attempt->expires_at)
             <div class="flex items-center space-x-2 bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-700">
                 <svg class="w-4 h-4 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -157,8 +157,8 @@
     function quizEngine() {
         return {
             currentIndex: 0,
-            questions: @json(\$attemptQuestions),
-            answers: @json(\$attemptQuestions->pluck('selected_option_id', 'id')),
+            questions: @json($attemptQuestions),
+            answers: @json($attemptQuestions->pluck('selected_option_id', 'id')),
             saveAnswer(attemptQuestionId, optionId) {
                 fetch('{{ route("student.quizzes.saveAnswer", [$assignment->id,$attempt->id]) }}', {
                     method: 'POST',

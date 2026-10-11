@@ -149,6 +149,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/quizzes/{assignment}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
         Route::put('/quizzes/{assignment}', [QuizController::class, 'update'])->name('quizzes.update');
         Route::delete('/quizzes/{assignment}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+        Route::get('/quiz-attempts/{attempt}', [QuizController::class, 'showAttempt'])->name('quizzes.attempts.show');
+        Route::delete('/quiz-attempts/{attempt}', [QuizController::class, 'destroyAttempt'])->name('quizzes.attempts.destroy');
 
         // Bank Soal Management (Questions)
         Route::get('/quizzes/{assignment}/questions/create', [QuestionController::class, 'create'])->name('quizzes.questions.create');
