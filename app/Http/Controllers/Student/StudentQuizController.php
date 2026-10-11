@@ -305,7 +305,7 @@ class StudentQuizController extends Controller
                 'status' => $status,
             ]);
 
-            // Update Progress Belajar Siswa jika LULUS KKM
+            // Update Progress Belajar Siswa secara langsung
             $courseId = $attempt->quiz->assignment->course_id;
             $userId = $attempt->user_id;
 

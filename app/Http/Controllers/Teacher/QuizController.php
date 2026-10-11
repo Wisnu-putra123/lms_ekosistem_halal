@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\CourseProgressHelper;
 use App\Models\Assignment;
 use App\Models\Meeting;
 use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +53,7 @@ class QuizController extends Controller
                 'title' => $request->title,
                 'description' => $request->description,
                 'type' => 'quiz',
-                // 'submission_method' => null, // Khusus submission, untuk quiz di-null-kan
+                'submission_method' => null,
                 'max_attempts' => $request->max_attempts,
                 'available_from' => $request->available_from,
                 'available_until' => $request->available_until,
@@ -69,6 +71,9 @@ class QuizController extends Controller
                 'shuffle_answers' => $request->boolean('shuffle_answers', false),
             ]);
 
+            // 3. Hitung Ulang Progress Seluruh Student yang terdaftar di Course ini
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
+
             DB::commit();
 
             return redirect()->route('teacher.quizzes.show', $assignment->id)
@@ -84,19 +89,21 @@ class QuizController extends Controller
      */
     public function show(Assignment $assignment)
     {
-        if ($assignment->type !== 'quiz') {
-            abort(404, 'Assignment ini bukan merupakan Quiz.');
-        }
+        $quiz = Quiz::with(['questions.options', 'questions.media'])
+            ->where('assignment_id', $assignment->id)
+            ->firstOrFail();
 
-        $assignment->load(['quiz.questions.options', 'quiz.questions.media', 'meeting', 'course']);
-        $quiz = $assignment->quiz;
+        // Ambil riwayat pengerjaan/attempt siswa pada quiz ini
+        $quizAttempts = QuizAttempt::with('user')
+            ->where('quiz_id', $quiz->id)
+            ->latest()
+            ->get();
 
-        // Hitung poin per soal secara otomatis
-        $pointPerQuestion = ($quiz && $quiz->question_count > 0) 
+        $pointPerQuestion = $quiz->question_count > 0 
             ? round($assignment->max_score / $quiz->question_count, 2) 
             : 0;
 
-        return view('teacher.quizzes.show', compact('assignment', 'quiz', 'pointPerQuestion'));
+        return view('teacher.quizzes.show', compact('assignment', 'quiz', 'quizAttempts', 'pointPerQuestion'));
     }
 
     /**
@@ -161,6 +168,9 @@ class QuizController extends Controller
                 ]);
             }
 
+            // Hitung Ulang Progress Student setelah konfigurasi/status quiz diubah
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
+
             DB::commit();
 
             return redirect()->route('teacher.quizzes.show', $assignment->id)
@@ -184,11 +194,14 @@ class QuizController extends Controller
         try {
             $courseId = $assignment->course_id;
             
-            // Hapus Quiz & Assignment (Relasi DB cascading akan menangani sisanya)
+            // Hapus Quiz & Assignment
             if ($assignment->quiz) {
                 $assignment->quiz->delete();
             }
             $assignment->delete();
+
+            // Hitung Ulang Progress Student setelah quiz dihapus
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($courseId);
 
             DB::commit();
 
@@ -198,5 +211,40 @@ class QuizController extends Controller
             DB::rollBack();
             return back()->with('error', 'Gagal menghapus Quiz.');
         }
+    }
+
+    /**
+     * Menampilkan detail pengerjaan (attempt) kuis oleh siswa.
+     */
+    public function showAttempt(QuizAttempt $attempt)
+    {
+        // Load relasi user, kuis, assignment, serta soal & jawaban yang dipilih
+        $attempt->load([
+            'user',
+            'quiz.assignment.meeting',
+            'attemptQuestions.question.options',
+            'attemptQuestions.selectedOption'
+        ]);
+
+        $quiz = $attempt->quiz;
+        $assignment = $quiz->assignment;
+
+        return view('teacher.quizzes.attempts.show', compact('attempt', 'quiz', 'assignment'));
+    }
+
+    /**
+     * Menghapus attempt pengerjaan kuis siswa.
+     */
+    public function destroyAttempt(QuizAttempt $attempt)
+    {
+        $quizId = $attempt->quiz_id;
+        $assignment = $attempt->quiz->assignment;
+
+        // Hapus detail jawaban attempt (cascade/manual)
+        $attempt->attemptQuestions()->delete();
+        $attempt->delete();
+
+        return redirect()->route('teacher.quizzes.show', $assignment->id)
+            ->with('success', 'Attempt pengerjaan kuis siswa berhasil dihapus.');
     }
 }

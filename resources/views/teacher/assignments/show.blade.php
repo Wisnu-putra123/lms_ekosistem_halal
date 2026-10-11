@@ -4,7 +4,9 @@
 @section('header_title', 'Detail Tempat Submission Tugas')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'submissions' }">
 
     <!-- Header Navigation -->
     <div class="flex items-center justify-between">
@@ -27,6 +29,18 @@
             </form>
         </div>
     </div>
+
+    <!-- Alert Flash Messages -->
+    @if(session('success'))
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs font-semibold">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <!-- Ringkasan Informasi Tugas -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
@@ -70,11 +84,11 @@
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Nilai Maksimal</span>
-                <div class="text-base font-bold text-slate-800 mt-0.5">{{ number_format($assignment->max_score, 0) }}</div>
+                <div class="text-xs font-bold text-slate-800 mt-1">{{ number_format($assignment->max_score, 0) }}</div>
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Passing Grade</span>
-                <div class="text-base font-bold text-emerald-700 mt-0.5">{{ number_format($assignment->passing_score, 0) }}</div>
+                <div class="text-xs font-bold text-emerald-700 mt-1">{{ number_format($assignment->passing_score, 0) }}</div>
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Waktu Dibuka</span>
@@ -89,40 +103,27 @@
                 </div>
             </div>
         </div>
-
-        <!-- Deskripsi / Instruksi -->
-        @if($assignment->description)
-            <div class="space-y-1">
-                <h3 class="text-xs font-bold text-slate-700 uppercase">Instruksi / Petunjuk Pengerjaan:</h3>
-                <p class="text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">{{ $assignment->description }}</p>
-            </div>
-        @endif
-
-        <!-- Berkas Lampiran Pengajar -->
-        @if($assignment->attachments && $assignment->attachments->count() > 0)
-            <div class="space-y-2 pt-2 border-t border-slate-100">
-                <h3 class="text-xs font-bold text-slate-700 uppercase">Berkas Lampiran Pengajar:</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    @foreach($assignment->attachments as $attachment)
-                        @if($attachment->media)
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                                <div class="flex items-center space-x-2 overflow-hidden pr-2">
-                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <span class="text-xs text-slate-800 font-semibold truncate">{{ $attachment->media->file_name }}</span>
-                                </div>
-                                <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download class="text-[11px] font-bold text-blue-600 hover:underline flex-shrink-0">Unduh</a>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            </div>
-        @endif
     </div>
 
-    <!-- Tabel Pengumpulan Siswa (Submissions - Multi Attempt) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+    <!-- TAB HEADER SWITCHER -->
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
+        <button type="button" @click="activeTab = 'submissions'" 
+                :class="activeTab === 'submissions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Hasil & Pengumpulan Siswa ({{ $assignment->submissions->count() }})</span>
+        </button>
+
+        <button type="button" @click="activeTab = 'instructions'" 
+                :class="activeTab === 'instructions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Instruksi & Berkas Soal</span>
+        </button>
+    </div>
+
+    <!-- TAB 1: TABEL PENGUMPULAN SISWA (SUBMISSIONS) -->
+    <div x-show="activeTab === 'submissions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
         <h2 class="text-base font-bold text-slate-800">Daftar Attempt Pengumpulan Siswa ({{ $assignment->submissions->count() }})</h2>
 
         <div class="overflow-x-auto">
@@ -168,8 +169,8 @@
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ route('teacher.submissions.grade', $sub->id) }}" 
-                                    class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" 
-                                    title="Review & Beri Nilai">
+                                       class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" 
+                                       title="Review & Beri Nilai">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -194,6 +195,43 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: DESKRIPSI & BERKAS SOAL/LAMPIRAN -->
+    <div x-show="activeTab === 'instructions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <!-- Deskripsi / Instruksi -->
+        <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase">Instruksi / Petunjuk Pengerjaan:</h3>
+            @if($assignment->description)
+                <p class="text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
+            @else
+                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada deskripsi atau instruksi pengerjaan.</p>
+            @endif
+        </div>
+
+        <!-- Berkas Lampiran Pengajar -->
+        <div class="space-y-2 pt-4 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-slate-700 uppercase">Berkas Lampiran / Soal Pengajar:</h3>
+            @if($assignment->attachments && $assignment->attachments->count() > 0)
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @foreach($assignment->attachments as $attachment)
+                        @if($attachment->media)
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div class="flex items-center space-x-2 overflow-hidden pr-2">
+                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-xs text-slate-800 font-semibold truncate">{{ $attachment->media->file_name }}</span>
+                                </div>
+                                <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download class="text-[11px] font-bold text-blue-600 hover:underline flex-shrink-0">Unduh</a>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @else
+                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada berkas lampiran yang diunggah.</p>
+            @endif
         </div>
     </div>
 

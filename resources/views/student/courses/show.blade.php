@@ -142,9 +142,9 @@
                                 Kuis
                             </div>
 
-                            @if($meeting->quizzes && $meeting->quizzes->count() > 0)
+                            @if($meeting->assignments && $meeting->assignments->where('type', 'quiz')->count() > 0)
                                 <div class="space-y-2">
-                                    @foreach($meeting->quizzes as $quiz)
+                                    @foreach($meeting->assignments->where('type', 'quiz') as $quizAssignment)
                                         <div class="p-3 bg-slate-50 hover:bg-indigo-50/50 rounded-lg border border-slate-200/80 flex items-center justify-between gap-2">
                                             <div class="flex items-center gap-2 min-w-0">
                                                 <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0">
@@ -153,11 +153,17 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <div class="text-xs text-slate-800 font-semibold break-words">{{ $quiz->assignment->title ?? 'Kuis Pertemuan' }}</div>
-                                                    <div class="text-[10px] text-slate-400 mt-1">Durasi: {{ $quiz->duration_minutes }} menit | {{ $quiz->question_count }} soal</div>
+                                                    <div class="text-xs text-slate-800 font-semibold break-words">{{ $quizAssignment->title }}</div>
+                                                    @if($quizAssignment->quiz)
+                                                        <div class="text-[10px] text-slate-400 mt-1">
+                                                            Durasi: {{ $quizAssignment->quiz->duration_minutes ? $quizAssignment->quiz->duration_minutes . ' menit' : 'Tanpa batas' }} | {{ $quizAssignment->quiz->question_count }} soal
+                                                        </div>
+                                                    @elseif($quizAssignment->available_until)
+                                                        <div class="text-[10px] text-slate-400 mt-1">Tenggat: {{ \Carbon\Carbon::parse($quizAssignment->available_until)->format('d M Y H:i') }}</div>
+                                                    @endif
                                                 </div>
                                             </div>
-                                            <a href="{{ route('student.quizzes.show', $quiz->id) }}" class="text-[11px] text-indigo-600 font-bold hover:underline flex-shrink-0">Kerjakan →</a>
+                                            <a href="{{ route('student.quizzes.show', $quizAssignment->id) }}" class="text-[11px] text-indigo-600 font-bold hover:underline flex-shrink-0">Kerjakan →</a>
                                         </div>
                                     @endforeach
                                 </div>
