@@ -7,20 +7,25 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <div class="max-w-4xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+    <div class="flex items-center justify-between">
+        <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-amber-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Kembali ke Detail Pelatihan</span>
+        </a>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+            Pertemuan {{ $meeting->meeting_number }}: {{ $meeting->title }}
+        </span>
+    </div>
     
+
     <!-- Tombol Kembali Ke Course -->
     <div class="flex items-center justify-between pb-4 border-b border-slate-100">
         <div>
             <h2 class="text-lg font-bold text-slate-800">Materi untuk: {{ $meeting->title }}</h2>
             <p class="text-xs text-slate-500">Tambahkan materi bacaan, tautan embed, atau berkas pendukung.</p>
         </div>
-        <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" 
-           class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            <span>Kembali ke Course</span>
-        </a>
     </div>
 
     <form action="{{ route('teacher.meetings.materials.store', $meeting->id) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
