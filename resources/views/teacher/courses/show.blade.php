@@ -7,7 +7,7 @@
 <!-- Script CDN Alpine.js untuk fitur Collapse/Expand & Modal -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div x-data="{ addMeetingModal: false, editMeetingModal: false, activeEditMeeting: {} }" class="space-y-6">
+<div x-data="{ addMeetingModal: false, editMeetingModal: false, activeEditMeeting: {}, allExpanded: false }" class="space-y-6">
 
     <!-- Top Card: Banner & Detail Pelatihan -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -33,48 +33,98 @@
                         @else
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">Archived</span>
                         @endif
+
+                        <!-- Tombol Edit & Delete Course -->
+                        <div class="flex items-center space-x-1 pl-2 border-l border-slate-200">
+                            <a href="{{ route('teacher.courses.edit', $course->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition rounded-lg hover:bg-slate-100" title="Edit Kursus">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                            <form action="{{ route('teacher.courses.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kursus ini beserta seluruh pertemuannya?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="p-1 text-slate-400 hover:text-red-600 transition rounded-lg hover:bg-slate-100" title="Hapus Kursus">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     <h1 class="text-xl font-bold text-slate-800">{{ $course->title }}</h1>
                     <p class="text-xs text-slate-500 line-clamp-2 max-w-2xl">{{ $course->description ?? 'Belum ada deskripsi kursus.' }}</p>
                 </div>
             </div>
 
-            <!-- Enrollment Key Box -->
-            <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl space-y-1 min-w-[200px]">
-                <div class="text-[11px] font-medium text-amber-800">Enrollment Key:</div>
-                <div class="flex items-center justify-between">
-                    <code class="text-sm font-bold text-amber-700 bg-amber-200/60 px-2 py-1 rounded">{{ $course->enrollment_key }}</code>
-                    <form action="{{ route('teacher.courses.regenerateKey', $course->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="p-1 text-amber-600 hover:text-amber-800 transition" title="Regenerate Key" onclick="return confirm('Buat Enrollment Key baru?')">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                        </button>
-                    </form>
+            <!-- Alignment Aksi & Enrollment Key Box -->
+            <div class="flex flex-col items-end space-y-3">
+                <div class="flex items-center space-x-2">
+                    <!-- Tombol Kembali ke Katalog Course -->
+                    <a href="{{ route('teacher.courses.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 px-3 py-2 rounded-xl transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Katalog Course</span>
+                    </a>
+
+                    <!-- Tombol Menuju Rekap Nilai Student -->
+                    <a href="{{ route('teacher.courses.gradebook', $course->id) }}" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-2 rounded-xl transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Rekap Nilai</span>
+                    </a>
+                </div>
+
+                <!-- Enrollment Key Box -->
+                <div class="p-3.5 bg-amber-50 border border-amber-100 rounded-xl space-y-1 w-full min-w-[200px]">
+                    <div class="text-[11px] font-medium text-amber-800">Enrollment Key:</div>
+                    <div class="flex items-center justify-between">
+                        <code class="text-sm font-bold text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded">{{ $course->enrollment_key }}</code>
+                        <form action="{{ route('teacher.courses.regenerateKey', $course->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="p-1 text-amber-600 hover:text-amber-800 transition" title="Regenerate Key" onclick="return confirm('Buat Enrollment Key baru?')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Section Header Pertemuan & Tombol Tambah -->
-    <div class="flex items-center justify-between">
+    <!-- Section Header Pertemuan & Aksis -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-lg font-bold text-slate-800">Manajemen Pertemuan (Meetings)</h2>
             <p class="text-xs text-slate-500">Susun modul pembelajaran, materi, tugas, dan kuis berdasarkan urutan pertemuan.</p>
         </div>
-        <button @click="addMeetingModal = true" class="inline-flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            <span>Tambah Pertemuan</span>
-        </button>
+        <div class="flex items-center space-x-2">
+            <!-- Tombol Expand / Collapse All -->
+            <button @click="allExpanded = !allExpanded" class="inline-flex items-center space-x-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                </svg>
+                <span x-text="allExpanded ? 'Collapse Semua' : 'Expand Semua'"></span>
+            </button>
+
+            <!-- Tombol Tambah Pertemuan -->
+            <button @click="addMeetingModal = true" class="inline-flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Tambah Pertemuan</span>
+            </button>
+        </div>
     </div>
 
     <!-- Accordion List Pertemuan (Meetings) -->
     <div class="space-y-4">
         @forelse($course->meetings->sortBy('meeting_number') as $meeting)
-            <div x-data="{ expanded: false }" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition">
+            <div x-data="{ expanded: false }" x-init="$watch('allExpanded', val => expanded = val)" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition">
                 
                 <!-- Header Accordion (Baris Judul Pertemuan) -->
                 <div class="p-5 flex items-center justify-between bg-white hover:bg-slate-50/80 transition cursor-pointer select-none" @click="expanded = !expanded">
@@ -162,7 +212,6 @@
                                 @forelse($meeting->materials as $material)
                                     <div class="group flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100 hover:border-emerald-200 transition">
                                         <div class="flex items-center space-x-2.5 min-w-0 pr-2">
-                                            <!-- Icon Indicator (Embedded / Teks) -->
                                             <div class="w-7 h-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
                                                 @if($material->media && $material->media->external_url)
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +226,6 @@
                                             <span class="text-xs font-medium text-slate-700 truncate group-hover:text-emerald-600 transition">{{ $material->title }}</span>
                                         </div>
 
-                                        <!-- Action Buttons -->
                                         <div class="flex items-center space-x-1.5 flex-shrink-0">
                                             <a href="{{ route('teacher.materials.show', $material->id) }}" class="p-1 text-slate-400 hover:text-slate-600 transition" title="Lihat">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -221,41 +269,44 @@
                                 @if(isset($meeting->assignments) && $meeting->assignments->where('type', 'submission')->count() > 0)
                                     <div class="space-y-2">
                                         @foreach($meeting->assignments->where('type', 'submission') as $assignment)
-                                            <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100 hover:bg-slate-100/80 transition">
-                                                <div class="overflow-hidden pr-2">
-                                                    <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="text-xs font-semibold text-slate-800 hover:text-blue-600 transition truncate block">
-                                                        {{ $assignment->title }}
-                                                    </a>
-                                                    <!-- Tanggal Dibuka & Ditutup -->
-                                                    @if($assignment->available_from || $assignment->available_until)
-                                                        <p class="text-[10px] text-slate-400 mt-0.5">
-                                                            {{ $assignment->available_from ? \Carbon\Carbon::parse($assignment->available_from)->format('d M Y H:i') : 'Sekarang' }} 
-                                                            s/d 
-                                                            {{ $assignment->available_until ? \Carbon\Carbon::parse($assignment->available_until)->format('d M Y H:i') : 'Tanpa batas' }}
-                                                        </p>
-                                                    @else
-                                                        <p class="text-[10px] text-slate-400 mt-0.5">Waktu pengerjaan: Fleksibel</p>
-                                                    @endif
+                                            <div class="group flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition">
+                                                <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                                                    <!-- Icon Indicator Tugas Upload -->
+                                                    <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="overflow-hidden">
+                                                        <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="text-xs font-semibold text-slate-800 hover:text-blue-600 transition truncate block">
+                                                            {{ $assignment->title }}
+                                                        </a>
+                                                        <!-- Tanggal Dibuka & Ditutup -->
+                                                        @if($assignment->available_from || $assignment->available_until)
+                                                            <p class="text-[10px] text-slate-400 mt-0.5">
+                                                                {{ $assignment->available_from ? \Carbon\Carbon::parse($assignment->available_from)->format('d M Y H:i') : 'Sekarang' }} 
+                                                                s/d 
+                                                                {{ $assignment->available_until ? \Carbon\Carbon::parse($assignment->available_until)->format('d M Y H:i') : 'Tanpa batas' }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-[10px] text-slate-400 mt-0.5">Waktu pengerjaan: Fleksibel</p>
+                                                        @endif
+                                                    </div>
                                                 </div>
 
-                                                <!-- Aksi: Show, Edit, Delete -->
+                                                <!-- Action Buttons -->
                                                 <div class="flex items-center space-x-1.5 flex-shrink-0">
-                                                    <!-- Detail/Show -->
                                                     <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="p-1 text-slate-400 hover:text-blue-600 transition rounded" title="Detail Tugas">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                         </svg>
                                                     </a>
-
-                                                    <!-- Edit -->
                                                     <a href="{{ route('teacher.assignments.edit', $assignment->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition rounded" title="Edit Tugas">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                         </svg>
                                                     </a>
-
-                                                    <!-- Delete -->
                                                     <form action="{{ route('teacher.assignments.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus tempat submission tugas ini beserta seluruh lampirannya?')">
                                                         @csrf
                                                         @method('DELETE')
@@ -296,7 +347,7 @@
                                 @if(isset($meeting->assignments) && $meeting->assignments->where('type', 'quiz')->count() > 0)
                                     <div class="space-y-2">
                                         @foreach($meeting->assignments->where('type', 'quiz') as $quizAssignment)
-                                            <div class="group flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100 hover:border-amber-200 hover:bg-slate-100/80 transition">
+                                            <div class="group flex items-center justify-between p-2.5 mb-2 rounded-lg bg-slate-50 border border-slate-100 hover:border-amber-200 transition">
                                                 <div class="flex items-center space-x-2.5 min-w-0 pr-2">
                                                     <!-- Icon Indicator Kuis -->
                                                     <div class="w-7 h-7 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
@@ -323,22 +374,17 @@
 
                                                 <!-- Action Buttons: Show, Edit, Delete -->
                                                 <div class="flex items-center space-x-1.5 flex-shrink-0">
-                                                    <!-- Detail/Show -->
                                                     <a href="{{ route('teacher.quizzes.show', $quizAssignment->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition rounded" title="Detail Kuis & Bank Soal">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                         </svg>
                                                     </a>
-
-                                                    <!-- Edit -->
                                                     <a href="{{ route('teacher.quizzes.edit', $quizAssignment->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition rounded" title="Edit Konfigurasi Kuis">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                         </svg>
                                                     </a>
-
-                                                    <!-- Delete -->
                                                     <form action="{{ route('teacher.quizzes.destroy', $quizAssignment->id) }}" method="POST" class="m-0" onsubmit="return confirm('Hapus kuis ini beserta seluruh bank soalnya?')">
                                                         @csrf
                                                         @method('DELETE')

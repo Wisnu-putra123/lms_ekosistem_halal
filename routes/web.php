@@ -12,6 +12,7 @@ use App\Http\Controllers\Teacher\MaterialController;
 use App\Http\Controllers\Teacher\SubmissionGradingController;
 use App\Http\Controllers\Teacher\QuizController;
 use App\Http\Controllers\Teacher\QuestionController;
+use \App\Http\Controllers\Teacher\GradebookController;
 
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
@@ -93,15 +94,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
         Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
 
-        // Tugas Upload (Submissions)
-        // Route::get('/submissions/{assignment}', [StudentTaskSubmissionController::class, 'show'])->name('submissions.show');
-        // Route::post('/submissions/{assignment}/submit', [StudentTaskSubmissionController::class, 'submit'])->name('submissions.submit');
-
-        // // Kuis (Quizzes)
-        // Route::get('/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('quizzes.show');
-        // Route::post('/quizzes/{quiz}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
-        // Route::get('/quiz-attempts/{attempt}', [StudentQuizController::class, 'take'])->name('quizzes.take');
-        // Route::post('/quiz-attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
     });
 
     Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
@@ -141,6 +133,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
         Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
         Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
+        Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook');
+        Route::get('/courses/{course}/gradebook/export', [GradebookController::class, 'exportCsv'])->name('courses.gradebook.export');
+        Route::get('/courses/{course}/assignments/{assignment}/users/{user}/attempts', [GradebookController::class, 'studentDetail'])->name('courses.gradebook.student_detail');
 
         // Quiz Management
         Route::get('/meetings/{meeting}/quizzes/create', [QuizController::class, 'create'])->name('meetings.quizzes.create');
