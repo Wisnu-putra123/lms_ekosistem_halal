@@ -133,9 +133,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
         Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
         Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
-        Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook');
+        Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook.show');
         Route::get('/courses/{course}/gradebook/export', [GradebookController::class, 'exportCsv'])->name('courses.gradebook.export');
-        Route::get('/courses/{course}/assignments/{assignment}/users/{user}/attempts', [GradebookController::class, 'studentDetail'])->name('courses.gradebook.student_detail');
+        Route::get('/courses/{course}/gradebook/assignments/{assignment}/enrollments/{enrollment}', [GradebookController::class, 'studentDetail'])->name('courses.gradebook.student_detail');
 
         // Quiz Management
         Route::get('/meetings/{meeting}/quizzes/create', [QuizController::class, 'create'])->name('meetings.quizzes.create');

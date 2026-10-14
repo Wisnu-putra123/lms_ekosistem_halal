@@ -8,15 +8,14 @@ use App\Models\AssignmentSubmission;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\QuizAttempt;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class GradebookController extends Controller
 {
     /**
-     * Tampilkan Matriks Rekap Nilai Seluruh Siswa
+     * Tampilkan Matriks Rekap Nilai Seluruh Siswa (Dukungan Filter, Search & Sorting Waktu Enrollment)
      */
-    public function show(Course $course)
+    public function show(Request $request, Course $course)
     {
         // 1. Ambil semua item Tugas & Kuis resmi yang terbit
         $assignments = Assignment::where('course_id', $course->id)
@@ -25,34 +24,51 @@ class GradebookController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        // 2. Ambil seluruh siswa aktif terdaftar
-        $enrollments = Enrollment::with(['user', 'progress'])
-            ->where('course_id', $course->id)
-            ->where('status', 'active')
-            ->get();
+        // 2. Query Enrollment
+        $enrollmentsQuery = Enrollment::with(['user', 'progress'])
+            ->where('course_id', $course->id);
 
-        $studentIds = $enrollments->pluck('user_id');
+        // Filter status enrollment
+        if ($request->filled('enrollment_status') && $request->enrollment_status !== 'all') {
+            $enrollmentsQuery->where('status', $request->enrollment_status);
+        } else {
+            $enrollmentsQuery->whereIn('status', ['active', 'completed']);
+        }
 
-        // 3. Query Nilai Tugas (Submissions)
+        // Filter pencarian nama / email / ID Enrollment
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $enrollmentsQuery->where(function ($query) use ($search) {
+                $query->where('id', $search)
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $enrollments = $enrollmentsQuery->get();
+        $enrollmentIds = $enrollments->pluck('id');
+
+        // 3. Query Nilai Tugas & Kuis
         $submissions = AssignmentSubmission::whereIn('assignment_id', $assignments->where('type', 'submission')->pluck('id'))
-            ->whereIn('user_id', $studentIds)
+            ->whereIn('enrollment_id', $enrollmentIds)
             ->get()
-            ->groupBy('user_id');
+            ->groupBy('enrollment_id');
 
-        // 4. Query Nilai Kuis (Quiz Attempts)
         $quizAttempts = QuizAttempt::join('quizzes', 'quizzes.id', '=', 'quiz_attempts.quiz_id')
             ->whereIn('quizzes.assignment_id', $assignments->where('type', 'quiz')->pluck('id'))
-            ->whereIn('quiz_attempts.user_id', $studentIds)
+            ->whereIn('quiz_attempts.enrollment_id', $enrollmentIds)
             ->whereIn('quiz_attempts.status', ['submitted', 'expired'])
             ->select('quiz_attempts.*', 'quizzes.assignment_id')
             ->get()
-            ->groupBy('user_id');
+            ->groupBy('enrollment_id');
 
-        // 5. Olah Matriks Rekap Nilai
+        // 4. Olah Matriks Rekap Nilai
         $gradebookData = $enrollments->map(function ($enrollment) use ($assignments, $submissions, $quizAttempts) {
-            $userId = $enrollment->user_id;
-            $userSubmissions = $submissions->get($userId, collect());
-            $userQuizAttempts = $quizAttempts->get($userId, collect());
+            $enrollmentId = $enrollment->id;
+            $userSubmissions = $submissions->get($enrollmentId, collect());
+            $userQuizAttempts = $quizAttempts->get($enrollmentId, collect());
 
             $scores = [];
             $totalPassed = 0;
@@ -91,6 +107,7 @@ class GradebookController extends Controller
             $averageScore = $totalEvaluated > 0 ? round($sumScores / $totalEvaluated, 2) : 0;
 
             return [
+                'enrollment' => $enrollment,
                 'user' => $enrollment->user,
                 'progress' => $enrollment->progress->progress_percentage ?? 0,
                 'scores' => $scores,
@@ -99,38 +116,77 @@ class GradebookController extends Controller
             ];
         });
 
+        // 5. Fitur Sorting Data Matriks (Dengan Opsi Tanggal Enrollment)
+        $sort = $request->get('sort', 'enrolled_at');
+        $direction = $request->get('direction', 'desc') === 'asc' ? 'asc' : 'desc';
+
+        if ($sort === 'progress') {
+            $gradebookData = $direction === 'desc' 
+                ? $gradebookData->sortByDesc('progress') 
+                : $gradebookData->sortBy('progress');
+        } elseif ($sort === 'average') {
+            $gradebookData = $direction === 'desc' 
+                ? $gradebookData->sortByDesc('average_score') 
+                : $gradebookData->sortBy('average_score');
+        } elseif ($sort === 'name') {
+            $gradebookData = $direction === 'desc' 
+                ? $gradebookData->sortByDesc(fn($item) => strtolower($item['user']->name)) 
+                : $gradebookData->sortBy(fn($item) => strtolower($item['user']->name));
+        } else {
+            // Default Sort: Waktu Pertama Kali Enrollment (enrolled_at)
+            $gradebookData = $direction === 'desc' 
+                ? $gradebookData->sortByDesc(fn($item) => $item['enrollment']->enrolled_at) 
+                : $gradebookData->sortBy(fn($item) => $item['enrollment']->enrolled_at);
+        }
+
         return view('teacher.gradebook.show', compact('course', 'assignments', 'gradebookData'));
     }
 
     /**
-     * Halaman Khusus Detail Seluruh Attempt Siswa pada Satu Tugas/Kuis
+     * Halaman Khusus Detail Seluruh Attempt Siswa pada Satu Enrollment & Item Tugas/Kuis
      */
-    public function studentDetail(Course $course, Assignment $assignment, User $user)
+    public function studentDetail(Course $course, Assignment $assignment, $enrollmentId)
     {
+        // 1. Cari Enrollment berdasarkan ID Enrollment, jika tidak ketemu cari berdasarkan User ID pada course ini
+        $enrollment = Enrollment::with('user')
+            ->where('id', $enrollmentId)
+            ->first();
+
+        if (!$enrollment) {
+            // Fallback jika yang terpassing adalah user_id
+            $enrollment = Enrollment::with('user')
+                ->where('course_id', $course->id)
+                ->where('user_id', $enrollmentId)
+                ->latest('enrolled_at')
+                ->firstOrFail();
+        }
+
+        $user = $enrollment->user;
         $attempts = collect();
 
+        // 2. Query Attempt berdasarkan Enrollment ID
         if ($assignment->type === 'submission') {
             $attempts = AssignmentSubmission::where('assignment_id', $assignment->id)
-                ->where('user_id', $user->id)
+                ->where('enrollment_id', $enrollment->id)
                 ->orderBy('attempt_number', 'desc')
                 ->get();
         } else {
             $quiz = $assignment->quiz;
             if ($quiz) {
                 $attempts = QuizAttempt::where('quiz_id', $quiz->id)
-                    ->where('user_id', $user->id)
+                    ->where('enrollment_id', $enrollment->id)
                     ->orderBy('attempt_number', 'desc')
                     ->get();
             }
         }
 
-        return view('teacher.gradebook.student_detail', compact('course', 'assignment', 'user', 'attempts'));
+        return view('teacher.gradebook.student_detail', compact('course', 'assignment', 'enrollment', 'user', 'attempts'));
     }
 
     /**
-     * Ekspor Rekap Nilai ke File CSV
+     * Ekspor Rekap Nilai ke File CSV (Mencakup Status Enrollment)
      */
-    public function exportCsv(Course $course)
+    public function exportCsv(Request $request, Course $course)
     {
         $fileName = 'Rekap_Nilai_' . \Str::slug($course->title) . '_' . date('Ymd_His') . '.csv';
 
@@ -140,25 +196,30 @@ class GradebookController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        $enrollments = Enrollment::with(['user', 'progress'])
-            ->where('course_id', $course->id)
-            ->where('status', 'active')
-            ->get();
+        $enrollmentsQuery = Enrollment::with(['user', 'progress'])
+            ->where('course_id', $course->id);
 
-        $studentIds = $enrollments->pluck('user_id');
+        if ($request->filled('enrollment_status') && $request->enrollment_status !== 'all') {
+            $enrollmentsQuery->where('status', $request->enrollment_status);
+        } else {
+            $enrollmentsQuery->whereIn('status', ['active', 'completed']);
+        }
+
+        $enrollments = $enrollmentsQuery->get();
+        $enrollmentIds = $enrollments->pluck('id');
 
         $submissions = AssignmentSubmission::whereIn('assignment_id', $assignments->where('type', 'submission')->pluck('id'))
-            ->whereIn('user_id', $studentIds)
+            ->whereIn('enrollment_id', $enrollmentIds)
             ->get()
-            ->groupBy('user_id');
+            ->groupBy('enrollment_id');
 
         $quizAttempts = QuizAttempt::join('quizzes', 'quizzes.id', '=', 'quiz_attempts.quiz_id')
             ->whereIn('quizzes.assignment_id', $assignments->where('type', 'quiz')->pluck('id'))
-            ->whereIn('quiz_attempts.user_id', $studentIds)
+            ->whereIn('quiz_attempts.enrollment_id', $enrollmentIds)
             ->whereIn('quiz_attempts.status', ['submitted', 'expired'])
             ->select('quiz_attempts.*', 'quizzes.assignment_id')
             ->get()
-            ->groupBy('user_id');
+            ->groupBy('enrollment_id');
 
         $headers = [
             "Content-type" => "text/csv; charset=UTF-8",
@@ -170,9 +231,9 @@ class GradebookController extends Controller
 
         $callback = function () use ($assignments, $enrollments, $submissions, $quizAttempts) {
             $file = fopen('php://output', 'w');
-            fputs($file, "\xEF\xBB\xBF"); // BOM UTF-8
+            fputs($file, "\xEF\xBB\xBF");
 
-            $headerRow = ['Nama Siswa', 'Email', 'Progress (%)'];
+            $headerRow = ['Enrollment ID', 'Nama Siswa', 'Email', 'Status Enrollment', 'Progress (%)'];
             foreach ($assignments as $assignment) {
                 $headerRow[] = $assignment->title . ' (' . strtoupper($assignment->type) . ')';
             }
@@ -180,13 +241,15 @@ class GradebookController extends Controller
             fputcsv($file, $headerRow);
 
             foreach ($enrollments as $enrollment) {
-                $userId = $enrollment->user_id;
-                $userSubmissions = $submissions->get($userId, collect());
-                $userQuizAttempts = $quizAttempts->get($userId, collect());
+                $enrollmentId = $enrollment->id;
+                $userSubmissions = $submissions->get($enrollmentId, collect());
+                $userQuizAttempts = $quizAttempts->get($enrollmentId, collect());
 
                 $row = [
+                    '#' . $enrollment->id,
                     $enrollment->user->name,
                     $enrollment->user->email,
+                    strtoupper($enrollment->status),
                     ($enrollment->progress->progress_percentage ?? 0) . '%'
                 ];
 

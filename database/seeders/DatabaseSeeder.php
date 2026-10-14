@@ -59,10 +59,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             CourseSeeder::class,
+            EnrollmentSeeder::class,
             MeetingSeeder::class,
-            SubmissionSeeder::class,
+            AssignmentSeeder::class,
             QuizSeeder::class,
-        ]);
+            SubmissionSeeder::class,
+            QuizAttemptSeeder::class,
+            ]);
 
     }
 }

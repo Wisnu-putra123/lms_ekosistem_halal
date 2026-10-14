@@ -6,7 +6,8 @@
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'attempts' }">
+<!-- Mengubah default activeTab menjadi 'questions' -->
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'questions' }">
 
     <!-- Header Navigation -->
     <div class="flex items-center justify-between">
@@ -108,103 +109,24 @@
         @endif
     </div>
 
-    <!-- TAB HEADER SWITCHER -->
-    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
-        <button type="button" @click="activeTab = 'attempts'" 
-                :class="activeTab === 'attempts' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            <span>Hasil & Nilai Siswa ({{ $quizAttempts->count() ?? 0 }})</span>
-        </button>
-
+    <!-- TAB HEADER SWITCHER (Bank soal diletakkan di tombol pertama) -->
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1 overflow-x-auto">
         <button type="button" @click="activeTab = 'questions'" 
                 :class="activeTab === 'questions' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Bank Soal Quiz ({{ $quiz->questions->count() }})</span>
         </button>
+        
+        <button type="button" @click="activeTab = 'attempts'" 
+                :class="activeTab === 'attempts' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span>Hasil & Nilai Siswa ({{ $quizAttempts->count() ?? 0 }})</span>
+        </button>
     </div>
 
-    <!-- TAB 1: TABEL PENILAIAN / ATTEMPTS SISWA -->
-    <div x-show="activeTab === 'attempts'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-base font-bold text-slate-800">Daftar Attempt Pengerjaan Quiz Siswa</h2>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
-                        <th class="py-3 px-4">Nama Siswa</th>
-                        <th class="py-3 px-4">Attempt Ke-</th>
-                        <th class="py-3 px-4">Waktu Selesai</th>
-                        <th class="py-3 px-4">Status</th>
-                        <th class="py-3 px-4">Nilai</th>
-                        <th class="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
-                    @forelse($quizAttempts as $attempt)
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-semibold text-slate-800">
-                                {{ $attempt->user->name ?? 'Siswa' }}
-                            </td>
-                            <td class="py-3.5 px-4">
-                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md font-bold text-[11px]">
-                                    Attempt #{{ $attempt->attempt_number }}
-                                </span>
-                            </td>
-                            <td class="py-3.5 px-4">
-                                {{ $attempt->submitted_at ? \Carbon\Carbon::parse($attempt->submitted_at)->format('d M Y H:i') : '-' }}
-                            </td>
-                            <td class="py-3.5 px-4">
-                                @if($attempt->status === 'submitted' || $attempt->status === 'expired')
-                                    @if($attempt->score >= $assignment->passing_score)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Lulus</span>
-                                    @else
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Belum Lulus</span>
-                                    @endif
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Sedang Mengerjakan</span>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-4 font-bold text-slate-800">
-                                {{ $attempt->score !== null ? number_format($attempt->score, 2) : '-' }}
-                            </td>
-                            <td class="py-3.5 px-4 text-right">
-                                <div class="flex items-center justify-end space-x-2">
-                                    <!-- Tombol Lihat Detail Jawaban Siswa -->
-                                    <a href="{{ route('teacher.quizzes.attempts.show', $attempt->id) }}" 
-                                    class="p-1.5 bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg transition" 
-                                    title="Lihat Detail Jawaban Siswa">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
-                                    </a>
-
-                                    <!-- Tombol Hapus Attempt -->
-                                    <form action="{{ route('teacher.quizzes.attempts.destroy', $attempt->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus attempt pengerjaan kuis siswa ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-1.5 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Hapus Attempt">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="py-8 text-center text-xs text-slate-400">Belum ada siswa yang mengerjakan quiz ini.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB 2: DAFTAR BANK SOAL -->
+    <!-- TAB DAFTAR BANK SOAL (DITAMPILKAN PERTAMA) -->
     <div x-show="activeTab === 'questions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
@@ -278,6 +200,122 @@
                     Belum ada soal yang ditambahkan pada bank soal Quiz ini. Silakan klik tombol "+ Tambah Soal Baru".
                 </div>
             @endforelse
+        </div>
+    </div>
+
+    <!-- TAB TABEL PENILAIAN / ATTEMPTS SISWA -->
+    <div x-show="activeTab === 'attempts'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        
+        <!-- Filter & Sort Form -->
+        <form method="GET" action="{{ route('teacher.quizzes.show', $assignment->id) }}" class="flex flex-col lg:flex-row gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-1/4 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+            
+            <select name="enrollment_status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                <option value="">Semua Status Enrollment</option>
+                <option value="active" {{ request('enrollment_status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="completed" {{ request('enrollment_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+            </select>
+            
+            <select name="status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                <option value="">Semua Status Attempt</option>
+                <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted (Selesai)</option>
+                <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress (Mengerjakan)</option>
+                <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired (Waktu Habis)</option>
+            </select>
+            
+            <select name="sort" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru Dimulai</option>
+                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama Dimulai</option>
+                <option value="score_high" {{ request('sort') == 'score_high' ? 'selected' : '' }}>Nilai Tertinggi</option>
+                <option value="score_low" {{ request('sort') == 'score_low' ? 'selected' : '' }}>Nilai Terendah</option>
+            </select>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-amber-600 transition">Filter</button>
+                <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition flex items-center justify-center">Reset</a>
+            </div>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
+                        <th class="py-3 px-4">Siswa & Enrollment</th>
+                        <th class="py-3 px-4">Attempt Ke-</th>
+                        <th class="py-3 px-4">Waktu Selesai</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Nilai</th>
+                        <th class="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+                    @forelse($quizAttempts as $attempt)
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3.5 px-4">
+                                <div class="font-semibold text-slate-800">{{ $attempt->enrollment->user->name ?? 'Siswa Tidak Ditemukan' }}</div>
+                                <div class="text-[10px] mt-0.5 flex items-center space-x-1">
+                                    <span class="text-slate-400">Status ID #{{ $attempt->enrollment_id }}:</span>
+                                    <span class="uppercase font-bold {{ $attempt->enrollment->status === 'active' ? 'text-emerald-600' : 'text-slate-500' }}">
+                                        {{ $attempt->enrollment->status }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md font-bold text-[11px]">
+                                    Attempt #{{ $attempt->attempt_number }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                {{ $attempt->submitted_at ? \Carbon\Carbon::parse($attempt->submitted_at)->format('d M Y H:i') : '-' }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                @if($attempt->status === 'submitted' || $attempt->status === 'expired')
+                                    @if($attempt->score >= $assignment->passing_score)
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Lulus</span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Belum Lulus</span>
+                                    @endif
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Sedang Mengerjakan</span>
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-4 font-bold text-slate-800">
+                                {{ $attempt->score !== null ? number_format($attempt->score, 2) : '-' }}
+                            </td>
+                            <td class="py-3.5 px-4 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <!-- Tombol Lihat Detail Jawaban Siswa -->
+                                    <a href="{{ route('teacher.quizzes.attempts.show', $attempt->id) }}" 
+                                    class="p-1.5 bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white rounded-lg transition" 
+                                    title="Lihat Detail Jawaban Siswa">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+
+                                    <!-- Tombol Hapus Attempt -->
+                                    <form action="{{ route('teacher.quizzes.attempts.destroy', $attempt->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus attempt pengerjaan kuis siswa ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Hapus Attempt">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-10 text-center text-xs text-slate-400 font-semibold bg-slate-50/50 rounded-xl">
+                                Tidak ada data pengerjaan kuis siswa yang cocok dengan filter tersebut.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

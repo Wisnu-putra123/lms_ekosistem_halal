@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Helpers\CourseProgressHelper;
 use App\Models\Assignment;
-use App\Models\QuestionOption;
+use App\Models\Enrollment;
+use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\QuizAttemptQuestion;
+use App\Helpers\CourseProgressHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,120 +16,114 @@ use Illuminate\Support\Facades\DB;
 class StudentQuizController extends Controller
 {
     /**
-     * Tampilkan halaman overview Quiz (instruksi, aturan, & riwayat attempt siswa).
+     * Menampilkan detail kuis & riwayat pengerjaan (attempts) siswa.
      */
     public function show(Assignment $assignment)
     {
-        if ($assignment->type !== 'quiz') {
-            abort(404, 'Assignment ini bukan merupakan Quiz.');
-        }
+        $userId = Auth::id();
 
-        $assignment->load(['quiz.questions', 'meeting', 'course']);
+        // 1. Ambil Enrollment terbaru siswa pada kelas ini
+        $enrollment = Enrollment::where('course_id', $assignment->course_id)
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->firstOrFail();
+
+        $assignment->load(['meeting', 'quiz.questions.options']);
         $quiz = $assignment->quiz;
 
-        // Ambil riwayat attempt milik siswa
+        // 2. Ambil seluruh riwayat attempt siswa berdasarkan enrollment_id
         $attempts = QuizAttempt::where('quiz_id', $quiz->id)
-            ->where('user_id', Auth::id())
+            ->where('enrollment_id', $enrollment->id)
             ->orderBy('attempt_number', 'desc')
             ->get();
 
-        // Cari skor tertinggi dari attempt yang sudah disubmit/dikalkulasi
+        $attemptCount = $attempts->count();
         $bestScore = $attempts->whereIn('status', ['submitted', 'expired'])->max('score');
+        
+        // Cek apakah ada attempt yang sedang berlangsung/mengerjakan
+        $activeAttempt = $attempts->where('status', 'in_progress')->first();
 
-        // Cek apakah ada attempt yang masih berlangsung (in_progress)
-        $activeAttempt = $attempts->firstWhere('status', 'in_progress');
-
-        // Pengecekan sisa kuota attempt
+        // 3. Hitung apakah siswa diperbolehkan memulai attempt baru
         $hasMaxAttempts = !is_null($assignment->max_attempts);
-        $attemptsCount = $attempts->count();
-        $canStartNewAttempt = !$activeAttempt && (!$hasMaxAttempts || $attemptsCount < $assignment->max_attempts);
+        $canStartNewAttempt = $enrollment->isAccessValid() 
+            && !$activeAttempt 
+            && (!$hasMaxAttempts || ($attemptCount < $assignment->max_attempts));
 
+        // 4. Pass semua variabel (termasuk $canStartNewAttempt) ke view
         return view('student.quizzes.show', compact(
             'assignment',
             'quiz',
+            'enrollment',
             'attempts',
+            'attemptCount',
             'bestScore',
             'activeAttempt',
-            'canStartNewAttempt'
+            'canStartNewAttempt' // <-- Variabel ini wajib dipass
         ));
     }
 
     /**
-     * Inisiasi dan Mulai Attempt Quiz Baru.
+     * Mulai pengerjaan Kuis baru / Lanjutkan pengerjaan.
      */
     public function start(Assignment $assignment)
     {
-        if ($assignment->type !== 'quiz') {
-            abort(404);
-        }
-
-        $quiz = $assignment->quiz;
         $userId = Auth::id();
 
-        // 1. Cek jika ada attempt aktif yang belum selesai
-        $existingActive = QuizAttempt::where('quiz_id', $quiz->id)
+        $enrollment = Enrollment::where('course_id', $assignment->course_id)
             ->where('user_id', $userId)
-            ->where('status', 'in_progress')
+            ->where('status', 'active')
             ->first();
 
-        if ($existingActive) {
-            // Jika waktu attempt aktif sudah habis, jalankan auto-submit
-            if ($existingActive->expires_at && now()->greaterThan($existingActive->expires_at)) {
-                $this->processGradeAttempt($existingActive, 'expired');
-            } else {
-                return redirect()->route('student.quizzes.attempt', [$assignment->id, $existingActive->id]);
-            }
+        if (!$enrollment || !$enrollment->isAccessValid()) {
+            return back()->with('error', 'Akses Anda ke kelas ini telah selesai atau kedaluwarsa.');
         }
 
-        // 2. Cek Batas Maksimal Attempt
-        $attemptCount = QuizAttempt::where('quiz_id', $quiz->id)
-            ->where('user_id', $userId)
-            ->count();
-
-        if (!is_null($assignment->max_attempts) && $attemptCount >= $assignment->max_attempts) {
-            return back()->with('error', 'Anda telah mencapai batas maksimal percobaan pengerjaan Quiz ini.');
-        }
+        $quiz = Quiz::with('questions.options')->where('assignment_id', $assignment->id)->firstOrFail();
 
         DB::beginTransaction();
         try {
-            // 3. Tentukan Waktu Mulai & Batas Expired
-            $startedAt = now();
-            $expiresAt = $quiz->duration_minutes ? $startedAt->copy()->addMinutes($quiz->duration_minutes) : null;
+            // 1. Cek apakah ada attempt yang sedang berjalan
+            $attempt = QuizAttempt::where('quiz_id', $quiz->id)
+                ->where('enrollment_id', $enrollment->id)
+                ->where('status', 'in_progress')
+                ->first();
 
-            // 4. Buat Record Attempt Baru
-            $attempt = QuizAttempt::create([
-                'quiz_id' => $quiz->id,
-                'user_id' => $userId,
-                'attempt_number' => $attemptCount + 1,
-                'started_at' => $startedAt,
-                'expires_at' => $expiresAt,
-                'status' => 'in_progress',
-            ]);
+            // Jika belum ada, buat attempt baru
+            if (!$attempt) {
+                $attemptCount = QuizAttempt::where('quiz_id', $quiz->id)
+                    ->where('enrollment_id', $enrollment->id)
+                    ->count();
 
-            // 5. Generasi Soal untuk Attempt Ini (Randomisasi Soal)
-            $query = $quiz->questions()->where('is_active', true);
+                if (!is_null($assignment->max_attempts) && $attemptCount >= $assignment->max_attempts) {
+                    return back()->with('error', 'Anda telah mencapai batas maksimal percobaan kuis.');
+                }
 
-            if ($quiz->shuffle_questions) {
-                $query->inRandomOrder();
-            } else {
-                $query->orderBy('quiz_questions.sort_order', 'asc');
-            }
+                $expiresAt = $quiz->duration_minutes ? now()->addMinutes($quiz->duration_minutes) : null;
 
-            // Ambil sejumlah question_count yang ditetapkan
-            $selectedQuestions = $query->take($quiz->question_count)->get();
-
-            if ($selectedQuestions->isEmpty()) {
-                DB::rollBack();
-                return back()->with('error', 'Quiz ini belum memiliki bank soal yang aktif.');
-            }
-
-            // 6. Petakan Soal ke Lembar Pengerjaan Attempt Siswa
-            foreach ($selectedQuestions as $index => $question) {
-                QuizAttemptQuestion::create([
-                    'attempt_id' => $attempt->id,
-                    'question_id' => $question->id,
-                    'question_order' => $index + 1,
+                $attempt = QuizAttempt::create([
+                    'quiz_id' => $quiz->id,
+                    'enrollment_id' => $enrollment->id, // Menggunakan enrollment_id
+                    'attempt_number' => $attemptCount + 1,
+                    'started_at' => now(),
+                    'expires_at' => $expiresAt,
+                    'status' => 'in_progress',
                 ]);
+
+                // Acak / pilih soal
+                $questions = $quiz->questions;
+                if ($quiz->shuffle_questions) {
+                    $questions = $questions->shuffle();
+                }
+
+                $selectedQuestions = $questions->take($quiz->question_count);
+
+                foreach ($selectedQuestions as $index => $question) {
+                    QuizAttemptQuestion::create([
+                        'attempt_id' => $attempt->id,
+                        'question_id' => $question->id,
+                        'question_order' => $index + 1,
+                    ]);
+                }
             }
 
             DB::commit();
@@ -136,88 +131,43 @@ class StudentQuizController extends Controller
             return redirect()->route('student.quizzes.attempt', [$assignment->id, $attempt->id]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal memulai Quiz: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memulai kuis: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Halaman Lembar Pengerjaan Quiz (Attempt View).
+/**
+     * Lembar Soal Kuis (Attempt).
      */
     public function attempt(Assignment $assignment, QuizAttempt $attempt)
     {
-        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $assignment->quiz->id) {
-            abort(403, 'Akses tidak diizinkan.');
+        // Pastikan attempt milik enrollment user saat ini
+        if ($attempt->enrollment->user_id !== Auth::id()) {
+            abort(403);
         }
 
-        // Cek jika waktu habis saat siswa memuat halaman
-        if ($attempt->status === 'in_progress' && $attempt->expires_at && now()->greaterThan($attempt->expires_at)) {
-            $this->processGradeAttempt($attempt, 'expired');
+        // Cek Durasi Waktu Kuis
+        if ($attempt->expires_at && now()->greaterThan($attempt->expires_at) && $attempt->status === 'in_progress') {
+            $this->finalizeAttempt($attempt);
             return redirect()->route('student.quizzes.result', [$assignment->id, $attempt->id])
-                ->with('error', 'Waktu pengerjaan Quiz telah habis!');
+                ->with('warning', 'Waktu pengerjaan kuis telah habis.');
         }
 
-        if ($attempt->status !== 'in_progress') {
-            return redirect()->route('student.quizzes.result', [$assignment->id, $attempt->id]);
-        }
+        // 1. Load relasi attemptQuestions beserta detail soal & opsinya
+        $attempt->load(['attemptQuestions.question.options', 'quiz']);
 
-        // Load Soal & Opsi Jawaban (dengan dukungan acak opsi jika diaktifkan)
-        $attemptQuestions = QuizAttemptQuestion::where('attempt_id', $attempt->id)
-            ->with(['question.media', 'question.options.media', 'selectedOption'])
-            ->orderBy('question_order', 'asc')
-            ->get();
+        // 2. Definisikan variabel $attemptQuestions agar dapat dipass ke Blade
+        $attemptQuestions = $attempt->attemptQuestions;
 
-        $quiz = $assignment->quiz;
-
-        // Acak opsi pilihan jawaban jika shuffle_answers aktif
-        if ($quiz->shuffle_answers) {
-            foreach ($attemptQuestions as $aq) {
-                if ($aq->question) {
-                    $aq->question->setRelation('options', $aq->question->options->shuffle());
-                }
-            }
-        }
-
-        return view('student.quizzes.attempt', compact('assignment', 'quiz', 'attempt', 'attemptQuestions'));
+        // 3. Pass $attemptQuestions ke view
+        return view('student.quizzes.attempt', compact('assignment', 'attempt', 'attemptQuestions'));
     }
 
     /**
-     * Simpan Jawaban Pilihan Siswa secara Pasif / Ajax (Autosave).
-     */
-    public function saveAnswer(Request $request, Assignment $assignment, QuizAttempt $attempt)
-    {
-        if ($attempt->user_id !== Auth::id() || $attempt->status !== 'in_progress') {
-            return response()->json(['message' => 'Attempt tidak valid atau sudah selesai.'], 403);
-        }
-
-        // Cek jika expired
-        if ($attempt->expires_at && now()->greaterThan($attempt->expires_at)) {
-            $this->processGradeAttempt($attempt, 'expired');
-            return response()->json(['message' => 'Waktu pengerjaan telah habis.', 'expired' => true], 400);
-        }
-
-        $request->validate([
-            'attempt_question_id' => 'required|exists:quiz_attempt_questions,id',
-            'selected_option_id' => 'nullable|exists:question_options,id',
-        ]);
-
-        $attemptQuestion = QuizAttemptQuestion::where('id', $request->attempt_question_id)
-            ->where('attempt_id', $attempt->id)
-            ->firstOrFail();
-
-        $attemptQuestion->update([
-            'selected_option_id' => $request->selected_option_id,
-            'answered_at' => now(),
-        ]);
-
-        return response()->json(['status' => 'success', 'message' => 'Jawaban berhasil disimpan.']);
-    }
-
-    /**
-     * Submit Akhir Attempt Quiz & Hitung Nilai Otomatis.
+     * Simpan / Submit Jawaban Kuis.
      */
     public function submit(Request $request, Assignment $assignment, QuizAttempt $attempt)
     {
-        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $assignment->quiz->id) {
+        if ($attempt->enrollment->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -225,95 +175,73 @@ class StudentQuizController extends Controller
             return redirect()->route('student.quizzes.result', [$assignment->id, $attempt->id]);
         }
 
-        // Simpan jawaban terakhir jika dikirimkan via form submit utama
-        if ($request->has('answers') && is_array($request->answers)) {
-            foreach ($request->answers as $aqId => $optionId) {
-                QuizAttemptQuestion::where('id', $aqId)
-                    ->where('attempt_id', $attempt->id)
-                    ->update([
-                        'selected_option_id' => $optionId,
+        $answers = $request->input('answers', []);
+
+        DB::beginTransaction();
+        try {
+            foreach ($attempt->attemptQuestions as $attemptQuestion) {
+                $selectedOptionId = $answers[$attemptQuestion->id] ?? null;
+
+                if ($selectedOptionId) {
+                    $option = $attemptQuestion->question->options->where('id', $selectedOptionId)->first();
+                    $isCorrect = $option ? $option->is_correct : false;
+
+                    // Hitung poin per soal
+                    $pointPerQuestion = $attempt->quiz->question_count > 0 
+                        ? ($assignment->max_score / $attempt->quiz->question_count) 
+                        : 0;
+
+                    $pointsEarned = $isCorrect ? $pointPerQuestion : 0;
+
+                    $attemptQuestion->update([
+                        'selected_option_id' => $selectedOptionId,
+                        'is_correct' => $isCorrect,
+                        'points_earned' => $pointsEarned,
                         'answered_at' => now(),
                     ]);
+                }
             }
+
+            $this->finalizeAttempt($attempt);
+
+            DB::commit();
+
+            return redirect()->route('student.quizzes.result', [$assignment->id, $attempt->id])
+                ->with('success', 'Kuis berhasil diselesaikan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menyimpan jawaban: ' . $e->getMessage());
         }
-
-        $status = ($attempt->expires_at && now()->greaterThan($attempt->expires_at)) ? 'expired' : 'submitted';
-
-        $this->processGradeAttempt($attempt, $status);
-
-        return redirect()->route('student.quizzes.result', [$assignment->id, $attempt->id])
-            ->with('success', 'Quiz berhasil dikumpulkan dan dinilai!');
     }
 
     /**
-     * Tampilkan Hasil Evaluasi Attempt & Pembahasan.
+     * Halaman Hasil Kuis.
      */
     public function result(Assignment $assignment, QuizAttempt $attempt)
     {
-        if ($attempt->user_id !== Auth::id() || $attempt->quiz_id !== $assignment->quiz->id) {
+        if ($attempt->enrollment->user_id !== Auth::id()) {
             abort(403);
         }
 
         $attempt->load(['attemptQuestions.question.options', 'attemptQuestions.selectedOption']);
-        $quiz = $assignment->quiz;
 
-        return view('student.quizzes.result', compact('assignment', 'quiz', 'attempt'));
+        return view('student.quizzes.result', compact('assignment', 'attempt'));
     }
 
     /**
-     * Helper Private: Kalkulasi Penilaian Otomatis & Pembaruan Progress Belajar.
+     * Helper internal untuk mengkalkulasi total skor akhir attempt kuis.
      */
-    private function processGradeAttempt(QuizAttempt $attempt, string $status = 'submitted')
+    private function finalizeAttempt(QuizAttempt $attempt)
     {
-        DB::beginTransaction();
-        try {
-            $attemptQuestions = QuizAttemptQuestion::where('attempt_id', $attempt->id)
-                ->with(['question.options'])
-                ->get();
+        $totalScore = $attempt->attemptQuestions()->sum('points_earned');
 
-            $totalQuestionsCount = $attemptQuestions->count();
-            $correctCount = 0;
+        $attempt->update([
+            'score' => round($totalScore, 2),
+            'submitted_at' => now(),
+            'status' => 'submitted',
+        ]);
 
-            $maxScore = $attempt->quiz->assignment->max_score;
-            $pointPerQuestion = $totalQuestionsCount > 0 ? ($maxScore / $totalQuestionsCount) : 0;
-
-            foreach ($attemptQuestions as $aq) {
-                $isCorrect = false;
-                $pointsEarned = 0;
-
-                if ($aq->selected_option_id) {
-                    $selectedOpt = QuestionOption::find($aq->selected_option_id);
-                    if ($selectedOpt && $selectedOpt->is_correct) {
-                        $isCorrect = true;
-                        $pointsEarned = $pointPerQuestion;
-                        $correctCount++;
-                    }
-                }
-
-                $aq->update([
-                    'is_correct' => $isCorrect,
-                    'points_earned' => $pointsEarned,
-                ]);
-            }
-
-            // Hitung nilai akhir berbasis skor maksimal assignment
-            $finalScore = $totalQuestionsCount > 0 ? round(($correctCount / $totalQuestionsCount) * $maxScore, 2) : 0;
-
-            $attempt->update([
-                'submitted_at' => now(),
-                'score' => $finalScore,
-                'status' => $status,
-            ]);
-
-            // Update Progress Belajar Siswa secara langsung
-            $courseId = $attempt->quiz->assignment->course_id;
-            $userId = $attempt->user_id;
-
-            CourseProgressHelper::updateStudentProgress($courseId, $userId);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-        }
+        // Hitung ulang progress siswa
+        CourseProgressHelper::updateStudentProgress($attempt->quiz->assignment->course_id, $attempt->enrollment_id);
     }
 }

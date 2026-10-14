@@ -6,7 +6,8 @@
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'submissions' }">
+<!-- Mengubah default activeTab menjadi 'instructions' -->
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'instructions' }">
 
     <!-- Header Navigation -->
     <div class="flex items-center justify-between">
@@ -105,44 +106,115 @@
         </div>
     </div>
 
-    <!-- TAB HEADER SWITCHER -->
-    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1">
-        <button type="button" @click="activeTab = 'submissions'" 
-                :class="activeTab === 'submissions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span>Hasil & Pengumpulan Siswa ({{ $assignment->submissions->count() }})</span>
-        </button>
-
+    <!-- TAB HEADER SWITCHER (Posisi tombol instruksi diletakkan di depan) -->
+    <div class="flex items-center space-x-2 border-b border-slate-200 pb-1 overflow-x-auto">
         <button type="button" @click="activeTab = 'instructions'" 
                 :class="activeTab === 'instructions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2">
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Instruksi & Berkas Soal</span>
         </button>
+
+        <button type="button" @click="activeTab = 'submissions'" 
+                :class="activeTab === 'submissions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Hasil & Pengumpulan Siswa ({{ $submissions->count() }})</span>
+        </button>
     </div>
 
-    <!-- TAB 1: TABEL PENGUMPULAN SISWA (SUBMISSIONS) -->
+    <!-- TAB DESKRIPSI & BERKAS SOAL/LAMPIRAN (DITAMPILKAN PERTAMA) -->
+    <div x-show="activeTab === 'instructions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <!-- Deskripsi / Instruksi -->
+        <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase">Instruksi / Petunjuk Pengerjaan:</h3>
+            @if($assignment->description)
+                <p class="text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
+            @else
+                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada deskripsi atau instruksi pengerjaan.</p>
+            @endif
+        </div>
+
+        <!-- Berkas Lampiran Pengajar -->
+        <div class="space-y-2 pt-4 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-slate-700 uppercase">Berkas Lampiran / Soal Pengajar:</h3>
+            @if($assignment->attachments && $assignment->attachments->count() > 0)
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @foreach($assignment->attachments as $attachment)
+                        @if($attachment->media)
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div class="flex items-center space-x-2 overflow-hidden pr-2">
+                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-xs text-slate-800 font-semibold truncate">{{ $attachment->media->file_name }}</span>
+                                </div>
+                                <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download class="text-[11px] font-bold text-blue-600 hover:underline flex-shrink-0">Unduh</a>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @else
+                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada berkas lampiran yang diunggah.</p>
+            @endif
+        </div>
+    </div>
+
+    <!-- TAB TABEL PENGUMPULAN SISWA (SUBMISSIONS) -->
     <div x-show="activeTab === 'submissions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-        <h2 class="text-base font-bold text-slate-800">Daftar Attempt Pengumpulan Siswa ({{ $assignment->submissions->count() }})</h2>
+        
+        <!-- Filter & Sort Form -->
+        <form method="GET" action="{{ route('teacher.assignments.show', $assignment->id) }}" class="flex flex-col lg:flex-row gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-1/4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            
+            <select name="enrollment_status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="">Semua Status Enrollment</option>
+                <option value="active" {{ request('enrollment_status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="completed" {{ request('enrollment_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+            </select>
+            
+            <select name="status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="">Semua Status Tugas</option>
+                <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted (Belum Dinilai)</option>
+                <option value="graded" {{ request('status') == 'graded' ? 'selected' : '' }}>Graded (Sudah Dinilai)</option>
+            </select>
+            
+            <select name="sort" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru Dikumpulkan</option>
+                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama Dikumpulkan</option>
+                <option value="score_high" {{ request('sort') == 'score_high' ? 'selected' : '' }}>Nilai Tertinggi</option>
+                <option value="score_low" {{ request('sort') == 'score_low' ? 'selected' : '' }}>Nilai Terendah</option>
+            </select>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition">Filter</button>
+                <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition flex items-center justify-center">Reset</a>
+            </div>
+        </form>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase">
-                        <th class="py-3 px-4">Nama Siswa</th>
+                        <th class="py-3 px-4">Siswa & Enrollment</th>
                         <th class="py-3 px-4">Attempt Ke-</th>
                         <th class="py-3 px-4">Waktu Mengumpulkan</th>
-                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Status Tugas</th>
                         <th class="py-3 px-4">Nilai</th>
                         <th class="py-3 px-4 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
-                    @forelse($assignment->submissions as $sub)
+                    @forelse($submissions as $sub)
                         <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3.5 px-4 font-semibold text-slate-800">
-                                {{ $sub->user->name ?? 'Siswa' }}
+                            <td class="py-3.5 px-4">
+                                <div class="font-semibold text-slate-800">{{ $sub->enrollment->user->name ?? 'Siswa Tidak Ditemukan' }}</div>
+                                <div class="text-[10px] mt-0.5 flex items-center space-x-1">
+                                    <span class="text-slate-400">Status ID #{{ $sub->enrollment_id }}:</span>
+                                    <span class="uppercase font-bold {{ $sub->enrollment->status === 'active' ? 'text-emerald-600' : 'text-slate-500' }}">
+                                        {{ $sub->enrollment->status }}
+                                    </span>
+                                </div>
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md font-bold text-[11px]">
@@ -190,48 +262,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-xs text-slate-400">Belum ada siswa yang mengumpulkan tugas ini.</td>
+                            <td colspan="6" class="py-10 text-center text-xs text-slate-400 font-semibold bg-slate-50/50 rounded-xl">
+                                Tidak ada data pengumpulan siswa yang cocok dengan filter tersebut.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <!-- TAB 2: DESKRIPSI & BERKAS SOAL/LAMPIRAN -->
-    <div x-show="activeTab === 'instructions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-        <!-- Deskripsi / Instruksi -->
-        <div class="space-y-2">
-            <h3 class="text-xs font-bold text-slate-700 uppercase">Instruksi / Petunjuk Pengerjaan:</h3>
-            @if($assignment->description)
-                <p class="text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">{{ $assignment->description }}</p>
-            @else
-                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada deskripsi atau instruksi pengerjaan.</p>
-            @endif
-        </div>
-
-        <!-- Berkas Lampiran Pengajar -->
-        <div class="space-y-2 pt-4 border-t border-slate-100">
-            <h3 class="text-xs font-bold text-slate-700 uppercase">Berkas Lampiran / Soal Pengajar:</h3>
-            @if($assignment->attachments && $assignment->attachments->count() > 0)
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    @foreach($assignment->attachments as $attachment)
-                        @if($attachment->media)
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                                <div class="flex items-center space-x-2 overflow-hidden pr-2">
-                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <span class="text-xs text-slate-800 font-semibold truncate">{{ $attachment->media->file_name }}</span>
-                                </div>
-                                <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download class="text-[11px] font-bold text-blue-600 hover:underline flex-shrink-0">Unduh</a>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            @else
-                <p class="text-xs text-slate-400 italic bg-slate-50 p-4 rounded-xl border border-slate-100">Tidak ada berkas lampiran yang diunggah.</p>
-            @endif
         </div>
     </div>
 

@@ -20,7 +20,7 @@
         </div>
 
         <div>
-            <a href="{{ route('teacher.courses.gradebook', $course->id) }}" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl transition shadow-sm">
+            <a href="{{ route('teacher.courses.gradebook.show', $course->id) }}" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl transition shadow-sm">
                 &larr; <span>Kembali ke Matriks Rekap</span>
             </a>
         </div>

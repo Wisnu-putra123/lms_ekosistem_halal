@@ -11,7 +11,7 @@ class AssignmentSubmission extends Model
 
     protected $fillable = [
         'assignment_id',
-        'user_id',
+        'enrollment_id', // Diubah dari user_id ke enrollment_id
         'attempt_number',
         'submission_text',
         'submitted_at',
@@ -34,9 +34,9 @@ class AssignmentSubmission extends Model
         return $this->belongsTo(Assignment::class);
     }
 
-    public function user()
+    public function enrollment()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Enrollment::class);
     }
 
     /**

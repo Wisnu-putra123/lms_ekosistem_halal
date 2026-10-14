@@ -67,4 +67,26 @@ class User extends Authenticatable
     {
         return $this->role === 'student';
     }
+
+    /* --- RELASI BARU --- */
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function taughtCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_instructors');
+    }
+
+    public function submissions()
+    {
+        return $this->hasManyThrough(AssignmentSubmission::class, Enrollment::class);
+    }
+
+    public function quizAttempts()
+    {
+        return $this->hasManyThrough(QuizAttempt::class, Enrollment::class);
+    }
 }

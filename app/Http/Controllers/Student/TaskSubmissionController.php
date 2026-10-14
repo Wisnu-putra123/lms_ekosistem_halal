@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
-use App\Models\SubmissionAttachment;
+use App\Models\Enrollment;
 use App\Models\Media;
+use App\Models\SubmissionAttachment;
 use App\Helpers\CourseProgressHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,12 +25,20 @@ class TaskSubmissionController extends Controller
             abort(404, 'Halaman ini khusus untuk pengumpulan tugas submission.');
         }
 
+        $userId = Auth::id();
+
+        // Cari enrollment terbaru milik siswa di kelas ini
+        $enrollment = Enrollment::where('course_id', $assignment->course_id)
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->firstOrFail();
+
         $assignment->load(['attachments.media', 'meeting', 'course']);
 
-        // Ambil seluruh riwayat attempt milik siswa (diurutkan dari attempt terbaru)
+        // Ambil seluruh riwayat attempt milik siswa berdasarkan enrollment_id
         $submissions = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('user_id', Auth::id())
-            ->with(['attachments.media', 'feedbackAttachments.media'])
+            ->where('enrollment_id', $enrollment->id)
+            ->with(['attachments.media', 'feedbackAttachments.media', 'grader'])
             ->orderBy('attempt_number', 'desc')
             ->get();
 
@@ -42,10 +51,11 @@ class TaskSubmissionController extends Controller
         // Pengecekan apakah siswa masih bisa mengirim attempt baru
         $hasMaxAttempts = !is_null($assignment->max_attempts);
         $attemptsCount = $submissions->count();
-        $canSubmitNewAttempt = !$hasMaxAttempts || ($attemptsCount < $assignment->max_attempts);
+        $canSubmitNewAttempt = $enrollment->isAccessValid() && (!$hasMaxAttempts || ($attemptsCount < $assignment->max_attempts));
 
         return view('student.submissions.show', compact(
             'assignment', 
+            'enrollment',
             'submissions', 
             'latestSubmission', 
             'bestScore', 
@@ -58,9 +68,21 @@ class TaskSubmissionController extends Controller
      */
     public function store(Request $request, Assignment $assignment)
     {
-        // 1. Cek Batas Attempt
+        $userId = Auth::id();
+
+        // Ambil Enrollment Aktif milik siswa
+        $enrollment = Enrollment::where('course_id', $assignment->course_id)
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$enrollment || !$enrollment->isAccessValid()) {
+            return back()->with('error', 'Akses Anda ke kelas ini telah selesai atau kedaluwarsa.');
+        }
+
+        // 1. Cek Batas Attempt berdasarkan enrollment_id
         $existingSubmissions = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('user_id', Auth::id())
+            ->where('enrollment_id', $enrollment->id)
             ->get();
 
         $currentAttemptCount = $existingSubmissions->count();
@@ -82,10 +104,10 @@ class TaskSubmissionController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Simpan data submission attempt baru
+            // 1. Simpan data submission attempt baru dengan enrollment_id
             $submission = AssignmentSubmission::create([
                 'assignment_id' => $assignment->id,
-                'user_id' => Auth::id(),
+                'enrollment_id' => $enrollment->id,
                 'attempt_number' => $nextAttemptNumber,
                 'submission_text' => $request->input('submission_text'),
                 'submitted_at' => now(),
@@ -103,7 +125,7 @@ class TaskSubmissionController extends Controller
                         'file_path' => $path,
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
-                        'uploaded_by' => Auth::id(),
+                        'uploaded_by' => $userId,
                     ]);
 
                     SubmissionAttachment::create([
@@ -113,6 +135,9 @@ class TaskSubmissionController extends Controller
                     ]);
                 }
             }
+
+            // Hitung ulang progress pengerjaan siswa
+            CourseProgressHelper::updateStudentProgress($assignment->course_id, $enrollment->id);
 
             DB::commit();
 
@@ -129,8 +154,8 @@ class TaskSubmissionController extends Controller
      */
     public function update(Request $request, Assignment $assignment, AssignmentSubmission $submission)
     {
-        // Otorisasi pemilik submission
-        if ($submission->user_id !== Auth::id() || $submission->assignment_id !== $assignment->id) {
+        // Otorisasi pemilik submission melalui relasi enrollment
+        if ($submission->enrollment->user_id !== Auth::id() || $submission->assignment_id !== $assignment->id) {
             abort(403, 'Akses tidak diizinkan.');
         }
 
@@ -203,7 +228,7 @@ class TaskSubmissionController extends Controller
      */
     public function destroy(Assignment $assignment, AssignmentSubmission $submission)
     {
-        if ($submission->user_id !== Auth::id() || $submission->assignment_id !== $assignment->id) {
+        if ($submission->enrollment->user_id !== Auth::id() || $submission->assignment_id !== $assignment->id) {
             abort(403, 'Akses tidak diizinkan.');
         }
 
@@ -214,7 +239,7 @@ class TaskSubmissionController extends Controller
         DB::beginTransaction();
         try {
             $courseId = $assignment->course_id;
-            $studentId = Auth::id();
+            $enrollmentId = $submission->enrollment_id;
 
             // Hapus berkas lampiran siswa
             foreach ($submission->attachments as $attachment) {
@@ -227,7 +252,7 @@ class TaskSubmissionController extends Controller
             $submission->delete();
 
             // Hitung ulang progress pengerjaan siswa
-            CourseProgressHelper::updateStudentProgress($courseId, $studentId);
+            CourseProgressHelper::updateStudentProgress($courseId, $enrollmentId);
 
             DB::commit();
 
@@ -235,7 +260,7 @@ class TaskSubmissionController extends Controller
                 ->with('success', 'Attempt pengumpulan tugas berhasil dibatalkan/dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal menghapus pengumpulan tugas.');
+            return back()->with('error', 'Gagal menghapus pengumpulan tugas: ' . $e->getMessage());
         }
     }
 

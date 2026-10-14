@@ -22,7 +22,7 @@ class SubmissionGradingController extends Controller
         $submission->load([
             'assignment.course', 
             'assignment.meeting', 
-            'user', 
+            'enrollment.user', 
             'attachments.media', 
             'feedbackAttachments.media'
         ]);
@@ -102,8 +102,8 @@ class SubmissionGradingController extends Controller
                 }
             }
 
-            // 4. Hitung ulang progress pengerjaan siswa menggunakan Helper (skor tertinggi)
-            CourseProgressHelper::updateStudentProgress($submission->assignment->course_id, $submission->user_id);
+            // 4. Hitung ulang progress pengerjaan siswa berdasarkan enrollment_id
+            CourseProgressHelper::updateStudentProgress($submission->assignment->course_id, $submission->enrollment_id);
 
             DB::commit();
 
@@ -127,7 +127,7 @@ class SubmissionGradingController extends Controller
         try {
             $assignmentId = $submission->assignment_id;
             $courseId = $submission->assignment->course_id;
-            $studentId = $submission->user_id;
+            $enrollmentId = $submission->enrollment_id;
 
             // Hapus file lampiran jawaban siswa
             foreach ($submission->attachments as $att) {
@@ -148,7 +148,7 @@ class SubmissionGradingController extends Controller
             $submission->delete();
 
             // Hitung ulang progress pengerjaan siswa menggunakan Helper
-            CourseProgressHelper::updateStudentProgress($courseId, $studentId);
+            CourseProgressHelper::updateStudentProgress($courseId, $enrollmentId);
 
             DB::commit();
 
@@ -156,7 +156,7 @@ class SubmissionGradingController extends Controller
                 ->with('success', 'Attempt submission siswa berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal menghapus submission.');
+            return back()->with('error', 'Gagal menghapus submission: ' . $e->getMessage());
         }
     }
 
