@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Jawaban Kuis - ' . $attempt->user->name)
+@section('title', 'Detail Jawaban Kuis - ' . ($attempt->enrollment->user->name ?? 'Siswa'))
 @section('header_title', 'Detail Attempt Kuis Siswa')
 
 @section('content')
@@ -28,11 +28,16 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
         <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-amber-100 text-amber-800 uppercase">
-                    Attempt #{{ $attempt->attempt_number }}
-                </span>
+                <div class="flex items-center space-x-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-amber-100 text-amber-800 uppercase">
+                        Attempt #{{ $attempt->attempt_number }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $attempt->enrollment->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
+                        Enrollment #{{ $attempt->enrollment_id }} ({{ $attempt->enrollment->status }})
+                    </span>
+                </div>
                 <h1 class="text-xl font-bold text-slate-800 mt-1">{{ $assignment->title }}</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Siswa: <strong class="text-slate-800">{{ $attempt->user->name }}</strong> ({{ $attempt->user->email }})</p>
+                <p class="text-xs text-slate-500 mt-0.5">Siswa: <strong class="text-slate-800">{{ $attempt->enrollment->user->name ?? 'Siswa Tidak Ditemukan' }}</strong> ({{ $attempt->enrollment->user->email ?? '-' }})</p>
             </div>
 
             <div>

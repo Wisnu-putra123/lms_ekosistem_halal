@@ -14,17 +14,11 @@ use Illuminate\Support\Facades\DB;
 
 class QuizController extends Controller
 {
-    /**
-     * Tampilkan form pembuatan Quiz baru pada meeting tertentu.
-     */
     public function create(Meeting $meeting)
     {
         return view('teacher.quizzes.create', compact('meeting'));
     }
 
-    /**
-     * Simpan data Quiz & Assignment baru.
-     */
     public function store(Request $request, Meeting $meeting)
     {
         $request->validate([
@@ -36,7 +30,6 @@ class QuizController extends Controller
             'available_from' => 'nullable|date',
             'available_until' => 'nullable|date|after_or_equal:available_from',
             'status' => 'required|in:draft,published,closed',
-            // Field khusus Quiz
             'duration_minutes' => 'nullable|integer|min:1',
             'question_count' => 'required|integer|min:1',
             'shuffle_questions' => 'nullable|boolean',
@@ -45,7 +38,6 @@ class QuizController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Buat Assignment bertipe 'quiz'
             $assignment = Assignment::create([
                 'course_id' => $meeting->course_id,
                 'meeting_id' => $meeting->id,
@@ -62,7 +54,6 @@ class QuizController extends Controller
                 'status' => $request->status,
             ]);
 
-            // 2. Buat konfigurasi Quiz terkait
             Quiz::create([
                 'assignment_id' => $assignment->id,
                 'duration_minutes' => $request->duration_minutes,
@@ -71,7 +62,6 @@ class QuizController extends Controller
                 'shuffle_answers' => $request->boolean('shuffle_answers', false),
             ]);
 
-            // 3. Hitung Ulang Progress Seluruh Student yang terdaftar di Course ini
             CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
 
             DB::commit();
@@ -85,19 +75,59 @@ class QuizController extends Controller
     }
 
     /**
-     * Tampilkan detail Quiz beserta daftar bank soalnya.
+     * Tampilkan detail Quiz beserta daftar attempt siswa (Dukungan Filter & Sort)
      */
-    public function show(Assignment $assignment)
+    public function show(Request $request, Assignment $assignment)
     {
         $quiz = Quiz::with(['questions.options', 'questions.media'])
             ->where('assignment_id', $assignment->id)
             ->firstOrFail();
 
-        // Ambil riwayat pengerjaan/attempt siswa pada quiz ini
-        $quizAttempts = QuizAttempt::with('user')
-            ->where('quiz_id', $quiz->id)
-            ->latest()
-            ->get();
+        // Query attempts terhubung via enrollment.user
+        $attemptsQuery = QuizAttempt::with(['enrollment.user'])
+            ->where('quiz_id', $quiz->id);
+
+        // 1. Filter Nama / Email Siswa
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $attemptsQuery->whereHas('enrollment.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Filter Status Enrollment Siswa (active / completed)
+        if ($request->filled('enrollment_status')) {
+            $enrollmentStatus = $request->enrollment_status;
+            $attemptsQuery->whereHas('enrollment', function ($q) use ($enrollmentStatus) {
+                $q->where('status', $enrollmentStatus);
+            });
+        }
+
+        // 3. Filter Status Attempt (in_progress / submitted / expired)
+        if ($request->filled('status')) {
+            $attemptsQuery->where('status', $request->status);
+        }
+
+        // 4. Sorting
+        $sortBy = $request->get('sort', 'latest');
+        switch ($sortBy) {
+            case 'oldest':
+                $attemptsQuery->orderBy('started_at', 'asc');
+                break;
+            case 'score_high':
+                $attemptsQuery->orderBy('score', 'desc');
+                break;
+            case 'score_low':
+                $attemptsQuery->orderBy('score', 'asc');
+                break;
+            case 'latest':
+            default:
+                $attemptsQuery->orderBy('started_at', 'desc');
+                break;
+        }
+
+        $quizAttempts = $attemptsQuery->get();
 
         $pointPerQuestion = $quiz->question_count > 0 
             ? round($assignment->max_score / $quiz->question_count, 2) 
@@ -106,9 +136,6 @@ class QuizController extends Controller
         return view('teacher.quizzes.show', compact('assignment', 'quiz', 'quizAttempts', 'pointPerQuestion'));
     }
 
-    /**
-     * Tampilkan form edit konfigurasi Quiz.
-     */
     public function edit(Assignment $assignment)
     {
         if ($assignment->type !== 'quiz') {
@@ -119,9 +146,6 @@ class QuizController extends Controller
         return view('teacher.quizzes.edit', compact('assignment'));
     }
 
-    /**
-     * Perbarui konfigurasi Quiz & Assignment.
-     */
     public function update(Request $request, Assignment $assignment)
     {
         if ($assignment->type !== 'quiz') {
@@ -137,7 +161,6 @@ class QuizController extends Controller
             'available_from' => 'nullable|date',
             'available_until' => 'nullable|date|after_or_equal:available_from',
             'status' => 'required|in:draft,published,closed',
-            // Field khusus Quiz
             'duration_minutes' => 'nullable|integer|min:1',
             'question_count' => 'required|integer|min:1',
             'shuffle_questions' => 'nullable|boolean',
@@ -146,7 +169,6 @@ class QuizController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update Assignment
             $assignment->update([
                 'title' => $request->title,
                 'description' => $request->description,
@@ -158,7 +180,6 @@ class QuizController extends Controller
                 'status' => $request->status,
             ]);
 
-            // Update Konfigurasi Quiz
             if ($assignment->quiz) {
                 $assignment->quiz->update([
                     'duration_minutes' => $request->duration_minutes,
@@ -168,7 +189,6 @@ class QuizController extends Controller
                 ]);
             }
 
-            // Hitung Ulang Progress Student setelah konfigurasi/status quiz diubah
             CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
 
             DB::commit();
@@ -181,9 +201,6 @@ class QuizController extends Controller
         }
     }
 
-    /**
-     * Hapus Quiz.
-     */
     public function destroy(Assignment $assignment)
     {
         if ($assignment->type !== 'quiz') {
@@ -194,13 +211,11 @@ class QuizController extends Controller
         try {
             $courseId = $assignment->course_id;
             
-            // Hapus Quiz & Assignment
             if ($assignment->quiz) {
                 $assignment->quiz->delete();
             }
             $assignment->delete();
 
-            // Hitung Ulang Progress Student setelah quiz dihapus
             CourseProgressHelper::recalculateAllActiveStudentsProgress($courseId);
 
             DB::commit();
@@ -214,13 +229,12 @@ class QuizController extends Controller
     }
 
     /**
-     * Menampilkan detail pengerjaan (attempt) kuis oleh siswa.
+     * Menampilkan detail pengerjaan (attempt) kuis siswa
      */
     public function showAttempt(QuizAttempt $attempt)
     {
-        // Load relasi user, kuis, assignment, serta soal & jawaban yang dipilih
         $attempt->load([
-            'user',
+            'enrollment.user',
             'quiz.assignment.meeting',
             'attemptQuestions.question.options',
             'attemptQuestions.selectedOption'
@@ -232,15 +246,11 @@ class QuizController extends Controller
         return view('teacher.quizzes.attempts.show', compact('attempt', 'quiz', 'assignment'));
     }
 
-    /**
-     * Menghapus attempt pengerjaan kuis siswa.
-     */
     public function destroyAttempt(QuizAttempt $attempt)
     {
         $quizId = $attempt->quiz_id;
         $assignment = $attempt->quiz->assignment;
 
-        // Hapus detail jawaban attempt (cascade/manual)
         $attempt->attemptQuestions()->delete();
         $attempt->delete();
 

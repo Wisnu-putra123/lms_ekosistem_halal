@@ -14,10 +14,14 @@ class Enrollment extends Model
         'user_id',
         'enrolled_at',
         'status',
+        'completed_at',
+        'access_expires_at', // Pastikan kolom ini masuk fillable
     ];
 
     protected $casts = [
         'enrolled_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'access_expires_at' => 'datetime',
     ];
 
     public function course()
@@ -35,8 +39,34 @@ class Enrollment extends Model
         return $this->hasOne(CourseProgress::class);
     }
 
+    public function submissions()
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
+
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
     public function certificate()
     {
         return $this->hasOne(Certificate::class);
     }
-}
+
+    /**
+     * Helper untuk mengecek apakah akses enrollment masih berlaku
+     */
+    public function isAccessValid(): bool
+    {
+        if ($this->status === 'active') {
+            return true;
+        }
+
+        if ($this->status === 'completed' && $this->access_expires_at) {
+            return now()->lessThanOrEqualTo($this->access_expires_at);
+        }
+
+        return false;
+    }
+}   

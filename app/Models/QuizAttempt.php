@@ -11,7 +11,7 @@ class QuizAttempt extends Model
 
     protected $fillable = [
         'quiz_id',
-        'user_id',
+        'enrollment_id',
         'attempt_number',
         'started_at',
         'expires_at',
@@ -29,16 +29,16 @@ class QuizAttempt extends Model
 
     public function quiz()
     {
-        return $this->belongsTo(Quiz::class, 'quiz_id');
+        return $this->belongsTo(Quiz::class);
     }
 
-    public function user()
+    public function enrollment()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Enrollment::class);
     }
 
     public function attemptQuestions()
     {
-        return $this->hasMany(QuizAttemptQuestion::class, 'attempt_id')->orderBy('question_order');
+        return $this->hasMany(QuizAttemptQuestion::class, 'attempt_id');
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Penilaian Tugas - ' . $submission->user->name)
+@section('title', 'Penilaian Tugas - ' . ($submission->enrollment->user->name ?? 'Siswa'))
 @section('header_title', 'Penilaian Submission Siswa')
 
 @section('content')
@@ -18,9 +18,14 @@
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
                     <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Siswa:</span>
-                            <h2 class="text-base font-bold text-slate-800">{{ $submission->user->name }}</h2>
-                            <p class="text-xs text-slate-400">{{ $submission->user->email }}</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Siswa:</span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded uppercase {{ $submission->enrollment->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
+                                    Enrollment #{{ $submission->enrollment_id }} ({{$submission->enrollment->status }})
+                                </span>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-800 mt-0.5">{{ $submission->enrollment->user->name ?? 'Siswa Tidak Ditemukan' }}</h2>
+                            <p class="text-xs text-slate-400">{{ $submission->enrollment->user->email ?? '-' }}</p>
                         </div>
                         <span class="text-xs text-slate-500">Dikumpulkan: {{ \Carbon\Carbon::parse($submission->submitted_at)->format('d M Y, H:i') }}</span>
                     </div>
@@ -32,7 +37,7 @@
                         </div>
                     @endif
 
-                    @if($submission->attachments && $submission->attachments->count() > 0)
+                    @if($submission->attachments &&$submission->attachments->count() > 0)
                         <div class="space-y-2 pt-2">
                             <label class="block text-xs font-bold text-slate-700 uppercase">Lampiran Berkas Jawaban Siswa:</label>
                             <div class="space-y-2">
@@ -85,7 +90,7 @@
                             <textarea name="feedback" rows="4" placeholder="Tuliskan masukan atau catatan untuk siswa..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('feedback', $submission->feedback) }}</textarea>
                         </div>
 
-                        @if($submission->feedbackAttachments && $submission->feedbackAttachments->count() > 0)
+                        @if($submission->feedbackAttachments &&$submission->feedbackAttachments->count() > 0)
                             <div class="space-y-1.5 pt-2 border-t border-slate-100">
                                 <label class="block text-xs font-semibold text-slate-700">Berkas Feedback Terpasang:</label>
                                 @foreach($submission->feedbackAttachments as $fAtt)
@@ -155,12 +160,7 @@
                 }
             });
 
-            // Reset input terlebih dahulu agar file yang sama
-            // tetap dapat dipilih kembali
             input.value = '';
-
-            // Masukkan kembali seluruh file yang sudah dipilih
-            // ke dalam input sebelum form disubmit
             updateFileInput();
             renderFileList();
         });

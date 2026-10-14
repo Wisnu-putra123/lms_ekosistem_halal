@@ -2,35 +2,44 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $now = now();
+        // Admin
+        User::create([
+            'name' => 'Administrator',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+        ]);
 
-        foreach ([
-            ['name' => 'Admin LMS', 'email' => 'admin@lms.test', 'role' => 'admin'],
-            ['name' => 'Guru Demo', 'email' => 'teacher@lms.test', 'role' => 'teacher'],
-            ['name' => 'Siswa Demo', 'email' => 'student@lms.test', 'role' => 'student'],
-            ['name' => 'Siswa Kedua', 'email' => 'student2@lms.test', 'role' => 'student'],
-        ] as $user) {
-            DB::table('users')->updateOrInsert(
-                ['email' => $user['email']],
-                [
-                    'name' => $user['name'],
-                    'role' => $user['role'],
-                    'password' => Hash::make('12345678'),
-                    'email_verified_at' => $now,
-                    'profile_photo' => null,
-                    'remember_token' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]
-            );
+        // Teacher
+        User::create([
+            'name' => 'Dr. Ir. Ahmad Pengajar, M.T.',
+            'email' => 'teacher@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'teacher',
+        ]);
+
+        // Students
+        $students = [
+            ['name' => 'Budi Santoso', 'email' => 'budi@gmail.com'],
+            ['name' => 'Siti Rahmawati', 'email' => 'siti@gmail.com'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@gmail.com'],
+        ];
+
+        foreach ($students as $student) {
+            User::create([
+                'name' => $student['name'],
+                'email' => $student['email'],
+                'password' => Hash::make('password'),
+                'role' => 'student',
+            ]);
         }
     }
 }

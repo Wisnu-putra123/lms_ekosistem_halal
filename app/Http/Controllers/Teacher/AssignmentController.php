@@ -29,7 +29,7 @@ class AssignmentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'submission_method' => ['required', 'in:file,text,both'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'], // NULL = Unlimited attempts
+            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -83,7 +83,6 @@ class AssignmentController extends Controller
                 }
             }
 
-            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
             CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
 
             DB::commit();
@@ -95,11 +94,62 @@ class AssignmentController extends Controller
         }
     }
 
-    public function show(Assignment $assignment)
+    /**
+     * Tampilkan Detail Tugas beserta Daftar Pengumpulan Siswa (Dukungan Filter, Sort, & Status Enrollment)
+     */
+    public function show(Request $request, Assignment $assignment)
     {
         $this->authorizeAccess($assignment->course);
-        $assignment->load(['attachments.media', 'submissions.user', 'meeting']);
-        return view('teacher.assignments.show', compact('assignment'));
+
+        $assignment->load(['attachments.media', 'meeting']);
+
+        // Query submissions dengan eger loading enrollment & user
+        $submissionsQuery = $assignment->submissions()
+            ->with(['enrollment.user', 'attachments.media']);
+
+        // 1. Filter Nama / Email Siswa
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $submissionsQuery->whereHas('enrollment.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Filter Status Enrollment Siswa (active / completed / dropped)
+        if ($request->filled('enrollment_status')) {
+            $enrollmentStatus = $request->enrollment_status;
+            $submissionsQuery->whereHas('enrollment', function ($q) use ($enrollmentStatus) {
+                $q->where('status', $enrollmentStatus);
+            });
+        }
+
+        // 3. Filter Status Submission (submitted / graded / late / draft)
+        if ($request->filled('status')) {
+            $submissionsQuery->where('status', $request->status);
+        }
+
+        // 4. Sorting
+        $sortBy = $request->get('sort', 'latest');
+        switch ($sortBy) {
+            case 'oldest':
+                $submissionsQuery->orderBy('submitted_at', 'asc');
+                break;
+            case 'score_high':
+                $submissionsQuery->orderBy('score', 'desc');
+                break;
+            case 'score_low':
+                $submissionsQuery->orderBy('score', 'asc');
+                break;
+            case 'latest':
+            default:
+                $submissionsQuery->orderBy('submitted_at', 'desc');
+                break;
+        }
+
+        $submissions = $submissionsQuery->get();
+
+        return view('teacher.assignments.show', compact('assignment', 'submissions'));
     }
 
     public function edit(Assignment $assignment)
@@ -117,7 +167,7 @@ class AssignmentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'submission_method' => ['required', 'in:file,text,both'],
-            'max_attempts' => ['nullable', 'integer', 'min:1'], // NULL = Unlimited attempts
+            'max_attempts' => ['nullable', 'integer', 'min:1'],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
             'max_score' => ['required', 'numeric', 'min:1', 'max:1000'],
@@ -148,7 +198,6 @@ class AssignmentController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            // Hapus lampiran tugas yang dicentang hapus
             if (!empty($validated['delete_attachments'])) {
                 $attachmentsToDelete = AssignmentAttachment::whereIn('id', $validated['delete_attachments'])->get();
                 foreach ($attachmentsToDelete as $att) {
@@ -160,7 +209,6 @@ class AssignmentController extends Controller
                 }
             }
 
-            // Tambah lampiran tugas baru
             if ($request->hasFile('attachments')) {
                 $lastOrder = $assignment->attachments()->max('sort_order') ?? 0;
                 foreach ($request->file('attachments') as $index => $file) {
@@ -182,7 +230,6 @@ class AssignmentController extends Controller
                 }
             }
 
-            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
             CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
 
             DB::commit();
@@ -211,7 +258,6 @@ class AssignmentController extends Controller
 
             $assignment->delete();
 
-            // PERBARUI PROGRES SEMUA SISWA AKTIF DI KELAS INI
             CourseProgressHelper::recalculateAllActiveStudentsProgress($courseId);
 
             DB::commit();
