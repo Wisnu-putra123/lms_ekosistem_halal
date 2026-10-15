@@ -55,9 +55,9 @@ class AuthController extends Controller
             if ($user->role === 'admin') {
                 return view('admin.index');
             } elseif ($user->role === 'teacher') {
-                return view('teacher.index');
+                return redirect()->route('teacher.dashboard');
             } else {
-                return view('student.index');
+                return redirect()->route('student.dashboard');
             }
         }
 

@@ -6,6 +6,7 @@
 @section('content')
 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
     <!-- Header Section -->
+     aaaaaaaaaa
     
 </div>
 @endsection
