@@ -6,7 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
-use App\Http\Controllers\Teacher\AssignmentController;
+use App\Http\Controllers\Teacher\SubmissionController;
 use App\Http\Controllers\Teacher\MeetingController;
 use App\Http\Controllers\Teacher\MaterialController;
 use App\Http\Controllers\Teacher\SubmissionGradingController;
@@ -122,12 +122,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
 
         // Management Assignment Submission
-        Route::get('/meetings/{meeting}/assignments/create', [AssignmentController::class, 'create'])->name('meetings.assignments.create');
-        Route::post('/meetings/{meeting}/assignments', [AssignmentController::class, 'store'])->name('meetings.assignments.store');
-        Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
-        Route::get('/assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
-        Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
-        Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+        Route::get('/meetings/{meeting}/assignments/create', [SubmissionController::class, 'create'])->name('meetings.assignments.create');
+        Route::post('/meetings/{meeting}/assignments', [SubmissionController::class, 'store'])->name('meetings.assignments.store');
+        Route::get('/assignments/{assignment}', [SubmissionController::class, 'show'])->name('assignments.show');
+        Route::get('/assignments/{assignment}/edit', [SubmissionController::class, 'edit'])->name('assignments.edit');
+        Route::put('/assignments/{assignment}', [SubmissionController::class, 'update'])->name('assignments.update');
+        Route::delete('/assignments/{assignment}', [SubmissionController::class, 'destroy'])->name('assignments.destroy');
 
         // Penilaian Submission oleh Teacher
         Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');

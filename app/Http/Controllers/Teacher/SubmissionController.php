@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class AssignmentController extends Controller
+class SubmissionController extends Controller
 {
     public function create(Meeting $meeting)
     {
         $this->authorizeAccess($meeting->course);
-        return view('teacher.assignments.create', compact('meeting'));
+        return view('teacher.submissions.create', compact('meeting'));
     }
 
     public function store(Request $request, Meeting $meeting)
@@ -149,14 +149,14 @@ class AssignmentController extends Controller
 
         $submissions = $submissionsQuery->get();
 
-        return view('teacher.assignments.show', compact('assignment', 'submissions'));
+        return view('teacher.submissions.show', compact('assignment', 'submissions'));
     }
 
     public function edit(Assignment $assignment)
     {
         $this->authorizeAccess($assignment->course);
         $assignment->load(['attachments.media']);
-        return view('teacher.assignments.edit', compact('assignment'));
+        return view('teacher.submissions.edit', compact('assignment'));
     }
 
     public function update(Request $request, Assignment $assignment)
@@ -233,7 +233,7 @@ class AssignmentController extends Controller
             CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
 
             DB::commit();
-            return redirect()->route('teacher.assignments.show', $assignment->id)
+            return redirect()->route('teacher.submissions.show', $assignment->id)
                 ->with('success', 'Tempat submission berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
