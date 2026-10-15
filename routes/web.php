@@ -13,12 +13,15 @@ use App\Http\Controllers\Teacher\SubmissionGradingController;
 use App\Http\Controllers\Teacher\QuizController;
 use App\Http\Controllers\Teacher\QuestionController;
 use \App\Http\Controllers\Teacher\GradebookController;
+use \App\Http\Controllers\Teacher\TeacherDashboardController;
 
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
 use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
 use App\Http\Controllers\Student\TaskSubmissionController;
 use App\Http\Controllers\Student\StudentQuizController;
+use App\Http\Controllers\Student\StudentGradebookController;
+use App\Http\Controllers\Student\StudentDashboardController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -71,7 +74,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
@@ -79,6 +82,10 @@ Route::middleware('auth')->group(function () {
 
         // Material
         Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
+
+        // Gradebook Student
+        Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
+        Route::get('/courses/{course}/gradebook/assignments/{assignment}/details', [StudentGradebookController::class, 'detail'])->name('courses.gradebook.detail');
 
         // Rute Submission Student
         Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
@@ -97,7 +104,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
         
         Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
