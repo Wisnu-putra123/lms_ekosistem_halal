@@ -92,23 +92,27 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        // Proteksi: Pastikan student sudah enroll di course ini
-        $isEnrolled = Enrollment::where('course_id', $course->id)
-            ->where('user_id', Auth::id())
-            ->where('status', 'active')
-            ->exists();
+        $userId = Auth::id();
 
-        if (!$isEnrolled) {
+        // Proteksi: Pastikan student sudah enroll di course ini
+        $enrollment = Enrollment::where('course_id', $course->id)
+            ->where('user_id', $userId)
+            ->latest()
+            ->first();
+
+        if (!$enrollment) {
             abort(403, 'Anda belum terdaftar dalam pelatihan ini. Silakan masukkan Enrollment Key terlebih dahulu.');
         }
 
+        // Load relasi lengkap: meetings, materials, assignments, creator, serta pengajar tambahan (teachers)
         $course->load([
             'meetings.materials',
-            'meetings.assignments',
+            'meetings.assignments.quiz',
             'thumbnail',
-            'creator'
+            'creator',
+            'instructors' // Mengambil seluruh pengajar course
         ]);
 
-        return view('student.courses.show', compact('course'));
+        return view('student.courses.show', compact('course', 'enrollment'));
     }
 }

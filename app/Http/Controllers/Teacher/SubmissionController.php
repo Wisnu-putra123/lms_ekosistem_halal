@@ -233,7 +233,7 @@ class SubmissionController extends Controller
             CourseProgressHelper::recalculateAllActiveStudentsProgress($assignment->course_id);
 
             DB::commit();
-            return redirect()->route('teacher.submissions.show', $assignment->id)
+            return redirect()->route('teacher.assignments.show', $assignment->id)
                 ->with('success', 'Tempat submission berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
