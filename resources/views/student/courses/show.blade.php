@@ -164,7 +164,7 @@
                     </div>
                 </div>
 
-                <!-- Body / Konten Pertemuan (Sesuai Skema Guru: Materi, Tugas, Quiz) -->
+                <!-- Body / Konten Pertemuan -->
                 <div x-show="openMeetings.includes({{ $meeting->id }})" x-collapse class="p-5">
                     @if(!$isMeetingAccessible)
                         <!-- Tampilan Jika Pertemuan Terkunci Waktu -->
@@ -228,13 +228,10 @@
                                         <div class="space-y-2">
                                             @foreach($meeting->assignments->where('type', 'submission') as $assignment)
                                                 @php
-                                                    // Pengecekan Waktu Akses Tugas
-                                                    $isTaskOpen = true;
                                                     $taskTimeStatus = ''; // HTML badge status waktu
                                                     
                                                     if ($assignment->available_from && $now->lessThan($assignment->available_from)) {
-                                                        $isTaskOpen = false;
-                                                        $taskTimeStatus = '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded">Buka: ' . \Carbon\Carbon::parse($assignment->available_from)->format('d M H:i') . '</span>';
+                                                        $taskTimeStatus = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded">Buka: ' . \Carbon\Carbon::parse($assignment->available_from)->format('d M H:i') . '</span>';
                                                     } elseif ($assignment->available_until) {
                                                         if ($now->greaterThan($assignment->available_until)) {
                                                             $taskTimeStatus = '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded">Tenggat Lewat: ' . \Carbon\Carbon::parse($assignment->available_until)->format('d M H:i') . '</span>';
@@ -276,11 +273,8 @@
                                                         </div>
                                                     </div>
 
-                                                    @if($isTaskOpen)
-                                                        <a href="{{ route('student.submissions.show', $assignment->id) }}" class="text-[11px] text-blue-700 font-bold hover:underline flex-shrink-0">Lihat →</a>
-                                                    @else
-                                                        <span class="text-[10px] text-slate-400 font-bold italic flex-shrink-0">Terkunci</span>
-                                                    @endif
+                                                    <!-- Tombol Akses Langsung -->
+                                                    <a href="{{ route('student.submissions.show', $assignment->id) }}" class="text-[11px] text-blue-700 font-bold hover:underline flex-shrink-0">Lihat →</a>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -306,13 +300,10 @@
                                         <div class="space-y-2">
                                             @foreach($meeting->assignments->where('type', 'quiz') as $quizAssignment)
                                                 @php
-                                                    // Pengecekan Waktu Akses Kuis
-                                                    $isQuizOpen = true;
                                                     $quizTimeStatus = '';
 
                                                     if ($quizAssignment->available_from && $now->lessThan($quizAssignment->available_from)) {
-                                                        $isQuizOpen = false;
-                                                        $quizTimeStatus = '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded">Buka: ' . \Carbon\Carbon::parse($quizAssignment->available_from)->format('d M H:i') . '</span>';
+                                                        $quizTimeStatus = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded">Buka: ' . \Carbon\Carbon::parse($quizAssignment->available_from)->format('d M H:i') . '</span>';
                                                     } elseif ($quizAssignment->available_until) {
                                                         if ($now->greaterThan($quizAssignment->available_until)) {
                                                             $quizTimeStatus = '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded">Tenggat Lewat: ' . \Carbon\Carbon::parse($quizAssignment->available_until)->format('d M H:i') . '</span>';
@@ -357,11 +348,8 @@
                                                         </div>
                                                     </div>
 
-                                                    @if($isQuizOpen)
-                                                        <a href="{{ route('student.quizzes.show', $quizAssignment->id) }}" class="text-[11px] text-amber-700 font-bold hover:underline flex-shrink-0">Mulai →</a>
-                                                    @else
-                                                        <span class="text-[10px] text-slate-400 font-bold italic flex-shrink-0">Terkunci</span>
-                                                    @endif
+                                                    <!-- Tombol Akses Langsung -->
+                                                    <a href="{{ route('student.quizzes.show', $quizAssignment->id) }}" class="text-[11px] text-amber-700 font-bold hover:underline flex-shrink-0">Mulai →</a>
                                                 </div>
                                             @endforeach
                                         </div>
