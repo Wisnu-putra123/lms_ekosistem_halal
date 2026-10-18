@@ -21,6 +21,11 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('media')
                 ->nullOnDelete();
+            
+            $table->foreignId('certificate_bg_media_id')
+            ->nullable()
+            ->constrained('media')
+            ->nullOnDelete();
 
             $table->string('enrollment_key', 100)->unique();
 

@@ -15,6 +15,7 @@ class Course extends Model
         'code',
         'description',
         'thumbnail_media_id',
+        'certificate_bg_media_id',
         'enrollment_key',
         'status',
         'created_by',
@@ -46,6 +47,14 @@ class Course extends Model
     public function thumbnail()
     {
         return $this->belongsTo(Media::class, 'thumbnail_media_id');
+    }
+
+    /**
+     * Relasi ke media background sertifikat.
+     */
+    public function certificateBackground()
+    {
+        return $this->belongsTo(Media::class, 'certificate_bg_media_id');
     }
 
     /**
