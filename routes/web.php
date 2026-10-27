@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CertificateVerificationController;
 
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\SubmissionController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Student\TaskSubmissionController;
 use App\Http\Controllers\Student\StudentQuizController;
 use App\Http\Controllers\Student\StudentGradebookController;
 use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Student\CertificateController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +48,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
+
+// Route Publik Verifikasi Sertifikat
+Route::get('/verify-certificate/{code?}', [CertificateVerificationController::class, 'verify'])->name('certificates.verify');
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
@@ -101,6 +106,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
         Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
 
+        // Route Sertifikat Student
+        Route::get('/certificates', [CertificateController::class, 'index'])->name('certificates.index');
+        Route::get('/certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
     });
 
     Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {

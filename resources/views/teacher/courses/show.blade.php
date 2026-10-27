@@ -11,12 +11,12 @@
 
     <!-- Top Card: Banner & Detail Pelatihan -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="flex items-start space-x-4">
+        <div class="p-6 sm:p-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div class="flex items-start space-x-4 flex-1">
                 @if($course->thumbnail)
-                    <img src="{{ asset('storage/' . $course->thumbnail->file_path) }}" alt="{{ $course->title }}" class="w-20 h-20 rounded-xl object-cover border border-slate-200">
+                    <img src="{{ asset('storage/' . $course->thumbnail->file_path) }}" alt="{{ $course->title }}" class="w-20 h-20 rounded-xl object-cover border border-slate-200 flex-shrink-0">
                 @else
-                    <div class="w-20 h-20 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xl border border-amber-200">
+                    <div class="w-20 h-20 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xl border border-amber-200 flex-shrink-0">
                         {{ substr($course->code, 0, 3) }}
                     </div>
                 @endif
@@ -57,8 +57,8 @@
                 </div>
             </div>
 
-            <!-- Alignment Aksi & Enrollment Key Box -->
-            <div class="flex flex-col items-end space-y-3">
+            <!-- Alignment Aksi, Enrollment Key, & Status Certificate Background -->
+            <div class="flex flex-col items-end space-y-3 w-full md:w-auto">
                 <div class="flex items-center space-x-2">
                     <!-- Tombol Kembali ke Katalog Course -->
                     <a href="{{ route('teacher.courses.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 px-3 py-2 rounded-xl transition shadow-sm">
@@ -77,19 +77,41 @@
                     </a>
                 </div>
 
-                <!-- Enrollment Key Box -->
-                <div class="p-3.5 bg-amber-50 border border-amber-100 rounded-xl space-y-1 w-full min-w-[200px]">
-                    <div class="text-[11px] font-medium text-amber-800">Enrollment Key:</div>
-                    <div class="flex items-center justify-between">
-                        <code class="text-sm font-bold text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded">{{ $course->enrollment_key }}</code>
-                        <form action="{{ route('teacher.courses.regenerateKey', $course->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="p-1 text-amber-600 hover:text-amber-800 transition" title="Regenerate Key" onclick="return confirm('Buat Enrollment Key baru?')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                </svg>
-                            </button>
-                        </form>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-[280px]">
+                    <!-- Enrollment Key Box -->
+                    <div class="p-3 bg-amber-50 border border-amber-100 rounded-xl space-y-1">
+                        <div class="text-[11px] font-medium text-amber-800">Enrollment Key:</div>
+                        <div class="flex items-center justify-between">
+                            <code class="text-xs font-bold text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded">{{ $course->enrollment_key }}</code>
+                            <form action="{{ route('teacher.courses.regenerateKey', $course->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="p-1 text-amber-600 hover:text-amber-800 transition" title="Regenerate Key" onclick="return confirm('Buat Enrollment Key baru?')">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Certificate Background Box -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                        <div class="text-[11px] font-medium text-slate-700">Latar Sertifikat:</div>
+                        @if($course->certificateBackground)
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-emerald-600 flex items-center">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Custom Image
+                                </span>
+                                <a href="{{ asset('storage/' . $course->certificateBackground->file_path) }}" target="_blank" class="text-[10px] text-indigo-600 hover:underline font-medium">Lihat</a>
+                            </div>
+                        @else
+                            <div class="text-xs font-semibold text-slate-500">
+                                Default (HTML/CSS)
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -262,7 +284,7 @@
                                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                                     <div class="flex items-center space-x-2">
                                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                                         </svg>
                                         <span class="text-xs font-bold text-slate-800">Tugas ({{ $meeting->assignments ? $meeting->assignments->where('type', 'submission')->count() : 0 }})</span>
                                     </div>
@@ -358,7 +380,7 @@
                                                     <!-- Icon Indicator Kuis -->
                                                     <div class="w-7 h-7 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                                         </svg>
                                                     </div>
                                                     <div class="overflow-hidden">

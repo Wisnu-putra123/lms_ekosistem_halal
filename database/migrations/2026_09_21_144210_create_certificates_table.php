@@ -29,9 +29,11 @@ return new class extends Migration
                 ->constrained('media')
                 ->nullOnDelete();
 
-            $table->foreignId('approved_by')
-                ->constrained('users')
-                ->restrictOnDelete();
+            // $table->foreignId('approved_by')
+            //     ->constrained('users')
+            //     ->restrictOnDelete()
+            //     ->nullable();
+
             $table->timestamps();
         });
     }

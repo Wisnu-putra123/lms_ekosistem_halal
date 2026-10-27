@@ -32,6 +32,15 @@ class DatabaseSeeder extends Seeder
         );
 
         User::updateOrCreate(
+            ['email' => 'student2@email.com'],
+            [
+                'name' => 'Siswa2 Example',
+                'password' => bcrypt('12345678'),
+                'role' => 'student',
+            ]
+        );
+
+        User::updateOrCreate(
             ['email' => 'teacher@email.com'],
             [
                 'name' => 'Guru Example',
@@ -61,10 +70,10 @@ class DatabaseSeeder extends Seeder
             CourseSeeder::class,
             EnrollmentSeeder::class,
             MeetingSeeder::class,
-            AssignmentSeeder::class,
-            QuizSeeder::class,
-            SubmissionSeeder::class,
-            QuizAttemptSeeder::class,
+            // AssignmentSeeder::class,
+            // QuizSeeder::class,
+            // SubmissionSeeder::class,
+            // QuizAttemptSeeder::class,
             ]);
 
     }

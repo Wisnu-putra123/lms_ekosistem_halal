@@ -2,24 +2,26 @@
 
 namespace App\Helpers;
 
+use App\Helpers\CertificateHelper;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\CourseProgress;
 use App\Models\Enrollment;
 use App\Models\QuizAttempt;
 
+
 class CourseProgressHelper
 {
     /**
      * Hitung ulang progres satu siswa berdasarkan enrollment_id
      */
-    public static function updateStudentProgress(int $courseId, int $enrollmentId): void
+    public static function updateStudentProgress(int $courseId, int$enrollmentId): void
     {
         $enrollment = Enrollment::find($enrollmentId);
 
         if (!$enrollment) return;
 
-        self::calculateAndSaveProgress($enrollment, $courseId);
+        self::calculateAndSaveProgress($enrollment,$courseId);
     }
 
     /**
@@ -27,19 +29,19 @@ class CourseProgressHelper
      */
     public static function recalculateAllActiveStudentsProgress(int $courseId): void
     {
-        $activeEnrollments = Enrollment::where('course_id', $courseId)
+        $activeEnrollments = Enrollment::where('course_id',$courseId)
             ->where('status', 'active')
             ->get();
 
-        foreach ($activeEnrollments as $enrollment) {
-            self::calculateAndSaveProgress($enrollment, $courseId);
+        foreach ($activeEnrollments as$enrollment) {
+            self::calculateAndSaveProgress($enrollment,$courseId);
         }
     }
 
-    private static function calculateAndSaveProgress(Enrollment $enrollment, int $courseId): void
+    private static function calculateAndSaveProgress(Enrollment $enrollment, int$courseId): void
     {
         // 1. Hitung total seluruh assignment terbit di course ini
-        $totalAssignments = Assignment::where('course_id', $courseId)
+        $totalAssignments = Assignment::where('course_id',$courseId)
             ->whereIn('status', ['published', 'closed'])
             ->count();
 
@@ -79,19 +81,42 @@ class CourseProgressHelper
             ->count();
 
         // Total item yang lulus KKM
-        $totalPassedCount = $passedSubmissionsCount + $passedQuizzesCount;
+        $totalPassedCount = $passedSubmissionsCount +$passedQuizzesCount;
 
         // 4. Persentase progres
         $progressPercentage = min(100, round(($totalPassedCount / $totalAssignments) * 100, 2));
 
-        // 5. Simpan / perbarui ke database
+        $isCompleted =$progressPercentage >= 100;
+        $now = now();
+
+        // 5. Simpan / perbarui ke database `course_progress`
         CourseProgress::updateOrCreate(
             ['enrollment_id' => $enrollment->id],
             [
                 'progress_percentage' => $progressPercentage,
-                'last_activity_at' => now(),
-                'completed_at' => $progressPercentage >= 100 ? now() : null,
+                'last_activity_at'    => $now,
+                'completed_at'        => $isCompleted ? $now : null,
             ]
         );
+
+        // 6. Jika progres mencapai 100%, perbarui status enrollment dan otomatis terbitkan sertifikat
+        if ($isCompleted) {
+            if ($enrollment->status !== 'completed') {
+                
+                // =========================================================================
+                // PENGATURAN KEDALUWARSA AKSES (Ubah jumlah hari di bawah sesuai kebutuhan)
+                // =========================================================================
+                $expiryDays = 30; // <--- UBAH ANGKA INI UNTUK MENGATUR MASA KEDALUWARSA (contoh: 30 hari)
+                
+                $enrollment->update([
+                    'status'            => 'completed',
+                    'completed_at'      => $now,
+                    'access_expires_at' => $now->copy()->addDays($expiryDays), // TMT: 30 hari dari tanggal lulus
+                ]);
+            }
+
+            // Pemicu otomatisasi penerbitan sertifikat tanpa perlu persetujuan pengajar
+            CertificateHelper::issueCertificate($enrollment->id);
+        }
     }
 }
