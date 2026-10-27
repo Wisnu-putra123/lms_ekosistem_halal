@@ -54,7 +54,35 @@
                 @enderror
             </div>
 
-            <!-- Enrollment Key & Tombol Regenerate -->
+            <!-- Upload Custom Background Sertifikat -->
+            <div class="p-4 bg-amber-50/50 rounded-xl border border-amber-200/60 space-y-2">
+                <label for="certificate_background" class="block text-xs font-bold text-amber-900 flex items-center space-x-1.5">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                    <span>Custom Template Background Sertifikat</span>
+                </label>
+                
+                @if($course->certificateBackground)
+                    <div class="mb-2 relative group w-48 h-32 rounded-lg overflow-hidden border border-amber-300 shadow-sm">
+                        <img src="{{ asset('storage/' . $course->certificateBackground->file_path) }}" alt="Background Sertifikat Saat Ini" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <a href="{{ asset('storage/' . $course->certificateBackground->file_path) }}" target="_blank" class="text-[10px] bg-white text-slate-800 font-bold px-2 py-1 rounded shadow">Lihat Gambar</a>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-xs text-amber-700 italic mb-1">Saat ini menggunakan desain bawaan standar sistem.</p>
+                @endif
+
+                <input type="file" id="certificate_background" name="certificate_background" accept="image/jpeg,image/png,image/jpg,image/webp"
+                       class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200 bg-white border border-amber-200 rounded-lg cursor-pointer">
+                <p class="text-[11px] text-amber-700/80">Biarkan kosong jika tidak ingin mengaitkan/mengubah template gambar latar sertifikat.</p>
+                @error('certificate_background')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Enrollment Key -->
             <div>
                 <label for="enrollment_key" class="block text-xs font-semibold text-slate-700 mb-1">
                     Enrollment Key (Kunci Pendaftaran Student) <span class="text-red-500">*</span>
@@ -68,7 +96,7 @@
                 @enderror
             </div>
 
-            <!-- Assign Pengajar Tambahan (course_instructors) -->
+            <!-- Assign Pengajar Tambahan -->
             <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1">Pengajar Tambahan (Instruktur)</label>
                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
@@ -92,7 +120,7 @@
                           class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">{{ old('description', $course->description) }}</textarea>
             </div>
 
-            <!-- Status Pelatihan (Enum) -->
+            <!-- Status Pelatihan -->
             <div>
                 <label for="status" class="block text-xs font-semibold text-slate-700 mb-1">Status Pelatihan <span class="text-red-500">*</span></label>
                 <select id="status" name="status" required

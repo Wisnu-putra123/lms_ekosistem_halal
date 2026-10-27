@@ -14,18 +14,6 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            if ($user->role === 'admin') {
-                return view('admin.index');
-            } elseif ($user->role === 'teacher') {
-                return view('teacher.index');
-            } else {
-                return view('student.index');
-            }
-        }
-
         return view('auth.login');
     }
 
@@ -71,18 +59,6 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            if ($user->role === 'admin') {
-                return view('admin.index');
-            } elseif ($user->role === 'teacher') {
-                return view('teacher.index');
-            } else {
-                return view('student.index');
-            }
-        }
-
         return view('auth.register');
     }
 
@@ -119,7 +95,7 @@ class AuthController extends Controller
 
         session()->flash('success', 'Registrasi berhasil! Anda telah otomatis masuk sebagai Siswa (Student).');
 
-        return view('student.index');
+        return redirect()->route('student.dashboard');
     }
 
     /**

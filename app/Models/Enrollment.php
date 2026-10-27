@@ -55,6 +55,14 @@ class Enrollment extends Model
     }
 
     /**
+     * Relasi ke Course Progress.
+     */
+    public function courseProgress()
+    {
+        return $this->hasOne(CourseProgress::class, 'enrollment_id');
+    }
+
+    /**
      * Helper untuk mengecek apakah akses enrollment masih berlaku
      */
     public function isAccessValid(): bool

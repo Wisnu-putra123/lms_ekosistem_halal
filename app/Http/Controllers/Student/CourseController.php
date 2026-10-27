@@ -18,14 +18,14 @@ class CourseController extends Controller
         $userId = Auth::id();
         $search = $request->input('search');
 
-        // 1. Course yang sedang diikuti oleh student
+        // 1. Course yang diikuti / sudah diselesaikan oleh student
         $myEnrollments = Enrollment::with(['course.thumbnail', 'course.creator'])
             ->where('user_id', $userId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed']) // <-- Sertakan status completed
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('course', function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -67,15 +67,16 @@ class CourseController extends Controller
         }
 
         // Cek apakah sudah terdaftar sebelumnya
-        $existingEnrollment = Enrollment::where('course_id', $course->id)
+        $existingActiveEnrollment = Enrollment::where('course_id', $course->id)
             ->where('user_id', Auth::id())
+            ->where('status', 'active')
             ->first();
 
-        if ($existingEnrollment) {
-            return back()->with('info', 'Anda sudah terdaftar dalam pelatihan ini.');
+        if ($existingActiveEnrollment) {
+            return back()->with('info', 'Anda saat ini sedang aktif dalam pelatihan ini.');
         }
 
-        // Simpan ke tabel enrollments
+        // Buat enrollment baru meskipun dulu pernah 'completed'
         Enrollment::create([
             'course_id' => $course->id,
             'user_id' => Auth::id(),

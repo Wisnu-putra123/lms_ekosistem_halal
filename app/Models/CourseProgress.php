@@ -24,4 +24,5 @@ class CourseProgress extends Model
     {
         return $this->belongsTo(Enrollment::class);
     }
+    
 }
