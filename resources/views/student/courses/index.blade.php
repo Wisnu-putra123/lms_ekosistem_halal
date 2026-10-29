@@ -31,7 +31,7 @@
         </form>
     </div>
 
-    <!-- TAB 1: KURSUS SAYA (Sudah Di-enroll) -->
+    <!-- TAB 1: KURSUS SAYA (Aktif & Berjalan Masa Tenggang) -->
     <div class="space-y-4">
         <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -53,7 +53,15 @@
                             <span class="px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider bg-slate-100 text-slate-600 uppercase">
                                 {{ $course->code }}
                             </span>
-                            <span class="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">Terdaftar</span>
+                            
+                            {{-- BADGE STATUS ENROLLMENT --}}
+                            @if($enrollment->status === 'completed')
+                                <span class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-semibold flex items-center space-x-1">
+                                    <span>✓ Selesai (Lulus)</span>
+                                </span>
+                            @else
+                                <span class="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">Terdaftar</span>
+                            @endif
                         </div>
 
                         <h3 class="font-bold text-slate-800 text-base line-clamp-1 hover:text-amber-600 transition">
@@ -63,6 +71,14 @@
                         <p class="text-xs text-slate-500 line-clamp-2">
                             {{ $course->description ?? 'Belum ada deskripsi.' }}
                         </p>
+
+                        {{-- INFORMASI TANGGAL KEDALUWARSA AKSES --}}
+                        @if($enrollment->status === 'completed' && $enrollment->access_expires_at)
+                            <div class="pt-2 border-t border-slate-100 text-[11px] text-amber-700 font-medium flex items-center justify-between">
+                                <span>Akses Kedaluwarsa:</span>
+                                <span class="font-bold">{{ \Carbon\Carbon::parse($enrollment->access_expires_at)->format('d M Y') }}</span>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 rounded-b-2xl flex items-center justify-between">
@@ -77,7 +93,7 @@
                 </div>
             @empty
                 <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-400">
-                    Anda belum terdaftar dalam pelatihan apapun. Silakan pilih kelas dari katalog di bawah.
+                    Anda belum terdaftar dalam pelatihan aktif apapun. Silakan pilih kelas dari katalog di bawah.
                 </div>
             @endforelse
         </div>

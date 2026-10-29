@@ -10,32 +10,11 @@ return new class extends Migration
     {
         Schema::create('quizzes', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('assignment_id')
-                ->unique()
-                ->constrained('assignments')
-                ->cascadeOnDelete();
-
-            /*
-             * NULL = tidak ada batas waktu.
-             */
-            $table->unsignedInteger('duration_minutes')
-                ->nullable();
-
-            /*
-             * Jumlah soal yang diberikan kepada Student.
-             *
-             * Bisa lebih kecil daripada jumlah soal
-             * di question bank.
-             */
+            $table->foreignId('assignment_id')->unique()->constrained('assignments')->cascadeOnDelete();
+            $table->unsignedInteger('duration_minutes')->nullable();
             $table->unsignedInteger('question_count');
-
-            $table->boolean('shuffle_questions')
-                ->default(false);
-
-            $table->boolean('shuffle_answers')
-                ->default(false);
-
+            $table->boolean('shuffle_questions')->default(false);
+            $table->boolean('shuffle_answers')->default(false);
             $table->timestamps();
         });
     }

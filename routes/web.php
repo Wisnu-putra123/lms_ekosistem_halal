@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CertificateVerificationController;
+use App\Http\Controllers\HomeController;
+
+use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\SubmissionController;
@@ -34,9 +36,7 @@ Route::get('/', function () {
 });
 
 // Home Page
-Route::get('/home', function () {
-    return view('home');
-})->name('home');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
         
+        //Course Management
         Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
         Route::post('/courses', [TeacherCourseController::class, 'store'])->name('courses.store');

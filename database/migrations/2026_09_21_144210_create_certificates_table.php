@@ -13,27 +13,12 @@ return new class extends Migration
     {
         Schema::create('certificates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('enrollment_id')
-                ->unique()
-                ->constrained('enrollments')
-                ->cascadeOnDelete();
-
+            $table->foreignId('enrollment_id')->unique()->constrained('enrollments')->cascadeOnDelete();
             $table->string('certificate_number', 100)->unique();
-
             $table->string('verification_code', 100)->unique();
-
             $table->dateTime('issued_at');
-
-            $table->foreignId('certificate_media_id')
-                ->nullable()
-                ->constrained('media')
-                ->nullOnDelete();
-
-            // $table->foreignId('approved_by')
-            //     ->constrained('users')
-            //     ->restrictOnDelete()
-            //     ->nullable();
-
+            $table->foreignId('certificate_media_id')->nullable()->constrained('media')->nullOnDelete();
+            // $table->foreignId('approved_by')->constrained('users')->restrictOnDelete()->nullable();
             $table->timestamps();
         });
     }

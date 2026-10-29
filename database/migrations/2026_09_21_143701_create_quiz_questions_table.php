@@ -13,18 +13,10 @@ return new class extends Migration
     {
         Schema::create('quiz_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('quiz_id')
-                ->constrained('quizzes')
-                ->cascadeOnDelete();
-
-            $table->foreignId('question_id')
-                ->constrained('questions')
-                ->cascadeOnDelete();
-
+            $table->foreignId('quiz_id')->constrained('quizzes')->cascadeOnDelete();
+            $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->unsignedInteger('sort_order')->default(0);
-
             $table->timestamps();
-
             $table->unique(['quiz_id', 'question_id']);
         });
     }

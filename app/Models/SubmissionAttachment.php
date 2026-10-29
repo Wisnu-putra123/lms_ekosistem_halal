@@ -21,10 +21,7 @@ class SubmissionAttachment extends Model
 
     public function submission()
     {
-        return $this->belongsTo(
-            AssignmentSubmission::class,
-            'submission_id'
-        );
+        return $this->belongsTo(AssignmentSubmission::class, 'submission_id');
     }
 
     public function media()

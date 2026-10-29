@@ -13,17 +13,10 @@ return new class extends Migration
     {
         Schema::create('course_progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('enrollment_id')
-                ->unique()
-                ->constrained('enrollments')
-                ->cascadeOnDelete();
-
+            $table->foreignId('enrollment_id')->unique()->constrained('enrollments')->cascadeOnDelete();
             $table->decimal('progress_percentage', 5, 2)->default(0);
-
             $table->dateTime('last_activity_at')->nullable();
-
             $table->dateTime('completed_at')->nullable();
-
             $table->timestamps();
         });
     }

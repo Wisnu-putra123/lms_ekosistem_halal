@@ -26,6 +26,39 @@
         </a>
     </div>
 
+    <!-- NOTIFIKASI KELULUSAN & MASA BERLAKU AKSES (JIKA COMPLETED) -->
+    @if($enrollment->status === 'completed')
+        <div class="p-5 bg-gradient-to-r from-amber-50 via-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-sm font-bold text-slate-800">Selamat! Anda telah menyelesaikan pelatihan ini</h3>
+                    <p class="text-xs text-slate-600">
+                        @if($enrollment->access_expires_at)
+                            Akses materi pelatihan ini berlaku sampai <span class="font-bold text-amber-800">{{ \Carbon\Carbon::parse($enrollment->access_expires_at)->format('d F Y') }}</span>.
+                        @else
+                            Akses materi pelatihan ini berlaku tanpa batas waktu.
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tombol Lihat/Unduh Sertifikat jika tersedia -->
+            @if($enrollment->certificate)
+                <a href="{{ route('student.certificates.show', $enrollment->certificate->id) }}" class="inline-flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 00.1.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Unduh Sertifikat</span>
+                </a>
+            @endif
+        </div>
+    @endif
+
     <!-- Header Detail Kursus (Top Card) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-start justify-between gap-6">
         <div class="flex items-start space-x-5">
@@ -42,9 +75,17 @@
                     <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-slate-100 text-slate-700 uppercase">
                         {{ $course->code }}
                     </span>
-                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-emerald-100 text-emerald-800 uppercase">
-                        Terdaftar
-                    </span>
+
+                    {{-- BADGE STATUS ENROLLMENT --}}
+                    @if($enrollment->status === 'completed')
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-amber-100 text-amber-800 uppercase">
+                            ✓ Selesai (Lulus)
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-emerald-100 text-emerald-800 uppercase">
+                            Terdaftar
+                        </span>
+                    @endif
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800">{{ $course->title }}</h1>
                 <p class="text-xs text-slate-500 max-w-3xl leading-relaxed">{{ $course->description ?? 'Tidak ada deskripsi.' }}</p>
@@ -59,11 +100,11 @@
                         <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[11px] font-semibold text-slate-700">
                             {{ $course->creator->name ?? 'Instruktur Utama' }}
                         </span>
-                        @if($course->teachers && $course->teachers->count() > 0)
-                            @foreach($course->teachers as $teacher)
-                                @if($teacher->id !== $course->created_by)
+                        @if($course->instructors && $course->instructors->count() > 0)
+                            @foreach($course->instructors as $instructor)
+                                @if($instructor->id !== $course->created_by)
                                     <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[11px] font-semibold text-slate-700">
-                                        {{ $teacher->name }}
+                                        {{ $instructor->name }}
                                     </span>
                                 @endif
                             @endforeach
@@ -218,7 +259,7 @@
                                     <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
                                         <div class="flex items-center gap-2 text-xs font-bold text-blue-800 uppercase tracking-wider">
                                             <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9 2 2 4-4"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 022-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9 2 2 4-4"/>
                                             </svg>
                                             <span>Tugas ({{ $meeting->assignments->where('type', 'submission')->count() }})</span>
                                         </div>

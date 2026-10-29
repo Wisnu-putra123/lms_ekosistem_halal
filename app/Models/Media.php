@@ -33,10 +33,7 @@ class Media extends Model
      */
     public function courses()
     {
-        return $this->hasMany(
-            Course::class,
-            'thumbnail_media_id'
-        );
+        return $this->hasMany(Course::class, 'thumbnail_media_id');
     }
 
     /**

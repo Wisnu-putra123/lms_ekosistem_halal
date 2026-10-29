@@ -11,14 +11,10 @@ class CertificateHelper
 {
     /**
      * Terbitkan sertifikat secara otomatis jika enrollment telah selesai ( progress = 100% ).
-     *
-     * @param int $enrollmentId
-     * @return Certificate|null
      */
     public static function issueCertificate(int $enrollmentId): ?Certificate
     {
-        // Load relasi course, user, certificate, DAN courseProgress
-        $enrollment = Enrollment::with(['course', 'user', 'certificate', 'courseProgress'])->find($enrollmentId);
+        $enrollment = Enrollment::with(['course', 'user', 'certificate'])->find($enrollmentId);
 
         if (!$enrollment) {
             return null;
@@ -29,10 +25,9 @@ class CertificateHelper
             return $enrollment->certificate;
         }
 
-        // 2. Ambil persentase dari relasi courseProgress (atau query langsung)
-        $progress = $enrollment->courseProgress 
-            ? (float) $enrollment->courseProgress->progress_percentage 
-            : 0.0;
+        // 2. PERBAIKAN: Ambil langsung record dari CourseProgress DB untuk menghindari error mismatch nama relasi
+        $progressRecord = CourseProgress::where('enrollment_id', $enrollmentId)->first();
+        $progress = $progressRecord ? (float) $progressRecord->progress_percentage : 0.0;
 
         // Pastikan progres belajar siswa benar-benar sudah >= 100%
         if ($progress < 100.0) {

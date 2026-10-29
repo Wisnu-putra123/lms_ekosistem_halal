@@ -13,31 +13,13 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-             $table->enum('type', [
-                'image',
-                'audio',
-                'video',
-                'document',
-                'youtube',
-                'drive',
-                'embed'
-            ]);
-
-            // Digunakan untuk file yang di-upload
+            $table->enum('type', ['image','audio','video','document','youtube','drive','embed']);
             $table->string('file_name')->nullable();
             $table->string('file_path', 500)->nullable();
-
-            // Digunakan untuk YouTube, Google Drive, embed, dll.
             $table->text('external_url')->nullable();
-
             $table->string('mime_type', 100)->nullable();
-
-            // Ukuran file dalam bytes
             $table->unsignedBigInteger('file_size')->nullable();
-
-            $table->foreignId('uploaded_by')
-                ->constrained('users')
-                ->restrictOnDelete();
+            $table->foreignId('uploaded_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
     }
