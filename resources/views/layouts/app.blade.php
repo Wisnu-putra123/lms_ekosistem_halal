@@ -1,3 +1,30 @@
+@php
+    // View Composer Inline untuk memuat daftar Course sesuai Role tanpa perlu mengubah Controller
+    $sidebarCourses = collect();
+
+    if (Auth::check()) {
+        $user = Auth::user();
+
+        if ($user->role === 'student') {
+            // Ambil course yang di-enroll oleh student dengan status 'active'
+            $sidebarCourses = \App\Models\Enrollment::with('course')
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->get()
+                ->pluck('course')
+                ->filter();
+        } elseif ($user->role === 'teacher') {
+            // Ambil course yang diajar oleh teacher (baik sebagai pembuat/created_by maupun pengajar tambahan)
+            $sidebarCourses = \App\Models\Course::where('created_by', $user->id)
+                ->orWhereHas('instructors', function($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                })
+                ->where('status', 'published')
+                ->get();
+        }
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -68,20 +95,39 @@
                         </a>
 
                         <a href="{{ route('student.courses.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('student.courses.index') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }} text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+                           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('student.courses.index') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                             </svg>
-                            <span>Pelatihan Saya</span>
+                            <span>Katalog Pelatihan</span>
                         </a>
 
                         <a href="{{ route('student.certificates.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('student.certificates.index') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
+                           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition mt-2 {{ request()->routeIs('student.certificates.index') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
-                            <span>Certificates</span>
+                            <span>Sertifikat Saya</span>
                         </a>
+
+                        <!-- Daftar Course Aktif Student -->
+                        @if($sidebarCourses->isNotEmpty())
+                            <div class="pt-3 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-400/80">
+                                Pelatihan Saya
+                            </div>
+                            <div class="space-y-0.5 pl-2">
+                                @foreach($sidebarCourses as $course)
+                                    <a href="{{ route('student.courses.show', $course->id) }}" 
+                                       class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition {{ request()->is('student/courses/' . $course->id . '*') ? 'bg-slate-800 text-emerald-400 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}"
+                                       title="{{ $course->title }}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                                        <span class="truncate">{{ $course->title }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+
+
                     @endif
 
                     @if(Auth::user()->role === 'teacher')
@@ -102,16 +148,25 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
-                            <span>Course</span>
+                            <span>Kelola Course</span>
                         </a>
 
-                        <!-- <a href="{{ route('teacher.courses.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <span>Course</span>
-                        </a> -->
+                        <!-- Daftar Course Yang Diajar Teacher -->
+                        @if($sidebarCourses->isNotEmpty())
+                            <div class="pt-3 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">
+                                Kelas Yang Diajar
+                            </div>
+                            <div class="space-y-0.5 pl-2">
+                                @foreach($sidebarCourses as $course)
+                                    <a href="{{ route('teacher.courses.show', $course->id) }}" 
+                                       class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition {{ request()->is('teacher/courses/' . $course->id . '*') ? 'bg-slate-800 text-amber-400 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}"
+                                       title="{{ $course->title }}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+                                        <span class="truncate">{{ $course->title }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
                     @endif
 
                     @if(Auth::user()->role === 'admin')
@@ -179,8 +234,8 @@
                             <a href="{{ route('profile.edit') }}" class="flex items-center space-x-2 sm:space-x-3 group p-1 sm:p-1.5 rounded-lg hover:bg-slate-100 transition">
                                 <!-- User Avatar/Icon -->
                                 <div class="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
-                                    @if(Auth::user()->avatar_url ?? false)
-                                        <img src="{{ asset('storage/' . Auth::user()->avatar_url) }}" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200">
+                                    @if(Auth::user()->profile_photo ?? false)
+                                        <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200">
                                     @else
                                         <!-- Default User Icon Fallback -->
                                         <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs sm:text-sm border border-emerald-200 group-hover:bg-emerald-200 transition">
@@ -191,7 +246,7 @@
                                     @endif
                                 </div>
 
-                                <!-- User Name & Email (Disembunyikan di layar HP kecil) -->
+                                <!-- User Name & Email -->
                                 <div class="text-right hidden md:block">
                                     <div class="text-sm font-semibold text-slate-800 group-hover:text-emerald-600 transition truncate max-w-[150px]">{{ Auth::user()->name }}</div>
                                     <div class="text-xs text-slate-500 truncate max-w-[150px]">{{ Auth::user()->email }}</div>

@@ -18,26 +18,32 @@ class CourseController extends Controller
         $userId = Auth::id();
         $search = $request->input('search');
 
-        // 1. Course yang diikuti / sudah diselesaikan oleh student
-        $myEnrollments = Enrollment::with(['course.thumbnail', 'course.creator'])
+        // 1. Ambil seluruh enrollment milik student (active & completed)
+        $allEnrollments = Enrollment::with(['course.thumbnail', 'course.creator'])
             ->where('user_id', $userId)
-            ->whereIn('status', ['active', 'completed']) // <-- Sertakan status completed
+            ->whereIn('status', ['active', 'completed'])
             ->when($search, function ($query) use ($search) {
                 $query->whereHas('course', function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+                      ->orWhere('code', 'like', "%{$search}%");
                 });
             })
             ->latest()
             ->get();
 
-        // Ambil ID course yang sudah di-enroll agar tidak muncul di katalog
-        $enrolledCourseIds = $myEnrollments->pluck('course_id')->toArray();
+        // Filter enrollment yang MANGKUS/MASIH BERLAKU AKSESNYA
+        $myEnrollments = $allEnrollments->filter(function ($enrollment) {
+            return $enrollment->isAccessValid();
+        });
 
-        // 2. Katalog Course yang tersedia untuk diambil (status = 'published')
+        // Ambil ID course yang aksesnya masih aktif agar TIDAK muncul di katalog
+        $activeCourseIds = $myEnrollments->pluck('course_id')->toArray();
+
+        // 2. Katalog Course yang tersedia untuk diambil
+        // (Course yang aksesnya sudah kedaluwarsa akan otomatis muncul kembali di sini)
         $availableCourses = Course::with(['thumbnail', 'creator'])
             ->where('status', 'published')
-            ->whereNotIn('id', $enrolledCourseIds)
+            ->whereNotIn('id', $activeCourseIds)
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -66,22 +72,24 @@ class CourseController extends Controller
             return back()->withErrors(['enrollment_key' => 'Enrollment Key yang Anda masukkan salah.'])->withInput();
         }
 
-        // Cek apakah sudah terdaftar sebelumnya
-        $existingActiveEnrollment = Enrollment::where('course_id', $course->id)
+        // Cek enrollment terbaru milik user pada course ini
+        $latestEnrollment = Enrollment::where('course_id', $course->id)
             ->where('user_id', Auth::id())
-            ->where('status', 'active')
+            ->latest()
             ->first();
 
-        if ($existingActiveEnrollment) {
-            return back()->with('info', 'Anda saat ini sedang aktif dalam pelatihan ini.');
+        // Jika aksesnya masih berlaku, langsung arahkan ke kelas tanpa buat enrollment baru
+        if ($latestEnrollment && $latestEnrollment->isAccessValid()) {
+            return redirect()->route('student.courses.show', $course->id)
+                ->with('info', 'Anda masih memiliki akses aktif dalam pelatihan ini.');
         }
 
-        // Buat enrollment baru meskipun dulu pernah 'completed'
+        // Jika tidak ada enrollment atau aksesnya sudah kedaluwarsa, buat enrollment baru
         Enrollment::create([
-            'course_id' => $course->id,
-            'user_id' => Auth::id(),
+            'course_id'   => $course->id,
+            'user_id'     => Auth::id(),
             'enrolled_at' => now(),
-            'status' => 'active',
+            'status'      => 'active',
         ]);
 
         return redirect()->route('student.courses.show', $course->id)
@@ -95,23 +103,25 @@ class CourseController extends Controller
     {
         $userId = Auth::id();
 
-        // Proteksi: Pastikan student sudah enroll di course ini
+        // Ambil enrollment terbaru
         $enrollment = Enrollment::where('course_id', $course->id)
             ->where('user_id', $userId)
             ->latest()
             ->first();
 
-        if (!$enrollment) {
-            abort(403, 'Anda belum terdaftar dalam pelatihan ini. Silakan masukkan Enrollment Key terlebih dahulu.');
+        // Proteksi: Pastikan student sudah enroll dan masa aksesnya belum kedaluwarsa
+        if (!$enrollment || !$enrollment->isAccessValid()) {
+            return redirect()->route('student.courses.index')
+                ->with('error', 'Masa akses Anda untuk pelatihan ini telah berakhir. Silakan mendaftar ulang.');
         }
 
-        // Load relasi lengkap: meetings, materials, assignments, creator, serta pengajar tambahan (teachers)
+        // Load relasi lengkap
         $course->load([
             'meetings.materials',
             'meetings.assignments.quiz',
             'thumbnail',
             'creator',
-            'instructors' // Mengambil seluruh pengajar course
+            'instructors'
         ]);
 
         return view('student.courses.show', compact('course', 'enrollment'));

@@ -13,20 +13,13 @@ return new class extends Migration
     {
         Schema::create('meetings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')
-                ->constrained('courses')
-                ->cascadeOnDelete();
-
+            $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-
             $table->unsignedInteger('meeting_number');
-
             $table->dateTime('available_from')->nullable();
             $table->dateTime('available_until')->nullable();
-
             $table->timestamps();
-
             $table->unique(['course_id', 'meeting_number']);
         });
     }

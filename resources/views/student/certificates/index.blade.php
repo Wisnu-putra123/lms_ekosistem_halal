@@ -37,11 +37,11 @@
                     <div>
                         <!-- Thumbnail Header / Course Preview -->
                         <div class="relative h-40 bg-slate-100 border-b border-slate-100 overflow-hidden">
-                            @if($certificate->enrollment->course->thumbnail)
-                                <img src="{{ asset('storage/' . $certificate->enrollment->course->thumbnail->file_path) }}" 
+                            @if($certificate->enrollment->course->certificateBackground)
+                                <img src="{{ asset('storage/' . $certificate->enrollment->course->certificateBackground->file_path) }}" 
                                      alt="{{ $certificate->enrollment->course->title }}" 
                                      class="w-full h-full object-cover">
-                            @else
+                            @else   
                                 <div class="w-full h-full bg-gradient-to-br from-amber-500 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl">
                                     {{ substr($certificate->enrollment->course->code, 0, 3) }}
                                 </div>

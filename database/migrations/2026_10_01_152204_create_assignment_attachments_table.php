@@ -10,28 +10,11 @@ return new class extends Migration
     {
         Schema::create('assignment_attachments', function (Blueprint $table) {
             $table->id();
-
-            // Assignment yang memiliki lampiran
-            $table->foreignId('assignment_id')
-                ->constrained('assignments')
-                ->cascadeOnDelete();
-
-            // File dari tabel media
-            $table->foreignId('media_id')
-                ->constrained('media')
-                ->cascadeOnDelete();
-
-            // Urutan file ketika ditampilkan
+            $table->foreignId('assignment_id')->constrained('assignments')->cascadeOnDelete();
+            $table->foreignId('media_id')->constrained('media')->cascadeOnDelete();
             $table->unsignedInteger('sort_order')->default(0);
-
             $table->timestamps();
-
-            // Satu media tidak boleh dilampirkan
-            // dua kali pada assignment yang sama
-            $table->unique([
-                'assignment_id',
-                'media_id'
-            ]);
+            $table->unique(['assignment_id','media_id']);
         });
     }
 

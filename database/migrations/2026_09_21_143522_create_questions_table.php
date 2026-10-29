@@ -13,26 +13,12 @@ return new class extends Migration
     {
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('created_by')
-                ->constrained('users')
-                ->restrictOnDelete();
-
-            $table->enum('question_type', [
-                'multiple_choice',
-                'true_false'
-            ]);
-
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
+            $table->enum('question_type', ['multiple_choice','true_false']);
             $table->longText('question_text');
-
-            $table->foreignId('media_id')
-                ->nullable()
-                ->constrained('media')
-                ->nullOnDelete();
-
+            $table->foreignId('media_id')->nullable()->constrained('media')->nullOnDelete();
             $table->decimal('points', 5, 2)->default(1);
-
             $table->text('explanation')->nullable();
-
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

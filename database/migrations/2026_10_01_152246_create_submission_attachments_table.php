@@ -10,24 +10,11 @@ return new class extends Migration
     {
         Schema::create('submission_attachments', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('submission_id')
-                ->constrained('assignment_submissions')
-                ->cascadeOnDelete();
-
-            $table->foreignId('media_id')
-                ->constrained('media')
-                ->cascadeOnDelete();
-
-            $table->unsignedInteger('sort_order')
-                ->default(1);
-
+            $table->foreignId('submission_id')->constrained('assignment_submissions')->cascadeOnDelete();
+            $table->foreignId('media_id')->constrained('media')->cascadeOnDelete();
+            $table->unsignedInteger('sort_order')->default(1);
             $table->timestamps();
-
-            $table->unique([
-                'submission_id',
-                'media_id'
-            ]);
+            $table->unique(['submission_id','media_id']);
         });
     }
 

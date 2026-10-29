@@ -29,10 +29,7 @@ class Certificate extends Model
 
     public function media()
     {
-        return $this->belongsTo(
-            Media::class,
-            'certificate_media_id'
-        );
+        return $this->belongsTo(Media::class, 'certificate_media_id');
     }
 
     // public function approver()

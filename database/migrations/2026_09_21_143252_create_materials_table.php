@@ -13,27 +13,13 @@ return new class extends Migration
     {
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('meeting_id')
-                ->constrained('meetings')
-                ->cascadeOnDelete();
-
+            $table->foreignId('meeting_id')->constrained('meetings')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-
-            // Text content atau HTML/embed code
             $table->longText('content')->nullable();
-
-            $table->foreignId('media_id')
-                ->nullable()
-                ->constrained('media')
-                ->nullOnDelete();
-
+            $table->foreignId('media_id')->nullable()->constrained('media')->nullOnDelete();
             $table->unsignedInteger('sort_order')->default(0);
-
-            $table->foreignId('created_by')
-                ->constrained('users')
-                ->restrictOnDelete();
-
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
     }

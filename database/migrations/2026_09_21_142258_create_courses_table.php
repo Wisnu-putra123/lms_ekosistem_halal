@@ -16,28 +16,11 @@ return new class extends Migration
             $table->string('title');
             $table->string('code')->unique();
             $table->text('description')->nullable();
-
-            $table->foreignId('thumbnail_media_id')
-                ->nullable()
-                ->constrained('media')
-                ->nullOnDelete();
-            
-            $table->foreignId('certificate_bg_media_id')
-            ->nullable()
-            ->constrained('media')
-            ->nullOnDelete();
-
+            $table->foreignId('thumbnail_media_id')->nullable()->constrained('media')->nullOnDelete();
+            $table->foreignId('certificate_bg_media_id')->nullable()->constrained('media')->nullOnDelete();
             $table->string('enrollment_key', 100)->unique();
-
-            $table->enum('status', [
-                'draft',
-                'published',
-                'archived'
-            ])->default('draft');
-
-            $table->foreignId('created_by')
-                ->constrained('users')
-                ->restrictOnDelete();
+            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
     }

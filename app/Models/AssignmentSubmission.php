@@ -44,10 +44,7 @@ class AssignmentSubmission extends Model
      */
     public function attachments()
     {
-        return $this->hasMany(
-            SubmissionAttachment::class,
-            'submission_id'
-        )->orderBy('sort_order');
+        return $this->hasMany(SubmissionAttachment::class, 'submission_id')->orderBy('sort_order');
     }
 
     /**
@@ -55,23 +52,16 @@ class AssignmentSubmission extends Model
      */
     public function feedbackAttachments()
     {
-        return $this->hasMany(
-            SubmissionFeedbackAttachment::class,
-            'submission_id'
-        )->orderBy('sort_order');
+        return $this->hasMany( SubmissionFeedbackAttachment::class, 'submission_id')->orderBy('sort_order');
     }
 
     public function grader()
     {
-        return $this->belongsTo(
-            User::class,
-            'graded_by'
-        );
+        return $this->belongsTo(User::class, 'graded_by');
     }
 
     public function isPassed(): bool
     {
-        return $this->score !== null
-            && $this->score >= $this->assignment->passing_score;
+        return $this->score !== null && $this->score >= $this->assignment->passing_score;
     }
 }
