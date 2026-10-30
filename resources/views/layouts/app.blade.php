@@ -235,7 +235,9 @@
                                 <!-- User Avatar/Icon -->
                                 <div class="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
                                     @if(Auth::user()->profile_photo ?? false)
-                                        <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200">
+                                        <img src="{{ Auth::user()->profile_photo_url }}" 
+                                        alt="{{ Auth::user()->name }}" 
+                                        class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-slate-200">
                                     @else
                                         <!-- Default User Icon Fallback -->
                                         <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs sm:text-sm border border-emerald-200 group-hover:bg-emerald-200 transition">

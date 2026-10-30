@@ -89,4 +89,33 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(QuizAttempt::class, Enrollment::class);
     }
+    /**
+     * Relasi Foto Profil ke Tabel Media.
+     */
+    public function profilePhotoMedia()
+    {
+        return $this->belongsTo(Media::class, 'profile_photo');
+    }
+
+    /**
+     * Helper URL Foto Profil (Mengambil dari media atau fallback avatar default).
+     */
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        if ($this->profilePhotoMedia && $this->profilePhotoMedia->file_path) {
+            return asset('storage/' . $this->profilePhotoMedia->file_path);
+        }
+
+        // Fallback jika profile_photo berisi path langsung
+        if ($this->profile_photo && filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
+            return $this->profile_photo;
+        }
+
+        if ($this->profile_photo && file_exists(storage_path('app/public/' . $this->profile_photo))) {
+            return asset('storage/' . $this->profile_photo);
+        }
+
+        // Fallback UI Avatar berdasarkan nama pengguna
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=059669&background=E1F5FE';
+    }
 }

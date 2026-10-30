@@ -18,7 +18,7 @@
             <p class="text-sm text-slate-500 mt-1">Kelola informasi akun dan perbarui kata sandi Anda.</p>
         </div>
         <div>
-            <a href="{{ url()->previous() }}"    class="inline-flex items-center space-x-2 border border-slate-300 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-lg text-xs font-semibold transition">
+            <a href="{{ url()->previous() }}" class="inline-flex items-center space-x-2 border border-slate-300 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-lg text-xs font-semibold transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -40,15 +40,13 @@
             </div>
             
             <div class="p-6 flex-1 flex flex-col justify-between space-y-6">
-                <!-- User Summary Badge -->
+                <!-- User Summary Badge dengan Foto Profil dari Relasi Media -->
                 <div class="flex items-center space-x-4 p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
+                    <img src="{{ $user->profile_photo_url }}" 
+                         alt="{{ $user->name }}" 
+                         class="w-16 h-16 rounded-full object-cover border-2 border-emerald-500 flex-shrink-0 shadow-sm">
                     <div>
-                        <h4 class="font-bold text-slate-800">{{ $user->name }}</h4>
+                        <h4 class="font-bold text-slate-800 text-base">{{ $user->name }}</h4>
                         <div class="my-1">
                             @if($user->isAdmin())
                                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Administrator</span>
@@ -60,12 +58,33 @@
                         </div>
                         <p class="text-xs text-slate-400">Terdaftar sejak {{ $user->created_at->format('d M Y') }}</p>
                     </div>
+                    <!-- Tombol Hapus Foto (Hanya muncul jika ada foto khusus) -->
+                    @if($user->profile_photo)
+                        <form action="{{ route('profile.photo.destroy') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto profil?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition">
+                                Hapus Foto
+                            </button>
+                        </form>
+                    @endif
                 </div>
 
-                <!-- Form Profile Update -->
-                <form action="{{ route('profile.update') }}" method="POST" class="space-y-4">
+                <!-- Form Profile Update (Menggunakan enctype multipart/form-data) -->
+                <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     @method('PUT')
+
+                    <!-- Input Foto Profil -->
+                    <div>
+                        <label for="profile_photo" class="block text-xs font-semibold text-slate-700 mb-1">Unggah Foto Profil Baru</label>
+                        <input type="file" id="profile_photo" name="profile_photo" accept="image/jpeg,image/png,image/jpg,image/webp"
+                               class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition border border-slate-200 rounded-lg bg-slate-50">
+                        <p class="text-[11px] text-slate-400 mt-1">Format: JPG, PNG, WEBP. Maksimal 2MB.</p>
+                        @error('profile_photo')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     <div>
                         <label for="name" class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
