@@ -103,7 +103,7 @@ class SubmissionController extends Controller
 
         $assignment->load(['attachments.media', 'meeting']);
 
-        // Query submissions dengan eger loading enrollment & user
+        // Query submissions dengan eager loading enrollment & user
         $submissionsQuery = $assignment->submissions()
             ->with(['enrollment.user', 'attachments.media']);
 
@@ -147,7 +147,8 @@ class SubmissionController extends Controller
                 break;
         }
 
-        $submissions = $submissionsQuery->get();
+        // --- PENYESUAIAN PAGINASI (10 Data per Halaman) ---
+        $submissions = $submissionsQuery->paginate(10)->appends($request->query());
 
         return view('teacher.submissions.show', compact('assignment', 'submissions'));
     }

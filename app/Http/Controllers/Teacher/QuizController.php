@@ -127,7 +127,8 @@ class QuizController extends Controller
                 break;
         }
 
-        $quizAttempts = $attemptsQuery->get();
+        // --- PENYESUAIAN PAGINASI (10 Data per Halaman) ---
+        $quizAttempts = $attemptsQuery->paginate(10)->appends($request->query());
 
         $pointPerQuestion = $quiz->question_count > 0 
             ? round($assignment->max_score / $quiz->question_count, 2) 

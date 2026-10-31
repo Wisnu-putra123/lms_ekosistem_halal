@@ -21,9 +21,10 @@
 
     <!-- Quick Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Ketentuan 3: Menampilkan gabungan kelas aktif & selesai berakses -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
-                <span class="text-[10px] font-bold uppercase text-slate-400">Pelatihan Aktif</span>
+                <span class="text-[10px] font-bold uppercase text-slate-400">Pelatihan Saya</span>
                 <div class="text-2xl font-black text-slate-800">{{ $activeEnrollments->count() }} Kelas</div>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
@@ -43,6 +44,7 @@
             </div>
         </div>
 
+        <!-- Ketentuan 3: Rata-rata dari kelas aktif + completed yang belum expired -->
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
                 <span class="text-[10px] font-bold uppercase text-slate-400">Rata-Rata Progres Pelatihan</span>
@@ -54,10 +56,10 @@
         </div>
     </div>
 
-    <!-- Layout Grid 2 Kolom: Timeline / To-Do & Pelatihan Aktif -->
+    <!-- Layout Grid 2 Kolom -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- KIRI (2 Kolom): Timeline / Deadlines Tugas & Quiz -->
+        <!-- KIRI: Timeline / Deadlines Tugas & Quiz -->
         <div class="lg:col-span-2 space-y-4">
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -90,10 +92,30 @@
                                     </span>
                                     <span class="text-[10px] text-slate-400 font-semibold truncate">{{ $task['course_title'] }} • Pertemuan {{ $task['meeting_number'] }}</span>
                                 </div>
-                                <h3 class="text-xs font-bold text-slate-800 truncate">{{ $task['title'] }}</h3>
                                 
-                                <!-- Keterangan Waktu Deadlines Visuam -->
-                                <div class="flex items-center space-x-2 text-[10px]">
+                                <h3 class="text-xs font-bold text-slate-800 truncate">{{ $task['title'] }}</h3>
+
+                                <!-- Ketentuan 1 & 2: Badge Keterangan Status Pengerjaan -->
+                                <div class="pt-0.5">
+                                    @if($task['status_badge'] === 'unassessed')
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                            {{ $task['status_label'] }}
+                                        </span>
+                                    @elseif($task['status_badge'] === 'failed')
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            {{ $task['status_label'] }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 text-slate-600">
+                                            {{ $task['status_label'] }}
+                                        </span>
+                                    @endif
+                                </div>
+                                
+                                <!-- Keterangan Waktu Deadlines -->
+                                <div class="flex items-center space-x-2 text-[10px] pt-1">
                                     @if($isExpired)
                                         <span class="px-2 py-0.5 rounded bg-red-100 text-red-700 font-bold">Tenggat Lewat: {{ $until->format('d M Y, H:i') }}</span>
                                     @elseif($until)
@@ -108,25 +130,24 @@
                             </div>
 
                             <div class="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0">
-                                <span class="text-[10px] font-bold text-slate-500 sm:hidden">{{ $task['status_label'] }}</span>
                                 <a href="{{ $task['route'] }}" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
-                                    Kerjakan →
+                                    {{ $task['status_badge'] === 'unassessed' ? 'Lihat Kiriman →' : ($task['status_badge'] === 'failed' ? 'Coba Lagi →' : 'Kerjakan →') }}
                                 </a>
                             </div>
                         </div>
                     @empty
                         <div class="p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            🎉 Selamat! Semua tugas dan kuis dari pelatihan aktif telah Anda tuntaskan.
+                            🎉 Selamat! Semua tugas dan kuis dari pelatihan Anda telah lulus KKM.
                         </div>
                     @endforelse
                 </div>
             </div>
         </div>
 
-        <!-- KANAN (1 Kolom): Akses Cepat Pelatihan & Feedback Nilai Terbaru -->
+        <!-- KANAN: Akses Cepat Pelatihan & Feedback Nilai Terbaru -->
         <div class="space-y-6">
 
-            <!-- Card Lanjutkan Pelatihan -->
+            <!-- Card Pelatihan Saya (Termasuk Active & Complete Belum Expired) -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <h2 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2.5">Pelatihan Saya</h2>
 
@@ -142,7 +163,12 @@
                                     </div>
                                 @endif
                                 <div class="min-w-0 space-y-1">
-                                    <div class="text-xs font-bold text-slate-800 group-hover:text-amber-600 truncate transition">{{ $en->course->title }}</div>
+                                    <div class="text-xs font-bold text-slate-800 group-hover:text-amber-600 truncate transition flex items-center gap-1.5">
+                                        <span class="truncate">{{ $en->course->title }}</span>
+                                        @if($en->status === 'completed')
+                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-emerald-100 text-emerald-700 flex-shrink-0">LULUS</span>
+                                        @endif
+                                    </div>
                                     <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden w-28">
                                         <div class="bg-emerald-500 h-full rounded-full" style="width: {{ $en->progress->progress_percentage ?? 0 }}%"></div>
                                     </div>
@@ -156,7 +182,7 @@
                 </div>
             </div>
 
-            <!-- Card Catatan / Feedback Pengajar Terbaru -->
+            <!-- Card Feedback Pengajar Terbaru -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <h2 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2.5">Nilai & Feedback Terbaru</h2>
 

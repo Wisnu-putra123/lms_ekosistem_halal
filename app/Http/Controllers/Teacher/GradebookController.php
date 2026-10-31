@@ -24,7 +24,7 @@ class GradebookController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        // 2. Query Enrollment
+        // 2. Query Enrollment Base
         $enrollmentsQuery = Enrollment::with(['user', 'progress'])
             ->where('course_id', $course->id);
 
@@ -47,10 +47,12 @@ class GradebookController extends Controller
             });
         }
 
-        $enrollments = $enrollmentsQuery->get();
+        // 3. Paginasi Database (10 Data per Halaman)
+        // Menyimpan parameter request agar link paginasi tidak mereset filter
+        $enrollments = $enrollmentsQuery->paginate(10)->appends($request->query());
         $enrollmentIds = $enrollments->pluck('id');
 
-        // 3. Query Nilai Tugas & Kuis
+        // 4. Query Nilai Tugas & Kuis (Hanya untuk ID enrollment pada halaman ini)
         $submissions = AssignmentSubmission::whereIn('assignment_id', $assignments->where('type', 'submission')->pluck('id'))
             ->whereIn('enrollment_id', $enrollmentIds)
             ->get()
@@ -64,8 +66,8 @@ class GradebookController extends Controller
             ->get()
             ->groupBy('enrollment_id');
 
-        // 4. Olah Matriks Rekap Nilai
-        $gradebookData = $enrollments->map(function ($enrollment) use ($assignments, $submissions, $quizAttempts) {
+        // 5. Olah Matriks Rekap Nilai untuk Halaman Ini
+        $gradebookCollection = $enrollments->getCollection()->map(function ($enrollment) use ($assignments, $submissions, $quizAttempts) {
             $enrollmentId = $enrollment->id;
             $userSubmissions = $submissions->get($enrollmentId, collect());
             $userQuizAttempts = $quizAttempts->get($enrollmentId, collect());
@@ -116,28 +118,30 @@ class GradebookController extends Controller
             ];
         });
 
-        // 5. Fitur Sorting Data Matriks (Dengan Opsi Tanggal Enrollment)
+        // 6. Fitur Sorting pada Halaman
         $sort = $request->get('sort', 'enrolled_at');
         $direction = $request->get('direction', 'desc') === 'asc' ? 'asc' : 'desc';
 
         if ($sort === 'progress') {
-            $gradebookData = $direction === 'desc' 
-                ? $gradebookData->sortByDesc('progress') 
-                : $gradebookData->sortBy('progress');
+            $sortedCollection = $direction === 'desc' 
+                ? $gradebookCollection->sortByDesc('progress') 
+                : $gradebookCollection->sortBy('progress');
         } elseif ($sort === 'average') {
-            $gradebookData = $direction === 'desc' 
-                ? $gradebookData->sortByDesc('average_score') 
-                : $gradebookData->sortBy('average_score');
+            $sortedCollection = $direction === 'desc' 
+                ? $gradebookCollection->sortByDesc('average_score') 
+                : $gradebookCollection->sortBy('average_score');
         } elseif ($sort === 'name') {
-            $gradebookData = $direction === 'desc' 
-                ? $gradebookData->sortByDesc(fn($item) => strtolower($item['user']->name)) 
-                : $gradebookData->sortBy(fn($item) => strtolower($item['user']->name));
+            $sortedCollection = $direction === 'desc' 
+                ? $gradebookCollection->sortByDesc(fn($item) => strtolower($item['user']->name)) 
+                : $gradebookCollection->sortBy(fn($item) => strtolower($item['user']->name));
         } else {
-            // Default Sort: Waktu Pertama Kali Enrollment (enrolled_at)
-            $gradebookData = $direction === 'desc' 
-                ? $gradebookData->sortByDesc(fn($item) => $item['enrollment']->enrolled_at) 
-                : $gradebookData->sortBy(fn($item) => $item['enrollment']->enrolled_at);
+            $sortedCollection = $direction === 'desc' 
+                ? $gradebookCollection->sortByDesc(fn($item) => $item['enrollment']->enrolled_at) 
+                : $gradebookCollection->sortBy(fn($item) => $item['enrollment']->enrolled_at);
         }
+
+        // Set kembali collection yang diurutkan ke Paginator
+        $gradebookData = $enrollments->setCollection($sortedCollection);
 
         return view('teacher.gradebook.show', compact('course', 'assignments', 'gradebookData'));
     }

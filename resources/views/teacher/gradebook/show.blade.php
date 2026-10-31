@@ -192,6 +192,18 @@
             </tbody>
         </table>
     </div>
+    @if($gradebookData->hasPages())
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+            <div class="text-xs text-slate-500">
+                Menampilkan <span class="font-bold text-slate-800">{{ $gradebookData->firstItem() }}</span> - 
+                <span class="font-bold text-slate-800">{{ $gradebookData->lastItem() }}</span> dari 
+                <span class="font-bold text-slate-800">{{ $gradebookData->total() }}</span> siswa
+            </div>
+            <div>
+                {{ $gradebookData->links() }}
+            </div>
+        </div>
+    @endif
 
 </div>
 @endsection
