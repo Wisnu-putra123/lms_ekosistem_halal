@@ -7,7 +7,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <!-- Mengubah default activeTab menjadi 'instructions' -->
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'instructions' }">
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'submissions' }">
 
     <!-- Header Navigation -->
     <div class="flex items-center justify-between">
@@ -108,18 +108,19 @@
 
     <!-- TAB HEADER SWITCHER (Posisi tombol instruksi diletakkan di depan) -->
     <div class="flex items-center space-x-2 border-b border-slate-200 pb-1 overflow-x-auto">
+        <button type="button" @click="activeTab = 'submissions'" 
+                :class="activeTab === 'submissions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <!-- Gunakan total() agar menghitung jumlah seluruh data dari database -->
+            <span>Hasil & Pengumpulan Siswa ({{ $submissions->total() }})</span>
+        </button>
+
         <button type="button" @click="activeTab = 'instructions'" 
                 :class="activeTab === 'instructions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
                 class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Instruksi & Berkas Soal</span>
-        </button>
-
-        <button type="button" @click="activeTab = 'submissions'" 
-                :class="activeTab === 'submissions' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span>Hasil & Pengumpulan Siswa ({{ $submissions->count() }})</span>
         </button>
     </div>
 
@@ -270,6 +271,18 @@
                 </tbody>
             </table>
         </div>
+        @if($submissions->hasPages())
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div>
+                    Menampilkan <span class="font-bold text-slate-800">{{ $submissions->firstItem() }}</span> - 
+                    <span class="font-bold text-slate-800">{{ $submissions->lastItem() }}</span> dari 
+                    <span class="font-bold text-slate-800">{{ $submissions->total() }}</span> pengumpulan tugas
+                </div>
+                <div>
+                    {{ $submissions->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 
 </div>

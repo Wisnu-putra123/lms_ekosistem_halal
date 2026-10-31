@@ -12,7 +12,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="bg-[#F7F5EE] min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="bg-[#123F35] min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
     <!-- Dekorasi Radial Latar Belakang Halus -->
     <div class="absolute -left-20 -top-20 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>

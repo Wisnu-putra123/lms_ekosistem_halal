@@ -116,8 +116,13 @@
     </div>
 
     <!-- Modul Pembelajaran / Pertemuan -->
+    @php
+        $allMeetingIds = $course->meetings->pluck('id')->toArray();
+    @endphp
+
     <div x-data="{ 
-            openMeetings: [{{ $course->meetings->pluck('id')->implode(',') }}],
+            allIds: {{ json_encode($allMeetingIds) }},
+            openMeetings: {{ json_encode($allMeetingIds) }},
             toggleMeeting(id) {
                 if (this.openMeetings.includes(id)) {
                     this.openMeetings = this.openMeetings.filter(m => m !== id);
@@ -125,29 +130,38 @@
                     this.openMeetings.push(id);
                 }
             },
-            expandAll() {
-                this.openMeetings = [{{ $course->meetings->pluck('id')->implode(',') }}];
-            },
-            collapseAll() {
-                this.openMeetings = [];
+            // Ketentuan 4: Toggle Tunggal untuk Expand / Collapse All
+            toggleAll() {
+                if (this.openMeetings.length === this.allIds.length) {
+                    this.openMeetings = [];
+                } else {
+                    this.openMeetings = [...this.allIds];
+                }
             }
          }" class="space-y-4">
 
-        <!-- Bar Kontrol Pertemuan & Tombol Expand / Collapse -->
+        <!-- Bar Kontrol Pertemuan & Tombol Toggle Expand/Collapse -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div>
                 <h2 class="text-base font-bold text-slate-800">Modul Pembelajaran & Pertemuan</h2>
                 <p class="text-xs text-slate-500">Akses seluruh materi, tugas, dan kuis sesuai jadwal pertemuan.</p>
             </div>
 
+            <!-- Ketentuan 4: Tombol Tunggal Expand/Collapse -->
             <div class="flex items-center space-x-2">
-                <button type="button" @click="expandAll()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7M19 15l-7 7-7-7"/></svg>
-                    <span>Expand Semua</span>
-                </button>
-                <button type="button" @click="collapseAll()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7M5 9l7-7 7 7"/></svg>
-                    <span>Collapse Semua</span>
+                <button type="button" @click="toggleAll()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5 shadow-2xs">
+                    <template x-if="openMeetings.length === allIds.length">
+                        <span class="flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                            <span>Collapse Semua Pertemuan</span>
+                        </span>
+                    </template>
+                    <template x-if="openMeetings.length !== allIds.length">
+                        <span class="flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <span>Expand Semua Pertemuan</span>
+                        </span>
+                    </template>
                 </button>
             </div>
         </div>
@@ -155,7 +169,6 @@
         @forelse($course->meetings->sortBy('meeting_number') as $meeting)
             @php
                 $now = now();
-                // Validasi waktu pembukaan & penutupan Pertemuan (jika ada)
                 $isMeetingAccessible = true;
                 $meetingTimeError = null;
 
@@ -166,6 +179,15 @@
                     $isMeetingAccessible = false;
                     $meetingTimeError = 'Akses pertemuan telah ditutup pada ' . \Carbon\Carbon::parse($meeting->available_until)->format('d M Y, H:i');
                 }
+
+                // Ketentuan 1: Filter tugas & kuis agar status 'closed' dan 'draft' TIDAK DITAMPILKAN
+                $activeSubmissions = $meeting->assignments
+                    ->where('type', 'submission')
+                    ->whereNotIn('status', ['closed', 'draft']);
+
+                $activeQuizzes = $meeting->assignments
+                    ->where('type', 'quiz')
+                    ->whereNotIn('status', ['closed', 'draft']);
             @endphp
 
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -175,7 +197,7 @@
                         <span class="w-8 h-8 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
                             {{ $meeting->meeting_number }}
                         </span>
-                        <div class="min-w-0">
+                        <div class="min-w-0 space-y-0.5">
                             <div class="flex items-center space-x-2">
                                 <h3 class="text-sm font-bold text-slate-800 truncate">{{ $meeting->title }}</h3>
                                 @if(!$isMeetingAccessible)
@@ -185,8 +207,26 @@
                                     </span>
                                 @endif
                             </div>
+
+                            <!-- Ketentuan 2: Informasi Tanggal Pertemuan Buka dan Tutup -->
+                            <div class="text-[11px] text-slate-500 flex items-center space-x-1.5 flex-wrap">
+                                <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                @if($meeting->available_from || $meeting->available_until)
+                                    <span>
+                                        Jadwal: 
+                                        <strong class="text-slate-700">{{ $meeting->available_from ? \Carbon\Carbon::parse($meeting->available_from)->format('d M Y, H:i') : 'Sekarang' }}</strong>
+                                        s/d 
+                                        <strong class="text-slate-700">{{ $meeting->available_until ? \Carbon\Carbon::parse($meeting->available_until)->format('d M Y, H:i') : 'Tanpa Batas Akhir' }}</strong>
+                                    </span>
+                                @else
+                                    <span class="text-emerald-700 font-semibold">Akses Tanpa Batas Waktu</span>
+                                @endif
+                            </div>
+
                             @if($meeting->description)
-                                <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $meeting->description }}</p>
+                                <p class="text-xs text-slate-500 truncate pt-0.5">{{ $meeting->description }}</p>
                             @endif
                         </div>
                     </div>
@@ -258,18 +298,19 @@
                                 <div>
                                     <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
                                         <div class="flex items-center gap-2 text-xs font-bold text-blue-800 uppercase tracking-wider">
+                                            <!-- Ketentuan 3: Ikon Tugas Baru (Clipboard / Document Check) -->
                                             <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 022-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9 2 2 4-4"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                                             </svg>
-                                            <span>Tugas ({{ $meeting->assignments->where('type', 'submission')->count() }})</span>
+                                            <span>Tugas ({{ $activeSubmissions->count() }})</span>
                                         </div>
                                     </div>
 
-                                    @if($meeting->assignments && $meeting->assignments->where('type', 'submission')->count() > 0)
+                                    @if($activeSubmissions->count() > 0)
                                         <div class="space-y-2">
-                                            @foreach($meeting->assignments->where('type', 'submission') as $assignment)
+                                            @foreach($activeSubmissions as $assignment)
                                                 @php
-                                                    $taskTimeStatus = ''; // HTML badge status waktu
+                                                    $taskTimeStatus = ''; 
                                                     
                                                     if ($assignment->available_from && $now->lessThan($assignment->available_from)) {
                                                         $taskTimeStatus = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded">Buka: ' . \Carbon\Carbon::parse($assignment->available_from)->format('d M H:i') . '</span>';
@@ -281,7 +322,7 @@
                                                         }
                                                     }
 
-                                                    // Status Pengerjaan Siswa (Cek Submission & Nilai)
+                                                    // Status Pengerjaan Siswa
                                                     $userSubmissions = \App\Models\AssignmentSubmission::where('assignment_id', $assignment->id)
                                                         ->where('enrollment_id', $enrollment->id)
                                                         ->get();
@@ -292,9 +333,10 @@
 
                                                 <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between gap-2 shadow-2xs">
                                                     <div class="flex items-center gap-2.5 min-w-0">
+                                                        <!-- Ketentuan 3: Ikon Tugas Item Baru -->
                                                         <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                             </svg>
                                                         </div>
                                                         <div class="min-w-0 space-y-0.5">
@@ -320,7 +362,7 @@
                                             @endforeach
                                         </div>
                                     @else
-                                        <p class="text-[11px] text-slate-400 italic py-2">Belum ada tugas upload.</p>
+                                        <p class="text-[11px] text-slate-400 italic py-2">Belum ada tugas dipublikasikan.</p>
                                     @endif
                                 </div>
                             </section>
@@ -333,13 +375,13 @@
                                             <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
-                                            <span>Kuis ({{ $meeting->assignments->where('type', 'quiz')->count() }})</span>
+                                            <span>Kuis ({{ $activeQuizzes->count() }})</span>
                                         </div>
                                     </div>
 
-                                    @if($meeting->assignments && $meeting->assignments->where('type', 'quiz')->count() > 0)
+                                    @if($activeQuizzes->count() > 0)
                                         <div class="space-y-2">
-                                            @foreach($meeting->assignments->where('type', 'quiz') as $quizAssignment)
+                                            @foreach($activeQuizzes as $quizAssignment)
                                                 @php
                                                     $quizTimeStatus = '';
 

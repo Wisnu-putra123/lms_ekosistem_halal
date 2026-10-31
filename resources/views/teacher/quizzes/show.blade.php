@@ -6,8 +6,8 @@
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<!-- Mengubah default activeTab menjadi 'questions' -->
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'questions' }">
+
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ activeTab: 'attempts' }">
 
     <!-- Header Navigation -->
     <div class="flex items-center justify-between">
@@ -104,25 +104,26 @@
 
         @if($quiz->questions->count() < $quiz->question_count)
             <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between">
-                <span>⚠️ Jumlah soal di bank soal (<strong>{{ $quiz->questions->count() }}</strong>) masih kurang dari target soal yang diuji (<strong>{{ $quiz->question_count }}</strong>). Mohon tambahkan soal baru.</span>
+                <span>* Jumlah soal di bank soal (<strong>{{ $quiz->questions->count() }}</strong>) masih kurang dari target soal yang diuji (<strong>{{ $quiz->question_count }}</strong>). Mohon tambahkan soal baru.</span>
             </div>
         @endif
     </div>
 
     <!-- TAB HEADER SWITCHER (Bank soal diletakkan di tombol pertama) -->
     <div class="flex items-center space-x-2 border-b border-slate-200 pb-1 overflow-x-auto">
+        <button type="button" @click="activeTab = 'attempts'" 
+                :class="activeTab === 'attempts' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
+                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <!-- Menggunakan total() untuk mendapatkan jumlah data secara keseluruhan -->
+            <span>Hasil & Nilai Siswa ({{ $quizAttempts->total() }})</span>
+        </button>
+
         <button type="button" @click="activeTab = 'questions'" 
                 :class="activeTab === 'questions' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
                 class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Bank Soal Quiz ({{ $quiz->questions->count() }})</span>
-        </button>
-        
-        <button type="button" @click="activeTab = 'attempts'" 
-                :class="activeTab === 'attempts' ? 'bg-amber-500 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold'"
-                class="px-5 py-2.5 rounded-xl text-xs transition flex items-center space-x-2 flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            <span>Hasil & Nilai Siswa ({{ $quizAttempts->count() ?? 0 }})</span>
         </button>
     </div>
 
@@ -317,6 +318,19 @@
                 </tbody>
             </table>
         </div>
+        <!-- NAVIGASI PAGINASI -->
+        @if($quizAttempts->hasPages())
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div>
+                    Menampilkan <span class="font-bold text-slate-800">{{ $quizAttempts->firstItem() }}</span> - 
+                    <span class="font-bold text-slate-800">{{ $quizAttempts->lastItem() }}</span> dari 
+                    <span class="font-bold text-slate-800">{{ $quizAttempts->total() }}</span> attempt siswa
+                </div>
+                <div>
+                    {{ $quizAttempts->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 
 </div>

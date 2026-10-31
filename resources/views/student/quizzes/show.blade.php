@@ -97,20 +97,31 @@
 
         <!-- Action Start / Continue Button -->
         <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
-            @if($activeAttempt)
-                <a href="{{ route('student.quizzes.attempt', [$assignment->id, $activeAttempt->id]) }}" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-2">
+            @if(($quiz->questions_count ?? $quiz->questions->count()) === 0)
+                <!-- Kondisi ketika kuis belum memiliki soal -->
+                <button disabled class="bg-slate-200 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>Soal Kuis Belum Tersedia</span>
+                </button>
+            @elseif($activeAttempt)
+                <!-- Kondisi ketika ada attempt aktif yang belum selesai -->
+                <a href="{{ route('student.quizzes.attempt', [$assignment->id, $activeAttempt->id]) }}" class="bg-amber-500 hover:bg-amber-600 text-[#123F35] px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-2">
                     <span>Lanjutkan Attempt #{{ $activeAttempt->attempt_number }}</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
             @elseif($canStartNewAttempt)
+                <!-- Kondisi ketika siswa masih bisa memulai attempt baru -->
                 <form action="{{ route('student.quizzes.start', $assignment->id) }}" method="POST" onsubmit="return confirm('Mulai pengerjaan Quiz sekarang?')">
                     @csrf
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-2">
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-2">
                         <span>Mulai Mengerjakan Quiz</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
                 </form>
             @else
+                <!-- Kondisi ketika kuota attempt siswa sudah habis -->
                 <button disabled class="bg-slate-200 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed">
                     Batas Attempt Telah Habis
                 </button>

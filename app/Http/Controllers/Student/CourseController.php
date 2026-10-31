@@ -31,7 +31,7 @@ class CourseController extends Controller
             ->latest()
             ->get();
 
-        // Filter enrollment yang MANGKUS/MASIH BERLAKU AKSESNYA
+        // Filter enrollment yang MASIH BERLAKU AKSESNYA
         $myEnrollments = $allEnrollments->filter(function ($enrollment) {
             return $enrollment->isAccessValid();
         });
