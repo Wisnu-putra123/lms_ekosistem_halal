@@ -163,33 +163,69 @@
     <div x-show="activeTab === 'submissions'" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
         
         <!-- Filter & Sort Form -->
-        <form method="GET" action="{{ route('teacher.assignments.show', $assignment->id) }}" class="flex flex-col lg:flex-row gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-1/4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            
-            <select name="enrollment_status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                <option value="">Semua Status Enrollment</option>
-                <option value="active" {{ request('enrollment_status') == 'active' ? 'selected' : '' }}>Active</option>
-                <option value="completed" {{ request('enrollment_status') == 'completed' ? 'selected' : '' }}>Completed</option>
-            </select>
-            
-            <select name="status" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                <option value="">Semua Status Tugas</option>
-                <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted (Belum Dinilai)</option>
-                <option value="graded" {{ request('status') == 'graded' ? 'selected' : '' }}>Graded (Sudah Dinilai)</option>
-            </select>
-            
-            <select name="sort" class="border border-slate-300 rounded-lg px-3 py-2 text-xs w-full lg:w-auto outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru Dikumpulkan</option>
-                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama Dikumpulkan</option>
-                <option value="score_high" {{ request('sort') == 'score_high' ? 'selected' : '' }}>Nilai Tertinggi</option>
-                <option value="score_low" {{ request('sort') == 'score_low' ? 'selected' : '' }}>Nilai Terendah</option>
-            </select>
-            
-            <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition">Filter</button>
-                <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition flex items-center justify-center">Reset</a>
-            </div>
-        </form>
+        <div class="overflow-x-auto pb-2">
+            <form method="GET" action="{{ route('teacher.assignments.show', $assignment->id) }}" class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl min-w-max">
+                  
+                <!-- Input Pencarian -->
+                <div class="w-60 flex-shrink-0">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..." 
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+                </div>
+
+                <!-- Filter Status Enrollment -->
+                <div class="w-48 flex-shrink-0">
+                    <select name="enrollment_status" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+                        <option value="">Semua Status Enrollment</option>
+                        <option value="active" {{ request('enrollment_status') == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="completed" {{ request('enrollment_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                    </select>
+                </div>
+
+                <!-- Filter Status Tugas -->
+                <div class="w-52 flex-shrink-0">
+                    <select name="status" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+                        <option value="">Semua Status Tugas</option>
+                        <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted (Belum Dinilai)</option>
+                        <option value="graded" {{ request('status') == 'graded' ? 'selected' : '' }}>Graded (Sudah Dinilai)</option>
+                    </select>
+                </div>
+
+                <!-- Filter Penilai -->
+                <div class="w-48 flex-shrink-0">
+                    <select name="graded_by" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+                        <option value="">Semua Penilai</option>
+                        @if(isset($assignment->course->instructors))
+                            @foreach($assignment->course->instructors as $instructor)
+                                <option value="{{ $instructor->id }}" {{ request('graded_by') == $instructor->id ? 'selected' : '' }}>
+                                    Penilai: {{ $instructor->name }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                <!-- Urutan (Sort) -->
+                <div class="w-48 flex-shrink-0">
+                    <select name="sort" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru Dikumpulkan</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama Dikumpulkan</option>
+                        <option value="score_high" {{ request('sort') == 'score_high' ? 'selected' : '' }}>Nilai Tertinggi</option>
+                        <option value="score_low" {{ request('sort') == 'score_low' ? 'selected' : '' }}>Nilai Terendah</option>
+                    </select>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="flex items-center gap-2 flex-shrink-0 pl-1">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition shadow-2xs">
+                        Filter
+                    </button>
+                    <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition flex items-center justify-center shadow-2xs">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+        </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -200,6 +236,7 @@
                         <th class="py-3 px-4">Waktu Mengumpulkan</th>
                         <th class="py-3 px-4">Status Tugas</th>
                         <th class="py-3 px-4">Nilai</th>
+                        <th class="py-3 px-4">Penilai</th>
                         <th class="py-3 px-4 text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -237,11 +274,21 @@
                             <td class="py-3.5 px-4 font-bold">
                                 {{ $sub->score !== null ? number_format($sub->score, 2) : '-' }}
                             </td>
+
+                            <!-- KOLOM BARU: MENAMPILKAN NAMA PENILAI -->
+                            <td class="py-3.5 px-4">
+                                @if($sub->status === 'graded' && $sub->grader)
+                                    <span class="font-semibold text-slate-800">{{ $sub->grader->name }}</span>
+                                @else
+                                    <span class="text-slate-400 italic text-[11px]">-</span>
+                                @endif
+                            </td>
+
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end space-x-2">
                                     <a href="{{ route('teacher.submissions.grade', $sub->id) }}" 
-                                       class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" 
-                                       title="Review & Beri Nilai">
+                                    class="p-1.5 bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white rounded-lg transition" 
+                                    title="Review & Beri Nilai">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -261,7 +308,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-10 text-center text-xs text-slate-400 font-semibold bg-slate-50/50 rounded-xl">
+                            <td colspan="7" class="py-10 text-center text-xs text-slate-400 font-semibold bg-slate-50/50 rounded-xl">
                                 Tidak ada data pengumpulan siswa yang cocok dengan filter tersebut.
                             </td>
                         </tr>

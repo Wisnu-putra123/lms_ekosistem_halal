@@ -105,7 +105,10 @@ class SubmissionController extends Controller
 
         // Query submissions dengan eager loading enrollment & user
         $submissionsQuery = $assignment->submissions()
-            ->with(['enrollment.user', 'attachments.media']);
+            ->with(['enrollment.user', 'attachments.media', 'grader']);
+
+        // Ambil daftar pengajar di kelas ini untuk dropdown filter
+        $instructors = $assignment->course->instructors;
 
         // 1. Filter Nama / Email Siswa
         if ($request->filled('search')) {
@@ -127,6 +130,11 @@ class SubmissionController extends Controller
         // 3. Filter Status Submission (submitted / graded / late / draft)
         if ($request->filled('status')) {
             $submissionsQuery->where('status', $request->status);
+        }
+
+        // Tambahkan logika filter jika user memilih penilai tertentu
+        if ($request->filled('graded_by')) {
+            $submissionsQuery->where('graded_by', $request->graded_by);
         }
 
         // 4. Sorting
