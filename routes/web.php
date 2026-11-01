@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::delete('/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
 
 
@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
 
 
 
-    Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    Route::middleware(['auth', 'role:student', 'enrollment.valid'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');

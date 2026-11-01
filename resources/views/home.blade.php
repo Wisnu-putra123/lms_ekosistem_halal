@@ -49,8 +49,11 @@
     <header class="sticky top-0 z-50 border-b border-emerald-950/10 bg-white/95 shadow-sm backdrop-blur">
         <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8" aria-label="Navigasi utama">
             <a href="#beranda" class="flex items-center gap-3" aria-label="LPP-JPH, Beranda">
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-900 text-white">
-                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-3 7.8-7 10-4-2.2-7-5.5-7-10V6l7-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>
+                <span class="flex h-11 w-11 items-center justify-center rounded-xl text-white">
+                    <img src="{{ asset('images/logo_telkom_transparan2.png') }}">
+                </span>
+                <span class="flex h-11 w-11 items-center justify-center rounded-xl text-white">
+                    <img src="{{ asset('images/logo_lms_lppjph_transparan2.png') }}">
                 </span>
                 <span class="leading-tight">
                     <span class="block text-lg font-extrabold tracking-tight text-emerald-950">{{ $institutionName }}</span>

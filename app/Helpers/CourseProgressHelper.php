@@ -24,13 +24,13 @@ class CourseProgressHelper
     }
 
     /**
-     * Hitung ulang progres seluruh siswa di kelas (aktif & selesai)
+     * Hitung ulang progres seluruh siswa yang masih aktif di kelas
      */
     public static function recalculateAllActiveStudentsProgress(int $courseId): void
     {
-        // PERBAIKAN: Hitung juga siswa yang statusnya completed jika ada perubahan nilai dari pengajar
+        // PERBAIKAN: Hanya ambil siswa dengan status 'active' saja
         $enrollments = Enrollment::where('course_id', $courseId)
-            ->whereIn('status', ['active', 'completed'])
+            ->where('status', 'active')
             ->get();
 
         foreach ($enrollments as $enrollment) {
@@ -40,9 +40,14 @@ class CourseProgressHelper
 
     private static function calculateAndSaveProgress(Enrollment $enrollment, int $courseId): void
     {
-        // 1. Hitung total seluruh assignment terbit di course ini
+        // PROTEKSI: Jika enrollment sudah 'completed', jangan ubah progres atau datanya sama sekali
+        if ($enrollment->status === 'completed') {
+            return;
+        }
+
+        // 1. Hitung total assignment yang HANYA berstatus 'published'
         $totalAssignments = Assignment::where('course_id', $courseId)
-            ->whereIn('status', ['published', 'closed'])
+            ->where('status', 'published')
             ->count();
 
         if ($totalAssignments === 0) {
@@ -53,11 +58,11 @@ class CourseProgressHelper
             return;
         }
 
-        // 2. Hitung jumlah item SUBMISSION yang lulus KKM
+        // 2. Hitung SUBMISSION lulus KKM pada assignment yang HANYA berstatus 'published'
         $passedSubmissionsCount = AssignmentSubmission::join('assignments', 'assignments.id', '=', 'assignment_submissions.assignment_id')
             ->where('assignments.course_id', $courseId)
             ->where('assignments.type', 'submission')
-            ->whereIn('assignments.status', ['published', 'closed'])
+            ->where('assignments.status', 'published')
             ->where('assignment_submissions.enrollment_id', $enrollment->id)
             ->where('assignment_submissions.status', 'graded')
             ->selectRaw('assignment_submissions.assignment_id')
@@ -66,12 +71,12 @@ class CourseProgressHelper
             ->get()
             ->count();
 
-        // 3. Hitung jumlah item QUIZ yang lulus KKM
+        // 3. Hitung QUIZ lulus KKM pada assignment yang HANYA berstatus 'published'
         $passedQuizzesCount = QuizAttempt::join('quizzes', 'quizzes.id', '=', 'quiz_attempts.quiz_id')
             ->join('assignments', 'assignments.id', '=', 'quizzes.assignment_id')
             ->where('assignments.course_id', $courseId)
             ->where('assignments.type', 'quiz')
-            ->whereIn('assignments.status', ['published', 'closed'])
+            ->where('assignments.status', 'published')
             ->where('quiz_attempts.enrollment_id', $enrollment->id)
             ->whereIn('quiz_attempts.status', ['submitted', 'expired'])
             ->selectRaw('quizzes.assignment_id')
@@ -80,16 +85,15 @@ class CourseProgressHelper
             ->get()
             ->count();
 
-        // Total item yang lulus KKM
         $totalPassedCount = $passedSubmissionsCount + $passedQuizzesCount;
 
-        // 4. Persentase progres
+        // 4. Hitung persentase progres
         $progressPercentage = min(100, round(($totalPassedCount / $totalAssignments) * 100, 2));
 
         $isCompleted = $progressPercentage >= 100;
         $now = now();
 
-        // 5. Simpan / perbarui ke database `course_progress`
+        // 5. Simpan / perbarui progres ke database
         CourseProgress::updateOrCreate(
             ['enrollment_id' => $enrollment->id],
             [
@@ -99,19 +103,16 @@ class CourseProgressHelper
             ]
         );
 
-        // 6. Jika progres mencapai 100%, perbarui status enrollment dan otomatis terbitkan sertifikat
+        // 6. Apabila mencapai 100%, tandai completed dan terbitkan sertifikat
         if ($isCompleted) {
-            if ($enrollment->status !== 'completed') {
-                $expiryDays = 30; // Kedaluwarsa akses 30 hari dari tanggal lulus
-                
-                $enrollment->update([
-                    'status'            => 'completed',
-                    'completed_at'      => $now,
-                    'access_expires_at' => $now->copy()->addDays($expiryDays),
-                ]);
-            }
+            $expiryDays = 30;
+            
+            $enrollment->update([
+                'status'            => 'completed',
+                'completed_at'      => $now,
+                'access_expires_at' => $now->copy()->addDays($expiryDays),
+            ]);
 
-            // Pemicu otomatisasi penerbitan sertifikat
             CertificateHelper::issueCertificate($enrollment->id);
         }
     }

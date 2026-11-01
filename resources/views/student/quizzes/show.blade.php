@@ -74,7 +74,7 @@
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Batas Attempt</span>
                 <div class="text-xs font-bold text-slate-800 mt-1">
-                    {{ $assignment->max_attempts ? $attempts->count() . ' / ' . $assignment->max_attempts . 'x Attempt' : $attempts->count() . 'x Attempt' }}
+                    {{ $assignment->max_attempts ? $assignment->max_attempts . 'x Attempt' : 'Tanpa Batas' }}
                 </div>
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">

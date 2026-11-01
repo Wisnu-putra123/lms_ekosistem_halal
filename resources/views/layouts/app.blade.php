@@ -62,12 +62,14 @@
                class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-200 flex flex-col flex-shrink-0 shadow-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0">
             
             <!-- Brand Logo & Mobile Close Button -->
-            <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+            <div class="h-16 flex items-center justify-center px-6 border-b border-slate-800">
                 <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                    <svg class="w-7 h-7 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <!-- <svg class="w-7 h-7 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="font-bold text-lg text-white tracking-tight">LPP-JPH</span>
+                    </svg> -->
+                     <img src="{{ asset('images/logo_telkom_transparan2.png') }}" alt="Logo LPP-JPH" class="w-10 h-10 object-contain">
+                     <img src="{{ asset('images/logo_lms_lppjph_transparan_putih - Copy.png') }}" alt="Logo LPP-JPH" class="w-10 h-10 object-contain">
+                    <!-- <span class="font-bold text-lg text-white tracking-tight">LPP-JPH</span> -->
                 </a>
 
                 <!-- Tombol Close (Khusus Layar HP) -->
