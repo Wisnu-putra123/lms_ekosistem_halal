@@ -247,15 +247,29 @@ class QuizController extends Controller
         return view('teacher.quizzes.attempts.show', compact('attempt', 'quiz', 'assignment'));
     }
 
-    public function destroyAttempt(QuizAttempt $attempt)
+        public function destroyAttempt(QuizAttempt $attempt)
     {
-        $quizId = $attempt->quiz_id;
+        // 1. Simpan course_id dan enrollment_id sebelum attempt dihapus
         $assignment = $attempt->quiz->assignment;
+        $courseId = $assignment->course_id;
+        $enrollmentId = $attempt->enrollment_id;
 
-        $attempt->attemptQuestions()->delete();
-        $attempt->delete();
+        DB::beginTransaction();
+        try {
+            // 2. Hapus detail soal pilihan siswa dan record attempt
+            $attempt->attemptQuestions()->delete();
+            $attempt->delete();
 
-        return redirect()->route('teacher.quizzes.show', $assignment->id)
-            ->with('success', 'Attempt pengerjaan kuis siswa berhasil dihapus.');
+            // 3. Panggil Helper untuk hitung ulang progres spesifik siswa ini
+            CourseProgressHelper::updateStudentProgress($courseId, $enrollmentId);
+
+            DB::commit();
+
+            return redirect()->route('teacher.quizzes.show', $assignment->id)
+                ->with('success', 'Attempt pengerjaan kuis siswa berhasil dihapus dan progress telah diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus attempt kuis: ' . $e->getMessage());
+        }
     }
 }

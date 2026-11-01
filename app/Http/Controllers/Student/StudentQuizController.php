@@ -163,6 +163,42 @@ class StudentQuizController extends Controller
     }
 
     /**
+     * Auto-save single answer via AJAX saat siswa memilih opsi.
+     */
+    public function saveAnswer(Request $request, Assignment $assignment, QuizAttempt $attempt)
+    {
+        // 1. Otorisasi kepemilikan attempt & status pengerjaan
+        if ($attempt->enrollment->user_id !== Auth::id() || $attempt->status !== 'in_progress') {
+            return response()->json(['error' => 'Akses ditolak atau kuis sudah selesai.'], 403);
+        }
+
+        // 2. Cek apakah durasi waktu kuis sudah expired
+        if ($attempt->expires_at && now()->greaterThan($attempt->expires_at)) {
+            $this->finalizeAttempt($attempt);
+            return response()->json(['expired' => true]);
+        }
+
+        $validated = $request->validate([
+            'attempt_question_id' => ['required', 'exists:quiz_attempt_questions,id'],
+            'selected_option_id'  => ['required', 'exists:question_options,id'],
+        ]);
+
+        // 3. Simpan pilihan jawaban ke database
+        $attemptQuestion = QuizAttemptQuestion::where('id', $validated['attempt_question_id'])
+            ->where('attempt_id', $attempt->id)
+            ->first();
+
+        if ($attemptQuestion) {
+            $attemptQuestion->update([
+                'selected_option_id' => $validated['selected_option_id'],
+                'answered_at'        => now(),
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Simpan / Submit Jawaban Kuis.
      */
     public function submit(Request $request, Assignment $assignment, QuizAttempt $attempt)

@@ -109,12 +109,6 @@ class CourseController extends Controller
             ->latest()
             ->first();
 
-        // Proteksi: Pastikan student sudah enroll dan masa aksesnya belum kedaluwarsa
-        if (!$enrollment || !$enrollment->isAccessValid()) {
-            return redirect()->route('student.courses.index')
-                ->with('error', 'Masa akses Anda untuk pelatihan ini telah berakhir. Silakan mendaftar ulang.');
-        }
-
         // Load relasi lengkap
         $course->load([
             'meetings.materials',
