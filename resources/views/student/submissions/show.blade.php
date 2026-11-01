@@ -133,9 +133,14 @@
     </div>
 
     <!-- 2. RIWAYAT SUBMISSION & FORM SUBMISSION (MULTI-ATTEMPT) -->
+    @php
+        $allSubmissionIds = $submissions->pluck('id')->toArray();
+    @endphp
+
     <div x-data="{ 
             isCreatingNew: false, 
-            openAttempts: [{{ $submissions->pluck('id')->implode(',') }}],
+            allIds: {{ json_encode($allSubmissionIds) }},
+            openAttempts: {{ json_encode($allSubmissionIds) }},
             toggleAttempt(id) {
                 if (this.openAttempts.includes(id)) {
                     this.openAttempts = this.openAttempts.filter(i => i !== id);
@@ -143,11 +148,13 @@
                     this.openAttempts.push(id);
                 }
             },
-            expandAll() {
-                this.openAttempts = [{{ $submissions->pluck('id')->implode(',') }}];
-            },
-            collapseAll() {
-                this.openAttempts = [];
+            // Tombol Toggle Tunggal untuk Buka/Tutup Semua Attempt
+            toggleAll() {
+                if (this.openAttempts.length === this.allIds.length) {
+                    this.openAttempts = [];
+                } else {
+                    this.openAttempts = [...this.allIds];
+                }
             }
          }" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
         
@@ -158,15 +165,22 @@
             </div>
 
             <div class="flex items-center space-x-2">
+                <!-- Tombol Toggle Buka/Tutup Semua dalam Satu Tombol -->
                 @if($submissions->isNotEmpty())
-                    <div class="flex items-center space-x-1 border-r border-slate-200 pr-2">
-                        <button type="button" @click="expandAll()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition">
-                            Buka Semua
-                        </button>
-                        <button type="button" @click="collapseAll()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition">
-                            Tutup Semua
-                        </button>
-                    </div>
+                    <button type="button" @click="toggleAll()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5 shadow-2xs">
+                        <template x-if="openAttempts.length === allIds.length">
+                            <span class="flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                <span>Tutup Semua Attempt</span>
+                            </span>
+                        </template>
+                        <template x-if="openAttempts.length !== allIds.length">
+                            <span class="flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <span>Buka Semua Attempt</span>
+                            </span>
+                        </template>
+                    </button>
                 @endif
 
                 @if($canSubmitNewAttempt && (!$latestSubmission || $latestSubmission->status === 'graded'))
@@ -178,7 +192,7 @@
             </div>
         </div>
 
-        <!-- FORM CREATING NEW ATTEMPT (JIKA BELUM ADA ATTEMPT ATAU MAU BUAT BARU) -->
+        <!-- FORM CREATING NEW ATTEMPT -->
         <template x-if="isCreatingNew || {{ $submissions->isEmpty() ? 'true' : 'false' }}">
             <div class="bg-slate-50 p-6 rounded-2xl border border-emerald-200 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
@@ -318,10 +332,10 @@
                             </div>
                         </div>
 
-                        <!-- BODY CONTAINER UNTUK TIAP ATTEMPT (BISA EXPAND/COLLAPSE) -->
+                        <!-- BODY CONTAINER UNTUK TIAP ATTEMPT -->
                         <div x-show="openAttempts.includes({{ $sub->id }})" x-collapse class="space-y-4 pt-1">
 
-                            <!-- VIEW MODE (TAMPILAN JAWABAN BIASA) -->
+                            <!-- VIEW MODE -->
                             <div x-show="!isEditingThis" class="space-y-4">
                                 <!-- Teks Jawaban Siswa -->
                                 @if($sub->submission_text)
@@ -350,10 +364,22 @@
                                     </div>
                                 @endif
 
-                                <!-- Feedback & Lampiran Berkas Pengajar -->
+                                <!-- Feedback, Nama Penilai & Lampiran Berkas Pengajar -->
                                 @if($sub->status === 'graded')
                                     <div class="pt-3 border-t border-slate-200/80 space-y-2">
-                                        <span class="text-[11px] font-bold text-slate-700 uppercase">Catatan & Lampiran Feedback Pengajar:</span>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[11px] font-bold text-slate-700 uppercase">Catatan & Feedback Pengajar:</span>
+                                            
+                                            <!-- Menampilkan Nama Penilai (Grader) -->
+                                            <div class="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                </svg>
+                                                <span>Dinilai oleh:</span>
+                                                <strong class="text-slate-700 font-bold">{{ $sub->grader->name ?? 'Instruktur' }}</strong>
+                                            </div>
+                                        </div>
+
                                         <p class="text-xs text-slate-700 italic bg-white p-3 rounded-xl border border-slate-200">
                                             {{ $sub->feedback ? '"' . $sub->feedback . '"' : 'Tidak ada catatan tertulis.' }}
                                         </p>
@@ -374,7 +400,7 @@
                                 @endif
                             </div>
 
-                            <!-- EDIT MODE (FORM EDIT YANG TERDAPAT DI DALAM CONTAINER ATTEMPT) -->
+                            <!-- EDIT MODE -->
                             <div x-show="isEditingThis" class="p-4 bg-white rounded-xl border border-amber-300 space-y-4">
                                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                                     <h4 class="text-xs font-bold text-amber-800">Edit Jawaban Attempt #{{ $sub->attempt_number }}</h4>
