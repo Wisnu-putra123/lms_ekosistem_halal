@@ -99,19 +99,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
         Route::get('/courses/{course}/gradebook/assignments/{assignment}/details', [StudentGradebookController::class, 'detail'])->name('courses.gradebook.detail');
 
-        // Rute Submission Student
+        // Rute Submission Student (Tampilan Detail)
         Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
-        Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
-        Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
-        Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
 
-        // Student Quiz Pengerjaan
+        // Student Quiz Pengerjaan (Tampilan & Progres Attempt)
         Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
-        Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
         Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
         Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
         Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
         Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
+
+        // PROTEKSI DEADLINE: Route aksi yang dibatasi middleware 'assignment.open'
+        Route::middleware('assignment.open')->group(function () {
+            // Aksi Submission Tugas
+            Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
+            Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
+            Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
+
+            // Aksi Memulai Quiz Baru
+            Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+        });
 
         // Route Sertifikat Student
         Route::get('/certificates', [CertificateController::class, 'index'])->name('certificates.index');
