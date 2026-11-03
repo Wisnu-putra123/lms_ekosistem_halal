@@ -4,6 +4,10 @@
 @section('header_title', 'Detail Quiz')
 
 @section('content')
+@php
+    $isPastDeadline = $assignment->available_until && now()->greaterThan($assignment->available_until);
+@endphp
+
 <div class="max-w-5xl mx-auto space-y-6">
 
     <!-- Header Navigation -->
@@ -31,6 +35,16 @@
         </div>
     @endif
 
+    <!-- Alert jika Tenggat Waktu Sudah Berakhir -->
+    @if($isPastDeadline)
+        <div class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs font-semibold flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Tenggat waktu pengerjaan kuis ini telah berakhir. Anda tidak dapat lagi memulai atau melanjutkan attempt baru.</span>
+        </div>
+    @endif
+
     <!-- Informasi Utama Quiz -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
         <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -41,9 +55,11 @@
                 <h1 class="text-xl font-bold text-slate-800 mt-1">{{ $assignment->title }}</h1>
             </div>
 
-            <!-- Status Kelulusan Berdasarkan Best Score -->
+            <!-- Status Kelulusan Berdasarkan Best Score & Tenggat Waktu -->
             <div>
-                @if($attempts->isEmpty())
+                @if($isPastDeadline && $attempts->isEmpty())
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">Tenggat Waktu Berakhir</span>
+                @elseif($attempts->isEmpty())
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Belum Mengerjakan</span>
                 @elseif(!is_null($bestScore) && $bestScore >= $assignment->passing_score)
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">LULUS (Skor Terbaik: {{ number_format($bestScore, 0) }})</span>
@@ -74,12 +90,12 @@
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Batas Attempt</span>
                 <div class="text-xs font-bold text-slate-800 mt-1">
-                    {{ $assignment->max_attempts ? $assignment->max_attempts . 'x Attempt' : 'Tanpa Batas' }}
+                    {{ $assignment->max_attempts ? $attempts->count() . ' / ' . $assignment->max_attempts . 'x Attempt' : $attempts->count() . 'x Attempt (Tanpa Batas)' }}
                 </div>
             </div>
             <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
                 <span class="text-[10px] font-semibold text-slate-400 uppercase">Tenggat Waktu</span>
-                <div class="text-xs font-semibold text-slate-700 mt-1">
+                <div class="text-xs font-semibold {{ $isPastDeadline ? 'text-red-600 font-bold' : 'text-slate-700' }} mt-1">
                     {{ $assignment->available_until ? \Carbon\Carbon::parse($assignment->available_until)->format('d M Y H:i') : 'Tanpa Batas' }}
                 </div>
             </div>
@@ -97,7 +113,15 @@
 
         <!-- Action Start / Continue Button -->
         <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
-            @if(($quiz->questions_count ?? $quiz->questions->count()) === 0)
+            @if($isPastDeadline)
+                <!-- Kondisi ketika tenggat waktu kuis sudah lewat -->
+                <button disabled class="bg-slate-200 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Waktu Pengerjaan Kuis Telah Berakhir</span>
+                </button>
+            @elseif(($quiz->questions_count ?? $quiz->questions->count()) === 0)
                 <!-- Kondisi ketika kuis belum memiliki soal -->
                 <button disabled class="bg-slate-200 text-slate-500 px-6 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed flex items-center space-x-2">
                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,10 +192,12 @@
                                     <a href="{{ route('student.quizzes.result', [$assignment->id, $att->id]) }}" class="text-xs font-bold text-emerald-600 hover:underline">
                                         Lihat Hasil & Pembahasan
                                     </a>
-                                @else
+                                @elseif(!$isPastDeadline)
                                     <a href="{{ route('student.quizzes.attempt', [$assignment->id, $att->id]) }}" class="text-xs font-bold text-amber-600 hover:underline">
                                         Lanjutkan
                                     </a>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-400 cursor-not-allowed">Waktu Habis</span>
                                 @endif
                             </td>
                         </tr>

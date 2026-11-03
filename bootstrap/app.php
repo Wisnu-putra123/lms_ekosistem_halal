@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureEnrollmentIsValid;
+use App\Http\Middleware\EnsureAssignmentOpen;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => CheckRole::class,
             'enrollment.valid' => EnsureEnrollmentIsValid::class,
+            'assignment.open' => EnsureAssignmentOpen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
