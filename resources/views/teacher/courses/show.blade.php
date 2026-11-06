@@ -7,15 +7,52 @@
 <!-- Script CDN Alpine.js untuk fitur Collapse/Expand & Modal -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div x-data="{ addMeetingModal: false, editMeetingModal: false, activeEditMeeting: {}, allExpanded: false }" class="space-y-6">
+<div x-data="{ 
+        addMeetingModal: {{ $errors->has('meeting_number') || $errors->has('title') ? 'true' : 'false' }}, 
+        editMeetingModal: false, 
+        activeEditMeeting: {}, 
+        allExpanded: false 
+    }" 
+     class="space-y-6">
 
-    <!-- Ketentuan 1: Tombol Kembali ke Katalog (Atas Kiri) & Rekap Nilai (Atas Kanan) -->
+    <!-- Flash Session Success & Error Alerts (Ketentuan 1) -->
+    @if(session('success'))
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center justify-between text-xs font-medium shadow-2xs">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+
+    @if(session('error') || $errors->any())
+        <div class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl space-y-1 text-xs font-medium shadow-2xs">
+            <div class="flex items-center space-x-2 font-bold text-red-900">
+                <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Gagal Memproses Pertemuan:</span>
+            </div>
+            <ul class="list-disc list-inside pl-6 space-y-0.5 text-red-700">
+                @if(session('error'))
+                    <li>{{ session('error') }}</li>
+                @endif
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <!-- Tombol Kembali ke Katalog & Rekap Nilai -->
     <div class="flex items-center justify-between">
         <a href="{{ route('teacher.courses.index') }}" class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-amber-600 transition bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            <span>Kembali ke Katalog Pelatihan</span>
+            <span>Katalog Pelatihan</span>
         </a>
 
         <a href="{{ route('teacher.courses.gradebook.show', $course->id) }}" class="inline-flex items-center space-x-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-xl transition shadow-sm">
@@ -124,7 +161,6 @@
             <p class="text-xs text-slate-500">Susun modul pembelajaran, materi, tugas, dan kuis berdasarkan urutan pertemuan.</p>
         </div>
         <div class="flex items-center space-x-2">
-            <!-- Ketentuan 5: Gaya Panah & Tombol Expand/Collapse Konsisten dengan Student -->
             <button @click="allExpanded = !allExpanded" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5 shadow-2xs">
                 <template x-if="allExpanded">
                     <span class="flex items-center space-x-1">
@@ -150,86 +186,91 @@
         </div>
     </div>
 
-    <!-- Accordion List Pertemuan (Ketentuan 3: Konsisten dengan Tampilan Student) -->
+    <!-- Accordion List Pertemuan -->
     <div class="space-y-4">
         @forelse($course->meetings->sortBy('meeting_number') as $meeting)
             <div x-data="{ expanded: false }" x-init="$watch('allExpanded', val => expanded = val)" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition">
                 
-                <!-- Header Accordion (Baris Judul Pertemuan - Tampilan Konsisten) -->
-                <div class="p-4 bg-slate-50/80 hover:bg-slate-100/80 border-b border-slate-100 flex items-center justify-between gap-4 cursor-pointer transition" @click="expanded = !expanded">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="w-8 h-8 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                <!-- Header Accordion (Baris Judul, Deskripsi, Jadwal & Akses) -->
+                <div class="p-4 bg-slate-50/80 hover:bg-slate-100/80 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer transition" @click="expanded = !expanded">
+                    
+                    <!-- Kiri: Nomor, Judul & Deskripsi (Ketentuan 2) -->
+                    <div class="flex items-start gap-3 min-w-0 flex-1">
+                        <span class="w-8 h-8 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5">
                             {{ $meeting->meeting_number }}
                         </span>
-                        <div class="min-w-0 space-y-0.5">
+                        <div class="min-w-0 space-y-1">
                             <h3 class="text-sm font-bold text-slate-800 truncate">{{ $meeting->title }}</h3>
-
-                            <!-- Format Informasi Tanggal Buka dan Tutup Pertemuan -->
-                            <div class="text-[11px] text-slate-500 flex items-center space-x-1.5 flex-wrap">
-                                <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                @if($meeting->available_from || $meeting->available_until)
-                                    <span>
-                                        Jadwal: 
-                                        <strong class="text-slate-700">{{ $meeting->available_from ? \Carbon\Carbon::parse($meeting->available_from)->format('d M Y, H:i') : 'Sekarang' }}</strong>
-                                        s/d 
-                                        <strong class="text-slate-700">{{ $meeting->available_until ? \Carbon\Carbon::parse($meeting->available_until)->format('d M Y, H:i') : 'Tanpa Batas Akhir' }}</strong>
-                                    </span>
-                                @else
-                                    <span class="text-emerald-700 font-semibold">Akses Tanpa Batas Waktu</span>
-                                @endif
-                            </div>
+                            
+                            <!-- Deskripsi Pertemuan (Berada di satu kontainer di bawah Judul - Ketentuan 2) -->
+                            @if($meeting->description)
+                                <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">{{ $meeting->description }}</p>
+                            @else
+                                <p class="text-xs text-slate-400 italic">Belum ada pengantar/deskripsi pertemuan.</p>
+                            @endif
                         </div>
                     </div>
 
-                    <!-- Actions & Toggle Arrow -->
-                    <div class="flex items-center space-x-2" @click.stop>
-                        <!-- Edit Button -->
-                        <button @click="activeEditMeeting = { 
-                                    id: '{{ $meeting->id }}', 
-                                    title: '{{ addslashes($meeting->title) }}', 
-                                    meeting_number: '{{ $meeting->meeting_number }}', 
-                                    description: '{{ addslashes($meeting->description) }}', 
-                                    available_from: '{{ $meeting->available_from ? \Carbon\Carbon::parse($meeting->available_from)->format('Y-m-d\TH:i') : '' }}', 
-                                    available_until: '{{ $meeting->available_until ? \Carbon\Carbon::parse($meeting->available_until)->format('Y-m-d\TH:i') : '' }}' 
-                                }; editMeetingModal = true" 
-                                class="p-1.5 text-slate-400 hover:text-amber-600 transition rounded-lg hover:bg-slate-100" title="Edit Pertemuan">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    <!-- Kanan: Jadwal Akses (Ketentuan 3) & Tombol Aksi -->
+                    <div class="flex items-center justify-between md:justify-end gap-4 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60">
+                        
+                        <!-- Informasi Tanggal Buka dan Tutup Pertemuan (Dipindahkan ke sebelah kiri aksi - Ketentuan 3) -->
+                        <div class="text-[11px] text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1.5 shadow-2xs">
+                            <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                        </button>
+                            @if($meeting->available_from || $meeting->available_until)
+                                <span>
+                                    Jadwal: 
+                                    <strong class="text-slate-700">{{ $meeting->available_from ? \Carbon\Carbon::parse($meeting->available_from)->format('d M Y, H:i') : 'Sekarang' }}</strong>
+                                    s/d 
+                                    <strong class="text-slate-700">{{ $meeting->available_until ? \Carbon\Carbon::parse($meeting->available_until)->format('d M Y, H:i') : 'Tanpa Batas' }}</strong>
+                                </span>
+                            @else
+                                <span class="text-emerald-700 font-semibold">Akses Tanpa Batas Waktu</span>
+                            @endif
+                        </div>
 
-                        <!-- Delete Button -->
-                        <form action="{{ route('teacher.meetings.destroy', $meeting->id) }}" method="POST" onsubmit="return confirm('Hapus pertemuan ini beserta seluruh isinya?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 transition rounded-lg hover:bg-slate-100" title="Hapus Pertemuan">
+                        <!-- Actions & Toggle Arrow -->
+                        <div class="flex items-center space-x-1.5" @click.stop>
+                            <!-- Edit Button -->
+                            <button @click="activeEditMeeting = { 
+                                        id: '{{ $meeting->id }}', 
+                                        title: '{{ addslashes($meeting->title) }}', 
+                                        meeting_number: '{{ $meeting->meeting_number }}', 
+                                        description: '{{ addslashes($meeting->description) }}', 
+                                        available_from: '{{ $meeting->available_from ? \Carbon\Carbon::parse($meeting->available_from)->format('Y-m-d\TH:i') : '' }}', 
+                                        available_until: '{{ $meeting->available_until ? \Carbon\Carbon::parse($meeting->available_until)->format('Y-m-d\TH:i') : '' }}' 
+                                    }; editMeetingModal = true" 
+                                    class="p-1.5 text-slate-400 hover:text-amber-600 transition rounded-lg hover:bg-slate-100" title="Edit Pertemuan">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </button>
-                        </form>
 
-                        <!-- Chevron Arrow (Konsisten dengan Student) -->
-                        <button type="button" @click="expanded = !expanded" class="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500">
-                            <svg class="w-4 h-4 transform transition-transform duration-200" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
+                            <!-- Delete Button -->
+                            <form action="{{ route('teacher.meetings.destroy', $meeting->id) }}" method="POST" onsubmit="return confirm('Hapus pertemuan ini beserta seluruh isinya?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 transition rounded-lg hover:bg-slate-100" title="Hapus Pertemuan">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </form>
+
+                            <!-- Chevron Arrow -->
+                            <button type="button" @click="expanded = !expanded" class="w-7 h-7 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 shadow-2xs">
+                                <svg class="w-4 h-4 transform transition-transform duration-200" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Body Accordion (Materi, Tugas, Kuis) -->
                 <div x-show="expanded" x-collapse class="p-5 space-y-4">
-                    
-                    @if($meeting->description)
-                        <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                            <span class="font-semibold text-slate-700 block mb-0.5">Pengantar / Deskripsi:</span>
-                            <p>{{ $meeting->description }}</p>
-                        </div>
-                    @endif
-
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         
                         <!-- 1. SECTION MATERI -->
@@ -291,7 +332,6 @@
                             <div>
                                 <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
                                     <div class="flex items-center gap-2 text-xs font-bold text-blue-800 uppercase tracking-wider">
-                                        <!-- Ketentuan 2: Ikon Header Tugas Baru (Clipboard) -->
                                         <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                                         </svg>
@@ -307,7 +347,6 @@
                                         @foreach($meeting->assignments->where('type', 'submission') as $assignment)
                                             <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between gap-2 shadow-2xs">
                                                 <div class="flex items-center gap-2.5 min-w-0">
-                                                    <!-- Ketentuan 2: Ikon Item Tugas Baru -->
                                                     <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -318,7 +357,6 @@
                                                             {{ $assignment->title }}
                                                         </a>
                                                         
-                                                        <!-- Ketentuan 4: Badge Keterangan Status Published / Closed -->
                                                         <div class="flex flex-wrap items-center gap-1.5">
                                                             @if($assignment->status === 'published')
                                                                 <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-extrabold rounded">Published</span>
@@ -333,7 +371,6 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Action Buttons -->
                                                 <div class="flex items-center space-x-1 flex-shrink-0">
                                                     <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Detail Tugas">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +421,6 @@
                                         @foreach($meeting->assignments->where('type', 'quiz') as $quizAssignment)
                                             <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between gap-2 shadow-2xs">
                                                 <div class="flex items-center gap-2.5 min-w-0">
-                                                    <!-- Ketentuan 2: Ikon Item Kuis Baru (Pencil / Quiz Check) -->
                                                     <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -395,7 +431,6 @@
                                                             {{ $quizAssignment->title }}
                                                         </a>
 
-                                                        <!-- Ketentuan 4: Badge Keterangan Status Published / Closed -->
                                                         <div class="flex flex-wrap items-center gap-1.5">
                                                             @if($quizAssignment->status === 'published')
                                                                 <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-extrabold rounded">Published</span>
@@ -410,7 +445,6 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Action Buttons: Show, Edit, Delete -->
                                                 <div class="flex items-center space-x-1 flex-shrink-0">
                                                     <a href="{{ route('teacher.quizzes.show', $quizAssignment->id) }}" class="p-1 text-slate-400 hover:text-amber-600 transition" title="Detail Kuis & Bank Soal">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -472,31 +506,37 @@
                     @csrf
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor Pertemuan <span class="text-red-500">*</span></label>
-                        <input type="number" name="meeting_number" value="{{ $course->meetings->count() + 1 }}" required min="1"
-                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <input type="number" name="meeting_number" value="{{ old('meeting_number', $course->meetings->count() + 1) }}" required min="1"
+                               class="w-full px-3.5 py-2 bg-slate-50 border @error('meeting_number') border-red-500 focus:ring-red-500 @else border-slate-200 focus:ring-amber-500 @enderror rounded-lg text-sm focus:outline-none focus:ring-2">
+                        @error('meeting_number')
+                            <p class="text-xs text-red-600 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Pertemuan <span class="text-red-500">*</span></label>
-                        <input type="text" name="title" placeholder="Contoh: Titik Kritis Halal Penyembelihan Unggas" required
-                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <input type="text" name="title" value="{{ old('title') }}" placeholder="Contoh: Titik Kritis Halal Penyembelihan Unggas" required
+                               class="w-full px-3.5 py-2 bg-slate-50 border @error('title') border-red-500 focus:ring-red-500 @else border-slate-200 focus:ring-amber-500 @enderror rounded-lg text-sm focus:outline-none focus:ring-2">
+                        @error('title')
+                            <p class="text-xs text-red-600 mt-1 font-semibold">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Pengantar / Deskripsi Singkat</label>
                         <textarea name="description" rows="3" placeholder="Penjelasan singkat mengenai pertemuan ini..."
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Dibuka Mulai</label>
-                            <input type="datetime-local" name="available_from"
+                            <input type="datetime-local" name="available_from" value="{{ old('available_from') }}"
                                    class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Ditutup Pada</label>
-                            <input type="datetime-local" name="available_until"
+                            <input type="datetime-local" name="available_until" value="{{ old('available_until') }}"
                                    class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
                         </div>
                     </div>

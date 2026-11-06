@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Meeting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class MeetingController extends Controller
 {
@@ -20,12 +21,21 @@ class MeetingController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'meeting_number' => ['required', 'integer', 'min:1'],
+            'meeting_number' => [
+                'required',
+                'integer',
+                'min:1',
+                // Memastikan nomor pertemuan unik untuk course_id ini
+                Rule::unique('meetings', 'meeting_number')->where(function ($query) use ($course) {
+                    return $query->where('course_id', $course->id);
+                }),
+            ],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
         ], [
             'title.required' => 'Judul pertemuan wajib diisi.',
             'meeting_number.required' => 'Nomor pertemuan wajib diisi.',
+            'meeting_number.unique' => 'Nomor pertemuan ' . $request->input('meeting_number') . ' sudah digunakan pada kursus ini. Silakan gunakan nomor pertemuan lain.',
             'available_until.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
         ]);
 
@@ -50,12 +60,23 @@ class MeetingController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'meeting_number' => ['required', 'integer', 'min:1'],
+            'meeting_number' => [
+                'required',
+                'integer',
+                'min:1',
+                // Memastikan nomor pertemuan unik untuk course ini, abaikan data milik meeting ini sendiri
+                Rule::unique('meetings', 'meeting_number')
+                    ->where(function ($query) use ($meeting) {
+                        return $query->where('course_id', $meeting->course_id);
+                    })
+                    ->ignore($meeting->id),
+            ],
             'available_from' => ['nullable', 'date'],
             'available_until' => ['nullable', 'date', 'after_or_equal:available_from'],
         ], [
             'title.required' => 'Judul pertemuan wajib diisi.',
             'meeting_number.required' => 'Nomor pertemuan wajib diisi.',
+            'meeting_number.unique' => 'Nomor pertemuan ' . $request->input('meeting_number') . ' sudah digunakan pada kursus ini. Silakan gunakan nomor pertemuan lain.',
             'available_until.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
         ]);
 

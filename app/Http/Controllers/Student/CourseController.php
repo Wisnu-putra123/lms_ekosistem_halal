@@ -18,15 +18,20 @@ class CourseController extends Controller
         $userId = Auth::id();
         $search = $request->input('search');
 
-        // 1. Ambil seluruh enrollment milik student (active & completed)
+        // 1. Ambil seluruh enrollment milik student (active & completed) HANYA untuk course yang berstatus PUBLISHED
         $allEnrollments = Enrollment::with(['course.thumbnail', 'course.creator'])
             ->where('user_id', $userId)
             ->whereIn('status', ['active', 'completed'])
-            ->when($search, function ($query) use ($search) {
-                $query->whereHas('course', function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
-                });
+            ->whereHas('course', function ($q) use ($search) {
+                // Filter course yang statusnya published
+                $q->where('status', 'published');
+
+                if ($search) {
+                    $q->where(function ($querySearch) use ($search) {
+                        $querySearch->where('title', 'like', "%{$search}%")
+                                    ->orWhere('code', 'like', "%{$search}%");
+                    });
+                }
             })
             ->latest()
             ->get();
@@ -39,8 +44,7 @@ class CourseController extends Controller
         // Ambil ID course yang aksesnya masih aktif agar TIDAK muncul di katalog
         $activeCourseIds = $myEnrollments->pluck('course_id')->toArray();
 
-        // 2. Katalog Course yang tersedia untuk diambil
-        // (Course yang aksesnya sudah kedaluwarsa akan otomatis muncul kembali di sini)
+        // 2. Katalog Course yang tersedia untuk diambil (hanya yang berstatus published)
         $availableCourses = Course::with(['thumbnail', 'creator'])
             ->where('status', 'published')
             ->whereNotIn('id', $activeCourseIds)
@@ -61,6 +65,12 @@ class CourseController extends Controller
      */
     public function enroll(Request $request, Course $course)
     {
+        // Proteksi: Cek apakah course yang akan di-enroll berstatus published
+        if ($course->status !== 'published') {
+            return redirect()->route('student.courses.index')
+                ->with('error', 'Pelatihan ini sedang diarsipkan dan tidak menerima pendaftaran baru.');
+        }
+
         $request->validate([
             'enrollment_key' => ['required', 'string'],
         ], [
@@ -101,15 +111,22 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
+        // Proteksi: Cek apakah course berstatus published
+        if ($course->status !== 'published') {
+            return redirect()->route('student.courses.index')
+                ->with('error', 'Pelatihan ini sedang diarsipkan atau tidak tersedia untuk diakses.');
+        }
+
         $userId = Auth::id();
 
-        // Ambil enrollment terbaru
-        $enrollment = Enrollment::where('course_id', $course->id)
+        // Ambil enrollment terbaru LENGKAP dengan relasi progress
+        $enrollment = Enrollment::with('progress')
+            ->where('course_id', $course->id)
             ->where('user_id', $userId)
             ->latest()
             ->first();
 
-        // Load relasi lengkap
+        // Load relasi course lainnya
         $course->load([
             'meetings.materials',
             'meetings.assignments.quiz',
