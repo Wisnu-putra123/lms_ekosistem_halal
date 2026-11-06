@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
 
 
 
-    Route::middleware(['auth', 'role:student', 'enrollment.valid'])->prefix('student')->name('student.')->group(function () {
+    Route::middleware(['auth', 'role:student', 'course.access.valid'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');

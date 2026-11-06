@@ -16,9 +16,12 @@ class StudentDashboardController extends Controller
     {
         $userId = Auth::id();
 
-        // 1. Ketentuan 3: Ambil Enrollment Aktif DAN Enrollment Completed yang Belum Expired
+        // 1. Ambil Enrollment Aktif & Completed yang Belum Expired HANYA untuk Course yang berstatus PUBLISHED
         $enrollments = Enrollment::with(['course.thumbnail', 'progress'])
             ->where('user_id', $userId)
+            ->whereHas('course', function ($q) {
+                $q->where('status', 'published');
+            })
             ->where(function ($query) {
                 $query->where('status', 'active')
                       ->orWhere(function ($q) {
@@ -34,7 +37,7 @@ class StudentDashboardController extends Controller
         $enrollmentIds = $enrollments->pluck('id')->toArray();
         $courseIds     = $enrollments->pluck('course_id')->toArray();
 
-        // 2. Ambil Semua Tugas & Kuis Terpublikasi dari Course Terkait
+        // 2. Ambil Semua Tugas & Kuis Terpublikasi dari Course Terkait (Otomatis terfilter hanya course published)
         $assignments = Assignment::with(['meeting', 'course', 'quiz'])
             ->whereIn('course_id', $courseIds)
             ->where('status', 'published')
@@ -58,7 +61,7 @@ class StudentDashboardController extends Controller
                     $hasSubmittedUngraded = $userSubs->whereIn('status', ['submitted', 'late'])->isNotEmpty();
                     $hasFailedGraded      = !is_null($bestScore) && $bestScore < $assignment->passing_score;
 
-                    // Ketentuan 1 & 2: Tentukan label status & badge
+                    // Tentukan label status & badge
                     if ($hasSubmittedUngraded) {
                         $statusLabel = 'Dalam Penilaian';
                         $statusBadge = 'unassessed'; // Belum dinilai pengajar
@@ -92,7 +95,7 @@ class StudentDashboardController extends Controller
                 if (!$isCompleted) {
                     $hasAttempted = $userAttempts->isNotEmpty();
 
-                    // Ketentuan 2: Status kuis belum lulus KKM
+                    // Status kuis belum lulus KKM
                     if ($hasAttempted) {
                         $statusLabel = 'Belum Memenuhi KKM (Nilai: ' . number_format($bestScore ?? 0, 0) . ')';
                         $statusBadge = 'failed';
@@ -122,20 +125,23 @@ class StudentDashboardController extends Controller
             return $item['available_until'] ? \Carbon\Carbon::parse($item['available_until'])->timestamp : PHP_INT_MAX;
         })->take(6);
 
-        // 5. Query Recent Graded Feedback
+        // 5. Query Recent Graded Feedback (Hanya dari course yang published)
         $recentFeedbacks = AssignmentSubmission::with(['assignment.course'])
             ->whereIn('enrollment_id', $enrollmentIds)
+            ->whereHas('assignment.course', function ($q) {
+                $q->where('status', 'published');
+            })
             ->where('status', 'graded')
             ->orderBy('graded_at', 'desc')
             ->take(4)
             ->get();
 
-        // 6. Ketentuan 3: Hitung Rata-Rata Progres Pelatihan (Active & Complete)
+        // 6. Hitung Rata-Rata Progres Pelatihan (Hanya Active & Complete dari course yang published)
         $avgProgress = $enrollments->avg(function ($en) {
             return $en->progress->progress_percentage ?? 0;
         });
 
-        // Mengirimkan $enrollments (Aktif + Completed) sebagai variabel $activeEnrollments ke view
+        // Mengirimkan $enrollments sebagai variabel $activeEnrollments ke view
         $activeEnrollments = $enrollments;
 
         return view('student.dashboard', compact(

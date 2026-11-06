@@ -28,16 +28,16 @@ class UserSeeder extends Seeder
 
         // Students
         $students = [
-            ['name' => 'Budi Santoso', 'email' => 'budi@gmail.com'],
-            ['name' => 'Siti Rahmawati', 'email' => 'siti@gmail.com'],
-            ['name' => 'Eko Prasetyo', 'email' => 'eko@gmail.com'],
+            ['name' => 'Budi Santoso', 'email' => 'budi@email.com'],
+            ['name' => 'Siti Rahmawati', 'email' => 'siti@email.com'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@email.com'],
         ];
 
         foreach ($students as $student) {
             User::create([
                 'name' => $student['name'],
                 'email' => $student['email'],
-                'password' => Hash::make('password'),
+                'password' => Hash::make('12345678'),
                 'role' => 'student',
             ]);
         }
