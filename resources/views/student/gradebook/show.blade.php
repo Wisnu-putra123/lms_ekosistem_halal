@@ -7,14 +7,14 @@
 <div class="space-y-6">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <a href="{{ route('student.courses.show', $course->id) }}" class="inline-flex items-center justify-center sm:justify-start space-x-2 text-xs font-semibold text-slate-600 hover:text-[#123F35] transition bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        <a href="{{ route('student.courses.show', $course->id) }}" class="inline-flex items-center justify-center sm:justify-start space-x-2 text-xs font-semibold text-slate-700 hover:text-[#123F35] transition bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs">
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
             <span>Kembali ke Detail Course</span>
         </a>
     </div>
-    <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-4 sm:p-6 md:p-8 rounded-2xl border border-[#28745B]/30 shadow-md flex flex-col justify-between gap-4 sm:gap-6 text-white relative overflow-hidden">
+    <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-4 sm:p-6 md:p-8 rounded-2xl border border-[#28745B]/50 shadow-md flex flex-col justify-between gap-4 sm:gap-6 text-white relative overflow-hidden">
         
         <!-- Detail Kursus & Selector Enrollment -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 relative z-10 w-full min-w-0">
@@ -54,20 +54,20 @@
 
     <!-- Summary Metrics Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-1">
-            <span class="text-[10px] font-bold uppercase text-slate-400">Total Tugas & Quiz</span>
+        <div class="bg-white rounded-2xl border border-slate-300 p-4 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold uppercase text-slate-500">Total Tugas & Quiz</span>
             <div class="text-lg font-bold text-[#123F35]">{{ $assignments->count() }} Item</div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-1">
-            <span class="text-[10px] font-bold uppercase text-slate-400">Item Tuntas (Lulus KKM)</span>
+        <div class="bg-white rounded-2xl border border-slate-300 p-4 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold uppercase text-slate-500">Item Tuntas (Lulus KKM)</span>
             <div class="text-lg font-bold text-[#28745B]">{{ $totalPassed }} / {{ $assignments->count() }} Item</div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-1">
-            <span class="text-[10px] font-bold uppercase text-slate-400">Rata-Rata Nilai Saya</span>
+        <div class="bg-white rounded-2xl border border-slate-300 p-4 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold uppercase text-slate-500">Rata-Rata Nilai Saya</span>
             <div class="text-lg font-extrabold text-[#123F35]">{{ number_format($averageScore, 2) }}</div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-1">
-            <span class="text-[10px] font-bold uppercase text-slate-400">Tanggal Mendaftar</span>
+        <div class="bg-white rounded-2xl border border-slate-300 p-4 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold uppercase text-slate-500">Tanggal Mendaftar</span>
             <div class="text-xs font-semibold text-slate-700 mt-1">
                 {{ \Carbon\Carbon::parse($currentEnrollment->enrolled_at)->format('d M Y, H:i') }}
             </div>
@@ -75,7 +75,7 @@
     </div>
 
     <!-- Matriks Rekap Nilai Student -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 
@@ -84,7 +84,7 @@
                 VERSI HEADING 1: BACKGROUND CREAM (#F7F5EE)
                 ===================================================================
                 <thead>
-                    <tr class="bg-[#F7F5EE] border-b border-slate-200/80 text-[#123F35] uppercase tracking-wider">
+                    <tr class="bg-[#F7F5EE] border-b border-slate-300 text-[#123F35] uppercase tracking-wider">
                         <th class="p-4 font-bold min-w-[200px]">Modul / Nama Tugas & Kuis</th>
                         <th class="p-4 font-bold text-center min-w-[100px]">Tipe Item</th>
                         <th class="p-4 font-bold text-center min-w-[100px]">KKM / Max</th>
@@ -107,7 +107,7 @@
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-200">
                     @forelse($assignments as $assignment)
                         @php
                             $scoreData = $scoresData[$assignment->id] ?? ['score' => null, 'is_passed' => false, 'attempt_count' => 0];
@@ -115,14 +115,14 @@
                             $kkm = $assignment->passing_score;
 
                             if (is_null($score)) {
-                                $bgClass = 'bg-slate-50 border-slate-200/80 text-slate-400';
-                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">Belum Ada Attempt</span>';
+                                $bgClass = 'bg-slate-50 border-slate-300 text-slate-500';
+                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">Belum Ada Attempt</span>';
                             } elseif ($score < $kkm) {
-                                $bgClass = 'bg-red-50 border-red-200 text-red-800 font-bold';
-                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-100 text-red-700 border border-red-200/80 shadow-2xs">Belum Lulus KKM</span>';
+                                $bgClass = 'bg-red-50 border-red-300 text-red-800 font-bold';
+                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-100 text-red-700 border border-red-300 shadow-2xs">Belum Lulus KKM</span>';
                             } else {
-                                $bgClass = 'bg-[#28745B]/10 border-[#28745B]/30 text-[#123F35] font-bold';
-                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#28745B]/15 text-[#28745B] border border-[#28745B]/30 shadow-2xs">✓ LULUS</span>';
+                                $bgClass = 'bg-[#28745B]/10 border-[#28745B]/40 text-[#123F35] font-bold';
+                                $statusBadge = '<span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#28745B]/15 text-[#28745B] border border-[#28745B]/40 shadow-2xs">✓ LULUS</span>';
                             }
                         @endphp
 
@@ -135,7 +135,7 @@
 
                             <!-- Tipe -->
                             <td class="p-4 text-center">
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $assignment->type === 'quiz' ? 'bg-[#E7C982]/30 text-[#123F35] border-[#E7C982]' : 'bg-[#28745B]/10 text-[#28745B] border-[#28745B]/20' }}">
+                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border {{ $assignment->type === 'quiz' ? 'bg-[#E7C982]/30 text-[#123F35] border-[#E7C982]' : 'bg-[#28745B]/10 text-[#28745B] border-[#28745B]/30' }}">
                                     {{ strtoupper($assignment->type) }}
                                 </span>
                             </td>
