@@ -18,7 +18,16 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'student', 'teacher'])->default('student');
-            $table->unsignedBigInteger('profile_photo')->nullable();
+            
+            /* --- FIELD REGISTRASI TAMBAHAN --- */
+            $table->string('phone')->nullable();
+            $table->string('nik', 16)->nullable();
+            $table->string('family_card_number', 16)->nullable();
+            $table->text('address')->nullable();
+            $table->string('institution')->nullable()->default('Telkom University');
+
+            // NOTE: profile_photo dan ktp_media_id dibuat di migration add_photo_foreign_to_users_table setelah tabel media terbentuk
+
             $table->rememberToken();
             $table->timestamps();
         });

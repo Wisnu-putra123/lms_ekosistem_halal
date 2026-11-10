@@ -142,7 +142,7 @@
                         </div>
                     @empty
                         <div class="p-8 text-center text-xs text-slate-500 bg-[#F7F5EE]/40 rounded-xl border border-dashed border-slate-300">
-                            🎉 Selamat! Semua tugas dan kuis dari pelatihan Anda telah lulus KKM.
+                            Tidak terdapat tugas untuk saat ini.
                         </div>
                     @endforelse
                 </div>
