@@ -4,14 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
-#[Fillable(['name', 'email', 'password', 'role'])]
-#[Hidden(['password', 'remember_token'])]
 
 class User extends Authenticatable
 {
@@ -28,7 +23,24 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'profile_photo'
+        'profile_photo',
+        'phone',
+        'nik',
+        'ktp_media_id',
+        'family_card_number',
+        // 'kk_media_id', // Jika kelak beralih ke upload foto KK
+        'address',
+        'institution',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -68,7 +80,7 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
-    /* --- RELASI BARU --- */
+    /* --- RELASI LMS & REGISTRASI --- */
 
     public function enrollments()
     {
@@ -89,8 +101,9 @@ class User extends Authenticatable
     {
         return $this->hasManyThrough(QuizAttempt::class, Enrollment::class);
     }
+
     /**
-     * Relasi Foto Profil ke Tabel Media.
+     * Relasi Foto Profil ke Tabel Media Pusat.
      */
     public function profilePhotoMedia()
     {
@@ -98,7 +111,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Helper URL Foto Profil (Mengambil dari media atau fallback avatar default).
+     * Relasi Berkas/Foto KTP ke Tabel Media Pusat.
+     */
+    public function ktpMedia()
+    {
+        return $this->belongsTo(Media::class, 'ktp_media_id');
+    }
+
+    /* 
+    |--------------------------------------------------------------------------
+    | RELASI FOTO KK (DIKOMENTAR KARENA MEMAKAI TEKS NOMOR KK)
+    |--------------------------------------------------------------------------
+    | public function kkMedia()
+    | {
+    |     return $this->belongsTo(Media::class, 'kk_media_id');
+    | }
+    */
+
+    /* --- HELPER ACCESSORS / URL ACCESSIBLE --- */
+
+    /**
+     * Helper URL Foto Profil.
      */
     public function getProfilePhotoUrlAttribute(): string
     {
@@ -106,7 +139,6 @@ class User extends Authenticatable
             return asset('storage/' . $this->profilePhotoMedia->file_path);
         }
 
-        // Fallback jika profile_photo berisi path langsung
         if ($this->profile_photo && filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
             return $this->profile_photo;
         }
@@ -115,7 +147,18 @@ class User extends Authenticatable
             return asset('storage/' . $this->profile_photo);
         }
 
-        // Fallback UI Avatar berdasarkan nama pengguna
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=059669&background=E1F5FE';
+    }
+
+    /**
+     * Helper URL Berkas / Foto KTP.
+     */
+    public function getKtpPhotoUrlAttribute(): ?string
+    {
+        if ($this->ktpMedia && $this->ktpMedia->file_path) {
+            return asset('storage/' . $this->ktpMedia->file_path);
+        }
+
+        return null;
     }
 }
