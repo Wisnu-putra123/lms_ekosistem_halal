@@ -13,6 +13,7 @@ class Course extends Model
     protected $fillable = [
         'title',
         'code',
+        'category',
         'description',
         'thumbnail_media_id',
         'certificate_bg_media_id',
@@ -20,6 +21,27 @@ class Course extends Model
         'status',
         'created_by',
     ];
+
+    /**
+     * Helper untuk label kategori manusiawi
+     */
+    public function getCategoryLabelAttribute(): string
+    {
+        return match($this->category) {
+            'penyelia_halal' => 'Penyelia Halal',
+            'juleha' => 'Juleha (Juru Sembelih Halal)',
+            'auditor_halal' => 'Auditor Halal',
+            default => 'Penyelia Halal',
+        };
+    }
+
+    /**
+     * Scope query berdasarkan kategori
+     */
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category);
+    }
 
     /**
      * Helper untuk membuat enrollment key acak (contoh: HALAL-8A2B9C)

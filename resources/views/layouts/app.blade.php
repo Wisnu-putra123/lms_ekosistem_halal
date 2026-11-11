@@ -33,7 +33,7 @@
     <title>@yield('title', 'LPP-JPH LMS')</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js CDN (Untuk Toggle Sidebar Mobile) -->
+    <!-- Alpine.js CDN (Untuk Toggle Sidebar Mobile & Dropdown Menu) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -41,7 +41,6 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<!-- <body class="bg-gradient-to-br from-white via-white to-[#F7F5EE] text-slate-800 antialiased min-h-screen flex flex-col" x-data="{ sidebarOpen: false }"> -->
 <body class="bg-gradient-to-br bg-white text-slate-800 antialiased min-h-screen flex flex-col" x-data="{ sidebarOpen: false }">
 
     <div class="flex h-screen overflow-hidden">
@@ -65,9 +64,8 @@
             <!-- Brand Logo & Mobile Close Button -->
             <div class="h-16 flex items-center justify-center px-6 border-b border-[#28745B]/40 bg-[#123F35]">
                 <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                    <img src="{{ asset('images/logo_telkom_transparan2.png') }}" alt="Logo Telkom" class="w-12 h-12 object-contain">
-                    <img src="{{ asset('images/logo_lms_lppjph_transparan_putih - Copy.png') }}" alt="Logo LPP-JPH" class="w-12 h-12 object-contain">
-                    <!-- <span class="font-extrabold text-base tracking-wide text-white">LPP-JPH</span> -->
+                    <img src="{{ asset('images/logo_telkom_transparan2.png') }}" alt="Logo Telkom" class="w-10 h-10 object-contain">
+                    <img src="{{ asset('images/logo_lms_lppjph_transparan_putih - Copy.png') }}" alt="Logo LPP-JPH" class="w-10 h-10 object-contain">
                 </a>
 
                 <!-- Tombol Close (Khusus Layar HP) -->
@@ -86,6 +84,7 @@
                             Menu Siswa
                         </div>
 
+                        <!-- Dashboard Student -->
                         <a href="{{ route('student.dashboard') }}" 
                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('student.dashboard') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,23 +93,52 @@
                             <span>Dashboard</span>
                         </a>
 
-                        <a href="{{ route('student.courses.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('student.courses.index') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                            </svg>
-                            <span>Katalog Pelatihan</span>
-                        </a>
+                        <!-- Dropdown Katalog Pelatihan Student -->
+                        <div x-data="{ openKatalog: {{ request()->routeIs('student.courses.*') ? 'true' : 'false' }} }">
+                            <button @click="openKatalog = !openKatalog" 
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white {{ request()->routeIs('student.courses.*') ? 'bg-[#28745B]/30 text-white' : '' }}">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                    </svg>
+                                    <span>Katalog Pelatihan</span>
+                                </div>
+                                <svg class="w-4 h-4 transition-transform duration-200" :class="openKatalog ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
 
+                            <!-- Submenu Sub-Kategori Student -->
+                            <div x-show="openKatalog" x-collapse class="pl-9 pr-2 py-1 space-y-1">
+                                <a href="{{ route('student.courses.index') }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request()->routeIs('student.courses.index') && !request('category') ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Semua Pelatihan
+                                </a>
+                                <a href="{{ route('student.courses.index', ['category' => 'penyelia_halal']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'penyelia_halal' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Penyelia Halal
+                                </a>
+                                <a href="{{ route('student.courses.index', ['category' => 'juleha']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'juleha' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Juleha (Juru Sembelih)
+                                </a>
+                                <a href="{{ route('student.courses.index', ['category' => 'auditor_halal']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'auditor_halal' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Auditor Halal
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Sertifikat Student -->
                         <a href="{{ route('student.certificates.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition mt-2 {{ request()->routeIs('student.certificates.index') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
+                           class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('student.certificates.index') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                             </svg>
                             <span>Sertifikat Saya</span>
                         </a>
 
-                        <!-- Daftar Course Aktif Student (Icon Topi Wisuda) -->
+                        <!-- Daftar Course Aktif Student -->
                         @if($sidebarCourses->isNotEmpty())
                             <div class="pt-4 pb-1.5 px-3 text-[10px] font-extrabold uppercase tracking-widest text-[#E7C982]">
                                 Pelatihan Saya
@@ -120,7 +148,6 @@
                                     <a href="{{ route('student.courses.show', $course->id) }}" 
                                        class="flex items-center space-x-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition {{ request()->is('student/courses/' . $course->id . '*') ? 'bg-[#28745B] text-white font-bold shadow-sm' : 'text-emerald-100/75 hover:bg-[#28745B]/40 hover:text-white' }}"
                                        title="{{ $course->title }}">
-                                        <!-- Icon Topi Wisuda (Graduation Cap SVG) -->
                                         <svg class="w-4 h-4 text-emerald-100/75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
@@ -138,6 +165,7 @@
                             Menu Pengajar
                         </div>
 
+                        <!-- Dashboard Teacher -->
                         <a href="{{ route('teacher.dashboard') }}" 
                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('teacher.dashboard') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
                             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,15 +174,43 @@
                             <span>Dashboard</span>
                         </a>
 
-                        <a href="{{ route('teacher.courses.index') }}" 
-                           class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('teacher.courses.index') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <span>Kelola Course</span>
-                        </a>
+                        <!-- Dropdown Kelola Course Teacher -->
+                        <div x-data="{ openTeacherCourse: {{ request()->routeIs('teacher.courses.*') ? 'true' : 'false' }} }">
+                            <button @click="openTeacherCourse = !openTeacherCourse" 
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white {{ request()->routeIs('teacher.courses.*') ? 'bg-[#28745B]/30 text-white' : '' }}">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                    </svg>
+                                    <span>Kelola Course</span>
+                                </div>
+                                <svg class="w-4 h-4 transition-transform duration-200" :class="openTeacherCourse ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
 
-                        <!-- Daftar Course Yang Diajar Teacher (Icon Topi Wisuda) -->
+                            <!-- Submenu Sub-Kategori Teacher -->
+                            <div x-show="openTeacherCourse" x-collapse class="pl-9 pr-2 py-1 space-y-1">
+                                <a href="{{ route('teacher.courses.index') }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request()->routeIs('teacher.courses.index') && !request('category') ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Semua Kelas
+                                </a>
+                                <a href="{{ route('teacher.courses.index', ['category' => 'penyelia_halal']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'penyelia_halal' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Penyelia Halal
+                                </a>
+                                <a href="{{ route('teacher.courses.index', ['category' => 'juleha']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'juleha' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Juleha (Juru Sembelih)
+                                </a>
+                                <a href="{{ route('teacher.courses.index', ['category' => 'auditor_halal']) }}" 
+                                   class="block px-3 py-2 rounded-lg text-xs font-semibold transition {{ request('category') === 'auditor_halal' ? 'bg-[#28745B] text-white' : 'text-emerald-100/70 hover:bg-[#28745B]/40 hover:text-white' }}">
+                                    • Auditor Halal
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Daftar Course Yang Diajar Teacher -->
                         @if($sidebarCourses->isNotEmpty())
                             <div class="pt-4 pb-1.5 px-3 text-[10px] font-extrabold uppercase tracking-widest text-[#E7C982]">
                                 Kelas Yang Diajar
@@ -164,7 +220,6 @@
                                     <a href="{{ route('teacher.courses.show', $course->id) }}" 
                                        class="flex items-center space-x-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition {{ request()->is('teacher/courses/' . $course->id . '*') ? 'bg-[#28745B] text-[#E7C982] font-bold shadow-sm' : 'text-emerald-100/75 hover:bg-[#28745B]/40 hover:text-white' }}"
                                        title="{{ $course->title }}">
-                                        <!-- Icon Topi Wisuda (Graduation Cap SVG) -->
                                         <svg class="w-4 h-4 text-[#E7C982] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>

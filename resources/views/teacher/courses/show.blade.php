@@ -78,6 +78,9 @@
                 <div class="space-y-1">
                     <div class="flex items-center space-x-2">
                         <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-slate-100 text-slate-700 uppercase">
+                            {{ $course->category_label }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-slate-100 text-slate-700 uppercase">
                             {{ $course->code }}
                         </span>
                         @if($course->status === 'published')

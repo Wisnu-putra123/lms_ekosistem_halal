@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('code')->unique();
+            $table->enum('category', ['penyelia_halal', 'juleha', 'auditor_halal'])->default('penyelia_halal');
             $table->text('description')->nullable();
             $table->foreignId('thumbnail_media_id')->nullable()->constrained('media')->nullOnDelete();
             $table->foreignId('certificate_bg_media_id')->nullable()->constrained('media')->nullOnDelete();
