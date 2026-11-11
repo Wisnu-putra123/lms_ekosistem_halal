@@ -74,6 +74,10 @@
             <div class="space-y-2 min-w-0 flex-1 w-full">
                 <div class="flex flex-wrap items-center gap-1.5">
                     <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-white border border-white/20 uppercase backdrop-blur-xs">
+                        {{ $course->category_label }}
+                    </span>
+
+                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-white border border-white/20 uppercase backdrop-blur-xs">
                         {{ $course->code }}
                     </span>
 

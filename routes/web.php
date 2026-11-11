@@ -88,7 +88,13 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['auth', 'role:student', 'course.access.valid'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
+        // Route Katalog Utama (Mendukung query parameter ?category=penyelia_halal)
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+        
+        // (Opsional) Route khusus jika ingin URL berbentuk /student/courses/category/penyelia_halal
+        Route::get('/courses/category/{category}', [StudentCourseController::class, 'index'])->name('courses.category');
+
+        // Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
         Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
 
@@ -132,7 +138,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
         
         //Course Management
+        // Route Course Management (Mendukung query parameter ?category=penyelia_halal)
         Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
+
+        // (Opsional) Route khusus jika ingin URL berbentuk /teacher/courses/category/penyelia_halal
+        Route::get('/courses/category/{category}', [TeacherCourseController::class, 'index'])->name('courses.category');
+        // Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
         Route::post('/courses', [TeacherCourseController::class, 'store'])->name('courses.store');
         Route::get('/courses/{course}', [TeacherCourseController::class, 'show'])->name('courses.show');

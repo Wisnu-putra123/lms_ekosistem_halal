@@ -13,19 +13,70 @@ use Illuminate\Validation\Rule;
 
 class CourseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
+        $search = $request->input('search');
+        $category = $request->input('category');
 
-        $courses = Course::with(['thumbnail', 'certificateBackground'])
-            ->where('created_by', $userId)
-            ->orWhereHas('instructors', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
+        $validCategories = ['penyelia_halal', 'juleha', 'auditor_halal'];
+        if (!in_array($category, $validCategories)) {
+            $category = null;
+        }
+
+        // 1. SECTION 1: Course yang diajar oleh Teacher saat ini (Pembuat atau Instruktur Tambahan)
+        $myCourses = Course::with(['thumbnail', 'certificateBackground', 'creator', 'instructors'])
+            ->where(function ($query) use ($userId) {
+                $query->where('created_by', $userId)
+                    ->orWhereHas('instructors', function ($q) use ($userId) {
+                        $q->where('user_id', $userId);
+                    });
+            })
+            ->when($category, function ($query) use ($category) {
+                $query->where('category', $category);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
             })
             ->latest()
-            ->paginate(9);
+            ->get();
 
-        return view('teacher.courses.index', compact('courses'));
+        // Ambil list ID course yang sudah diajar agar tidak muncul lagi di Section 2
+        $myCourseIds = $myCourses->pluck('id')->toArray();
+
+        // 2. SECTION 2: Course lainnya (Published) yang TIDAK diajar oleh Teacher ini
+        $availableCourses = Course::with(['thumbnail', 'creator', 'instructors'])
+            ->whereNotIn('id', $myCourseIds)
+            ->where('status', 'published')
+            ->when($category, function ($query) use ($category) {
+                $query->where('category', $category);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(9)
+            ->withQueryString();
+
+        $categoryLabels = [
+            'penyelia_halal' => 'Penyelia Halal',
+            'juleha'         => 'Juleha (Juru Sembelih Halal)',
+            'auditor_halal'  => 'Auditor Halal',
+        ];
+
+        return view('teacher.courses.index', compact(
+            'myCourses', 
+            'availableCourses', 
+            'search', 
+            'category', 
+            'categoryLabels'
+        ));
     }
 
     public function create()
@@ -45,6 +96,7 @@ class CourseController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255', 'unique:courses,code'],
+            'category' => ['required', Rule::in(['penyelia_halal', 'juleha', 'auditor_halal'])],
             'description' => ['nullable', 'string'],
             'enrollment_key' => ['required', 'string', 'max:100', 'unique:courses,enrollment_key'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
@@ -56,6 +108,8 @@ class CourseController extends Controller
             'title.required' => 'Judul kursus wajib diisi.',
             'code.required' => 'Kode kursus wajib diisi.',
             'code.unique' => 'Kode kursus sudah digunakan.',
+            'category.required' => 'Kategori kursus wajib dipilih.',
+            'category.in' => 'Kategori kursus tidak valid.',
             'enrollment_key.required' => 'Enrollment key wajib diisi.',
             'enrollment_key.unique' => 'Enrollment key sudah digunakan.',
             'status.required' => 'Status kursus wajib dipilih.',
@@ -69,7 +123,6 @@ class CourseController extends Controller
         $thumbnailMediaId = null;
         $certificateBgMediaId = null;
 
-        // 1. Upload Thumbnail
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
             $path = $file->store('thumbnails', 'public');
@@ -86,7 +139,6 @@ class CourseController extends Controller
             $thumbnailMediaId = $media->id;
         }
 
-        // 2. Upload Custom Certificate Background
         if ($request->hasFile('certificate_background')) {
             $file = $request->file('certificate_background');
             $path = $file->store('certificate_backgrounds', 'public');
@@ -103,10 +155,10 @@ class CourseController extends Controller
             $certificateBgMediaId = $media->id;
         }
 
-        // 3. Simpan Course
         $course = Course::create([
             'title' => $validated['title'],
             'code' => strtoupper($validated['code']),
+            'category' => $validated['category'],
             'description' => $validated['description'] ?? null,
             'thumbnail_media_id' => $thumbnailMediaId,
             'certificate_bg_media_id' => $certificateBgMediaId,
@@ -158,6 +210,7 @@ class CourseController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255', Rule::unique('courses', 'code')->ignore($course->id)],
+            'category' => ['required', Rule::in(['penyelia_halal', 'juleha', 'auditor_halal'])],
             'description' => ['nullable', 'string'],
             'enrollment_key' => ['required', 'string', 'max:100', Rule::unique('courses', 'enrollment_key')->ignore($course->id)],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
@@ -169,6 +222,8 @@ class CourseController extends Controller
             'title.required' => 'Judul kursus wajib diisi.',
             'code.required' => 'Kode kursus wajib diisi.',
             'code.unique' => 'Kode kursus sudah digunakan.',
+            'category.required' => 'Kategori kursus wajib dipilih.',
+            'category.in' => 'Kategori kursus tidak valid.',
             'enrollment_key.required' => 'Enrollment key wajib diisi.',
             'enrollment_key.unique' => 'Enrollment key sudah digunakan.',
             'status.required' => 'Status kursus wajib dipilih.',
@@ -182,7 +237,6 @@ class CourseController extends Controller
         $thumbnailMediaId = $course->thumbnail_media_id;
         $certificateBgMediaId = $course->certificate_bg_media_id;
 
-        // 1. Update Thumbnail
         if ($request->hasFile('thumbnail')) {
             if ($course->thumbnail) {
                 Storage::disk('public')->delete($course->thumbnail->file_path);
@@ -204,7 +258,6 @@ class CourseController extends Controller
             $thumbnailMediaId = $media->id;
         }
 
-        // 2. Update Certificate Background
         if ($request->hasFile('certificate_background')) {
             if ($course->certificateBackground) {
                 Storage::disk('public')->delete($course->certificateBackground->file_path);
@@ -226,10 +279,10 @@ class CourseController extends Controller
             $certificateBgMediaId = $media->id;
         }
 
-        // 3. Update Course
         $course->update([
             'title' => $validated['title'],
             'code' => strtoupper($validated['code']),
+            'category' => $validated['category'],
             'description' => $validated['description'] ?? null,
             'thumbnail_media_id' => $thumbnailMediaId,
             'certificate_bg_media_id' => $certificateBgMediaId,
