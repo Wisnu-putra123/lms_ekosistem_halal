@@ -15,7 +15,7 @@ class MaterialController extends Controller
     public function show(Material $material)
     {
         // 1. Pastikan Student terdaftar di kursus terkait
-        $this->authorizeEnrollment($material->meeting->course_id);
+        // $this->authorizeEnrollment($material->meeting->course_id);
 
         // 2. Load relasi meeting, course, dan media (lampiran berkas)
         $material->load(['meeting.course', 'media']);

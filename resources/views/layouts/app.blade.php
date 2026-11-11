@@ -218,9 +218,9 @@
                             <div class="space-y-1 pl-1">
                                 @foreach($sidebarCourses as $course)
                                     <a href="{{ route('teacher.courses.show', $course->id) }}" 
-                                       class="flex items-center space-x-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition {{ request()->is('teacher/courses/' . $course->id . '*') ? 'bg-[#28745B] text-[#E7C982] font-bold shadow-sm' : 'text-emerald-100/75 hover:bg-[#28745B]/40 hover:text-white' }}"
+                                       class="flex items-center space-x-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition {{ request()->is('teacher/courses/' . $course->id . '*') ? 'bg-[#28745B] font-bold shadow-sm' : 'text-emerald-100/75 hover:bg-[#28745B]/40 hover:text-white' }}"
                                        title="{{ $course->title }}">
-                                        <svg class="w-4 h-4 text-[#E7C982] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 text-emerald-100/75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6"/>
