@@ -12,23 +12,24 @@ use App\Models\QuizAttempt;
 class CourseProgressHelper
 {
     /**
-     * Hitung ulang progres satu siswa berdasarkan enrollment_id
+     * Hitung ulang progres satu siswa berdasarkan enrollment_id.
      */
     public static function updateStudentProgress(int $courseId, int $enrollmentId): void
     {
         $enrollment = Enrollment::find($enrollmentId);
 
-        if (!$enrollment) return;
+        if (!$enrollment) {
+            return;
+        }
 
         self::calculateAndSaveProgress($enrollment, $courseId);
     }
 
     /**
-     * Hitung ulang progres seluruh siswa yang masih aktif di kelas
+     * Hitung ulang progres seluruh siswa yang masih aktif di kelas.
      */
     public static function recalculateAllActiveStudentsProgress(int $courseId): void
     {
-        // PERBAIKAN: Hanya ambil siswa dengan status 'active' saja
         $enrollments = Enrollment::where('course_id', $courseId)
             ->where('status', 'active')
             ->get();
@@ -38,9 +39,12 @@ class CourseProgressHelper
         }
     }
 
+    /**
+     * Kalkulasi progres belajar dan pemicu pembuatan draf sertifikat otomatis saat 100%.
+     */
     private static function calculateAndSaveProgress(Enrollment $enrollment, int $courseId): void
     {
-        // PROTEKSI: Jika enrollment sudah 'completed', jangan ubah progres atau datanya sama sekali
+        // Proteksi: Jika enrollment sudah 'completed', jangan ubah progres atau datanya
         if ($enrollment->status === 'completed') {
             return;
         }
@@ -53,12 +57,16 @@ class CourseProgressHelper
         if ($totalAssignments === 0) {
             CourseProgress::updateOrCreate(
                 ['enrollment_id' => $enrollment->id],
-                ['progress_percentage' => 0.00, 'last_activity_at' => now(), 'completed_at' => null]
+                [
+                    'progress_percentage' => 0.00,
+                    'last_activity_at'    => now(),
+                    'completed_at'        => null,
+                ]
             );
             return;
         }
 
-        // 2. Hitung SUBMISSION lulus KKM pada assignment yang HANYA berstatus 'published'
+        // 2. Hitung SUBMISSION lulus KKM pada assignment 'published'
         $passedSubmissionsCount = AssignmentSubmission::join('assignments', 'assignments.id', '=', 'assignment_submissions.assignment_id')
             ->where('assignments.course_id', $courseId)
             ->where('assignments.type', 'submission')
@@ -71,7 +79,7 @@ class CourseProgressHelper
             ->get()
             ->count();
 
-        // 3. Hitung QUIZ lulus KKM pada assignment yang HANYA berstatus 'published'
+        // 3. Hitung QUIZ lulus KKM pada assignment 'published'
         $passedQuizzesCount = QuizAttempt::join('quizzes', 'quizzes.id', '=', 'quiz_attempts.quiz_id')
             ->join('assignments', 'assignments.id', '=', 'quizzes.assignment_id')
             ->where('assignments.course_id', $courseId)
@@ -88,10 +96,9 @@ class CourseProgressHelper
         $totalPassedCount = $passedSubmissionsCount + $passedQuizzesCount;
 
         // 4. Hitung persentase progres
-        $progressPercentage = min(100, round(($totalPassedCount / $totalAssignments) * 100, 2));
-
-        $isCompleted = $progressPercentage >= 100;
-        $now = now();
+        $progressPercentage = min(100.00, round(($totalPassedCount / $totalAssignments) * 100, 2));
+        $isCompleted        = $progressPercentage >= 100.00;
+        $now                = now();
 
         // 5. Simpan / perbarui progres ke database
         CourseProgress::updateOrCreate(
@@ -103,10 +110,10 @@ class CourseProgressHelper
             ]
         );
 
-        // 6. Apabila mencapai 100%, tandai completed dan terbitkan sertifikat
+        // 6. Apabila mencapai 100%, tandai completed dan buat draf sertifikat (status: 'draft')
         if ($isCompleted) {
             $expiryDays = 30;
-            
+
             $enrollment->update([
                 'status'            => 'completed',
                 'completed_at'      => $now,

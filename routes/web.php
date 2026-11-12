@@ -7,6 +7,7 @@ use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\HomeController;
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
 
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\SubmissionController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Student\StudentQuizController;
 use App\Http\Controllers\Student\StudentGradebookController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\CertificateController;
+use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +40,9 @@ Route::get('/', function () {
 // Home Page
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+// Route Publik Verifikasi Sertifikat
+Route::get('/verify-certificate/{code?}', [CertificateVerificationController::class, 'verify'])->name('certificates.verify');
+
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
     // User Login
@@ -49,8 +54,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-// Route Publik Verifikasi Sertifikat
-Route::get('/verify-certificate/{code?}', [CertificateVerificationController::class, 'verify'])->name('certificates.verify');
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
@@ -66,9 +69,6 @@ Route::middleware('auth')->group(function () {
 
     // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-
-
-    
     // Admin Protected User Management (CRUD)
     Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -80,55 +80,56 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.updateRole');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('/certificates', [AdminCertificateController::class, 'index'])->name('certificates.index');
+        Route::post('/certificates/{certificate}/toggle-status', [AdminCertificateController::class, 'toggleStatus'])->name('certificates.toggle-status');
+        Route::post('/certificates/bulk-status', [AdminCertificateController::class, 'bulkStatus'])->name('certificates.bulk-status');
+        Route::match(['get', 'post'], '/certificates/download-zip', [AdminCertificateController::class, 'downloadZip'])->name('certificates.download-zip');
+        Route::post('/certificates/{certificate}/upload-signed', [AdminCertificateController::class, 'uploadSigned'])->name('certificates.upload-signed');
+        Route::post('/certificates/bulk-upload-signed', [AdminCertificateController::class, 'bulkUploadSigned'])->name('certificates.bulk-upload-signed');
+        Route::post('/certificates/{certificate}/regenerate', [AdminCertificateController::class, 'regenerate'])->name('certificates.regenerate');
     });
 
 
 
 
-    Route::middleware(['auth', 'role:student', 'course.access.valid'])->prefix('student')->name('student.')->group(function () {
+    Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
-        // Route Katalog Utama (Mendukung query parameter ?category=penyelia_halal)
+        // Rute Katalog & Pendaftaran (TIDAK boleh dibatasi course.access.valid)
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
-        
-        // (Opsional) Route khusus jika ingin URL berbentuk /student/courses/category/penyelia_halal
         Route::get('/courses/category/{category}', [StudentCourseController::class, 'index'])->name('courses.category');
-
-        // Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
-        Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
-
-        // Material
-        Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
-
-        // Gradebook Student
-        Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
-        Route::get('/courses/{course}/gradebook/assignments/{assignment}/details', [StudentGradebookController::class, 'detail'])->name('courses.gradebook.detail');
-
-        // Rute Submission Student (Tampilan Detail)
-        Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
-
-        // Student Quiz Pengerjaan (Tampilan & Progres Attempt)
-        Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
-        Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
-        Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
-        Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
-        Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
-
-        // PROTEKSI DEADLINE: Route aksi yang dibatasi middleware 'assignment.open'
-        Route::middleware('assignment.open')->group(function () {
-            // Aksi Submission Tugas
-            Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
-            Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
-            Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
-
-            // Aksi Memulai Quiz Baru
-            Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
-        });
 
         // Route Sertifikat Student
-        Route::get('/certificates', [CertificateController::class, 'index'])->name('certificates.index');
-        Route::get('/certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
+        Route::get('/certificates', [StudentCertificateController::class, 'index'])->name('certificates.index');
+        Route::get('/certificates/{id}', [StudentCertificateController::class, 'show'])->name('certificates.show');
+        Route::get('/certificates/{id}/download', [StudentCertificateController::class, 'download'])->name('certificates.download');
+
+        // Rute yang WAJIB memiliki akses kelas aktif (dilindungi course.access.valid)
+        Route::middleware('course.access.valid')->group(function () {
+            Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
+
+            Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
+
+            Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
+            Route::get('/courses/{course}/gradebook/assignments/{assignment}/details', [StudentGradebookController::class, 'detail'])->name('courses.gradebook.detail');
+
+            Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
+
+            Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
+            Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
+            Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
+            Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
+            Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
+
+            Route::middleware('assignment.open')->group(function () {
+                Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
+                Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
+                Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
+                Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+            });
+        });
     });
 
 

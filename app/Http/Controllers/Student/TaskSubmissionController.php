@@ -52,6 +52,9 @@ class TaskSubmissionController extends Controller
         $hasMaxAttempts = !is_null($assignment->max_attempts);
         $attemptsCount = $submissions->count();
         $canSubmitNewAttempt = $enrollment->isAccessValid() && (!$hasMaxAttempts || ($attemptsCount < $assignment->max_attempts));
+        $isPastDeadline = $assignment->available_until && now()->greaterThan($assignment->available_until);
+        $isEnrollmentCompleted = $enrollment->status === 'completed';
+        $isSubmissionLocked = $isPastDeadline || $isEnrollmentCompleted;
 
         return view('student.submissions.show', compact(
             'assignment', 
@@ -59,7 +62,10 @@ class TaskSubmissionController extends Controller
             'submissions', 
             'latestSubmission', 
             'bestScore', 
-            'canSubmitNewAttempt'
+            'canSubmitNewAttempt',
+            'isPastDeadline',
+            'isEnrollmentCompleted',
+            'isSubmissionLocked'
         ));
     }
 

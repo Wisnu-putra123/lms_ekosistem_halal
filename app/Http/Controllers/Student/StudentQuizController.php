@@ -48,6 +48,9 @@ class StudentQuizController extends Controller
         $canStartNewAttempt = $enrollment->isAccessValid() 
             && !$activeAttempt 
             && (!$hasMaxAttempts || ($attemptCount < $assignment->max_attempts));
+        $isPastDeadline = $assignment->available_until && now()->greaterThan($assignment->available_until);
+        $isEnrollmentCompleted = $enrollment->status === 'completed';
+        $isQuizLocked = $isPastDeadline || $isEnrollmentCompleted;
 
         // 4. Pass semua variabel (termasuk $canStartNewAttempt) ke view
         return view('student.quizzes.show', compact(
@@ -58,7 +61,10 @@ class StudentQuizController extends Controller
             'attemptCount',
             'bestScore',
             'activeAttempt',
-            'canStartNewAttempt' // <-- Variabel ini wajib dipass
+            'canStartNewAttempt', // <-- Variabel ini wajib dipass
+            'isPastDeadline',
+            'isEnrollmentCompleted',
+            'isQuizLocked'
         ));
     }
 
