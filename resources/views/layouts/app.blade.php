@@ -4,12 +4,20 @@
 
     if (Auth::check()) {
         $user = Auth::user();
-
         if ($user->role === 'student') {
-            // Ambil course yang di-enroll oleh student dengan status 'active'
+            // Ambil course yang statusnya 'active' ATAU sudah 'completed' namun masa aksesnya masih berlaku
             $sidebarCourses = \App\Models\Enrollment::with('course')
                 ->where('user_id', $user->id)
-                ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->where('status', 'active')
+                        ->orWhere(function ($q) {
+                            $q->where('status', 'completed')
+                                ->where(function ($subQuery) {
+                                    $subQuery->whereNull('access_expires_at')
+                                            ->orWhere('access_expires_at', '>', now());
+                                });
+                        });
+                })
                 ->get()
                 ->pluck('course')
                 ->filter();
@@ -251,6 +259,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
                             <span>Kelola User</span>
+                        </a>
+
+                        <a href="{{ route('admin.certificates.index') }}" 
+                           class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('admin.certificates.*') ? 'bg-[#28745B] text-white shadow-md' : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                            </svg>
+                            <span>Kelola Sertifikat</span>
                         </a>
                     @endif
 
