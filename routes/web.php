@@ -177,6 +177,7 @@ Route::middleware('auth')->group(function () {
         // Penilaian Submission oleh Teacher
         Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
         Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
+        Route::get('/submissions/{submission}/media/{media}/download', [SubmissionGradingController::class, 'downloadMedia'])->name('submissions.media.download');
         Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
         Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook.show');
         Route::get('/courses/{course}/gradebook/export', [GradebookController::class, 'exportCsv'])->name('courses.gradebook.export');

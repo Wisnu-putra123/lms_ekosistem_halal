@@ -89,7 +89,7 @@
                     @elseif($assignment->submission_method === 'text')
                         Teks Editor
                     @else
-                        Berkas & Teks
+                        Berkas &amp; Teks
                     @endif
                 </div>
             </div>
@@ -133,14 +133,14 @@
                 :class="activeTab === 'submissions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
                 class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span>Hasil & Pengumpulan Siswa ({{ $submissions->total() }})</span>
+            <span>Hasil &amp; Pengumpulan Siswa ({{ $submissions->total() }})</span>
         </button>
 
         <button type="button" @click="activeTab = 'instructions'" 
                 :class="activeTab === 'instructions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
                 class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>Instruksi & Berkas Soal</span>
+            <span>Instruksi &amp; Berkas Soal</span>
         </button>
     </div>
 
@@ -148,7 +148,7 @@
     <div x-show="activeTab === 'instructions'" x-cloak class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <!-- Heading Container bg-[#28745B] -->
         <div class="bg-[#28745B] p-4 sm:px-6 border-b border-slate-300 text-white">
-            <h2 class="text-sm sm:text-base font-bold text-white">Instruksi & Berkas Soal Tugas</h2>
+            <h2 class="text-sm sm:text-base font-bold text-white">Instruksi &amp; Berkas Soal Tugas</h2>
             <p class="text-xs text-emerald-100/85">Detail petunjuk pengerjaan dan berkas lampiran yang dibagikan kepada peserta.</p>
         </div>
 
@@ -170,16 +170,29 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($assignment->attachments as $attachment)
                             @if($attachment->media)
-                                <div class="p-3 bg-[#d1e4da]/60 rounded-xl border border-slate-300 flex items-center justify-between gap-2">
-                                    <div class="flex items-center space-x-2 overflow-hidden pr-2">
+                                <div class="p-3 bg-[#d1e4da]/60 rounded-xl border border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="flex items-center space-x-2 overflow-hidden">
                                         <svg class="w-4 h-4 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg>
-                                        <span class="text-xs text-[#123F35] font-bold truncate">{{ $attachment->media->file_name }}</span>
+                                        <span class="text-xs text-[#123F35] font-bold truncate" title="{{ $attachment->media->file_name }}">{{ $attachment->media->file_name }}</span>
                                     </div>
-                                    <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download="{{ $attachment->media->file_name }}" class="px-3 py-1 bg-[#28745B] hover:bg-[#123F35] text-white rounded-lg text-[11px] font-bold transition shadow-2xs flex-shrink-0">
-                                        Unduh
-                                    </a>
+
+                                    <div class="flex items-center space-x-1.5 flex-shrink-0 self-end sm:self-auto">
+                                        <a href="{{ asset('storage/' . $attachment->media->file_path) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-3 py-1 bg-white hover:bg-[#123F35] text-[#123F35] hover:text-white border border-slate-300 rounded-lg text-[11px] font-bold transition shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            <span>Lihat</span>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $attachment->media->file_path) }}" download="{{ $attachment->media->file_name }}" class="inline-flex items-center space-x-1 px-3 py-1 bg-[#28745B] hover:bg-[#123F35] text-white rounded-lg text-[11px] font-bold transition shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                            </svg>
+                                            <span>Unduh</span>
+                                        </a>
+                                    </div>
                                 </div>
                             @endif
                         @endforeach
@@ -275,7 +288,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-[#28745B] text-white border-b border-slate-300">
                         <tr class="text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
-                            <th class="py-3.5 px-4 sm:px-6 min-w-[180px]">Siswa & Enrollment</th>
+                            <th class="py-3.5 px-4 sm:px-6 min-w-[180px]">Siswa &amp; Enrollment</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Attempt Ke-</th>
                             <th class="py-3.5 px-4 min-w-[150px]">Waktu Mengumpulkan</th>
                             <th class="py-3.5 px-4 min-w-[150px]">Status Tugas</th>
@@ -334,8 +347,8 @@
                                 <td class="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end space-x-2">
                                         <a href="{{ route('teacher.submissions.grade', $sub->id) }}" 
-                                        class="p-1.5 bg-[#E7C982]/40 text-[#123F35] border border-[#E7C982] hover:bg-[#123F35] hover:text-white rounded-lg transition shadow-2xs" 
-                                        title="Review & Beri Nilai">
+                                           class="p-1.5 bg-[#E7C982]/40 text-[#123F35] border border-[#E7C982] hover:bg-[#123F35] hover:text-white rounded-lg transition shadow-2xs" 
+                                           title="Review &amp; Beri Nilai">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                             </svg>
@@ -363,21 +376,6 @@
                     </tbody>
                 </table>
             </div>
-
-            @if($submissions->hasPages())
-                <div class="p-4 sm:px-6 border-t border-slate-300 bg-[#F7F5EE]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-                    <div>
-                        Menampilkan <span class="font-bold text-[#123F35]">{{ $submissions->firstItem() }}</span> - 
-                        <span class="font-bold text-[#123F35]">{{ $submissions->lastItem() }}</span> dari 
-                        <span class="font-bold text-[#123F35]">{{ $submissions->total() }}</span> pengumpulan tugas
-                    </div>
-                    <div>
-                        {{ $submissions->links() }}
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
 
             @if($submissions->hasPages())
                 <div class="p-4 sm:px-6 border-t border-slate-300 bg-[#F7F5EE]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
