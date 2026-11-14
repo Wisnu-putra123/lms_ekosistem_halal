@@ -6,110 +6,123 @@
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-4xl mx-auto space-y-5 sm:space-y-6">
 
-    <!-- Breadcrumb & Header -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-amber-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Header Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" class="inline-flex items-center justify-center sm:justify-start space-x-2 text-xs font-semibold text-slate-700 hover:text-[#123F35] transition bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs self-start">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
             <span>Kembali ke Detail Pelatihan</span>
         </a>
-        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+
+        <span class="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wider bg-[#28745B]/10 text-[#123F35] border border-[#28745B]/30 self-start sm:self-auto shadow-2xs">
             Pertemuan {{ $meeting->meeting_number }}: {{ $meeting->title }}
         </span>
     </div>
 
     <!-- Form Container -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-        <div class="border-b border-slate-100 pb-4 mb-6">
-            <h1 class="text-lg font-bold text-slate-800">Tambah Tempat Submission Baru</h1>
-            <p class="text-xs text-slate-500">Atur petunjuk, metode pengumpulan, batas attempt, parameter penilaian, serta lampirkan berkas instruksi tugas.</p>
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
+        <!-- Card Header Gradasi Hijau Tua -->
+        <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-5 sm:p-8 border-b border-slate-300 text-white">
+            <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase mb-2">
+                Pertemuan {{ $meeting->meeting_number }} &bull; Tambah Aktivitas
+            </span>
+            <h1 class="text-lg sm:text-xl font-bold text-white">Tambah Tempat Submission Baru</h1>
+            <p class="text-xs text-emerald-100/85 mt-1">Atur petunjuk, metode pengumpulan, batas attempt, parameter penilaian, serta lampirkan berkas instruksi tugas.</p>
         </div>
 
-        <form action="{{ route('teacher.meetings.assignments.store', $meeting->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form action="{{ route('teacher.meetings.assignments.store', $meeting->id) }}" method="POST" enctype="multipart/form-data" class="p-5 sm:p-8 space-y-6">
             @csrf
 
             <!-- 1. Judul Tugas -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Tugas / Submission <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Judul Tugas / Submission <span class="text-red-600">*</span>
+                </label>
                 <input type="text" name="title" value="{{ old('title') }}" placeholder="Contoh: Laporan Titik Kritis Penyembelihan Halal" required
-                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 @error('title') border-red-500 @enderror">
+                       class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition @error('title') border-red-500 @enderror">
                 @error('title')
-                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- 2. Deskripsi / Instruksi -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi & Instruksi Pengerjaan</label>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Deskripsi & Instruksi Pengerjaan
+                </label>
                 <textarea name="description" rows="4" placeholder="Tuliskan petunjuk pengerjaan tugas secara jelas di sini..."
-                          class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('description') }}</textarea>
+                          class="w-full p-3.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">{{ old('description') }}</textarea>
             </div>
 
             <!-- 3. PILIHAN METODE PENGUMPULAN TUGAS (submission_method) -->
-            <div class="space-y-2 p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl">
-                <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider">
-                    Metode Pengumpulan Jawaban Siswa <span class="text-red-500">*</span>
-                </label>
-                <p class="text-xs text-amber-700 mb-3">Tentukan format pengumpulan yang diizinkan untuk dikirimkan oleh siswa.</p>
+            <div class="space-y-3 p-4 sm:p-5 bg-[#F7F5EE] border border-slate-300 rounded-2xl shadow-2xs">
+                <div>
+                    <label class="block text-xs font-extrabold text-[#123F35] uppercase tracking-wider">
+                        Metode Pengumpulan Jawaban Siswa <span class="text-red-600">*</span>
+                    </label>
+                    <p class="text-xs text-slate-600 mt-0.5">Tentukan format pengumpulan yang diizinkan untuk dikirimkan oleh siswa.</p>
+                </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
-                        <input type="radio" name="submission_method" value="file" {{ old('submission_method', 'file') == 'file' ? 'checked' : '' }} required class="text-amber-600 focus:ring-amber-500">
+                    <label class="relative flex items-start p-3.5 bg-white rounded-xl border border-slate-300 cursor-pointer hover:border-[#28745B] has-[:checked]:border-[#28745B] has-[:checked]:bg-[#28745B]/5 transition shadow-2xs">
+                        <input type="radio" name="submission_method" value="file" {{ old('submission_method', 'file') == 'file' ? 'checked' : '' }} required class="mt-0.5 text-[#28745B] focus:ring-[#28745B]">
                         <div class="ml-3">
-                            <span class="block text-xs font-bold text-slate-800">Unggah Berkas</span>
-                            <span class="block text-[10px] text-slate-500">Siswa mengunggah file (PDF, Docx, Zip)</span>
+                            <span class="block text-xs font-bold text-[#123F35]">Unggah Berkas</span>
+                            <span class="block text-[10px] text-slate-500 mt-0.5">Siswa mengunggah file (PDF, Docx, Zip)</span>
                         </div>
                     </label>
 
-                    <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
-                        <input type="radio" name="submission_method" value="text" {{ old('submission_method') == 'text' ? 'checked' : '' }} class="text-amber-600 focus:ring-amber-500">
+                    <label class="relative flex items-start p-3.5 bg-white rounded-xl border border-slate-300 cursor-pointer hover:border-[#28745B] has-[:checked]:border-[#28745B] has-[:checked]:bg-[#28745B]/5 transition shadow-2xs">
+                        <input type="radio" name="submission_method" value="text" {{ old('submission_method') == 'text' ? 'checked' : '' }} class="mt-0.5 text-[#28745B] focus:ring-[#28745B]">
                         <div class="ml-3">
-                            <span class="block text-xs font-bold text-slate-800">Teks Langsung</span>
-                            <span class="block text-[10px] text-slate-500">Siswa mengetik di Text Editor web</span>
+                            <span class="block text-xs font-bold text-[#123F35]">Teks Langsung</span>
+                            <span class="block text-[10px] text-slate-500 mt-0.5">Siswa mengetik di Text Editor web</span>
                         </div>
                     </label>
 
-                    <label class="relative flex items-center p-3.5 bg-white rounded-xl border border-amber-200 cursor-pointer hover:border-amber-400 transition shadow-sm">
-                        <input type="radio" name="submission_method" value="both" {{ old('submission_method') == 'both' ? 'checked' : '' }} class="text-amber-600 focus:ring-amber-500">
+                    <label class="relative flex items-start p-3.5 bg-white rounded-xl border border-slate-300 cursor-pointer hover:border-[#28745B] has-[:checked]:border-[#28745B] has-[:checked]:bg-[#28745B]/5 transition shadow-2xs">
+                        <input type="radio" name="submission_method" value="both" {{ old('submission_method') == 'both' ? 'checked' : '' }} class="mt-0.5 text-[#28745B] focus:ring-[#28745B]">
                         <div class="ml-3">
-                            <span class="block text-xs font-bold text-slate-800">Berkas & Teks</span>
-                            <span class="block text-[10px] text-slate-500">Siswa bisa unggah berkas dan isi teks</span>
+                            <span class="block text-xs font-bold text-[#123F35]">Berkas & Teks</span>
+                            <span class="block text-[10px] text-slate-500 mt-0.5">Siswa bisa unggah berkas dan isi teks</span>
                         </div>
                     </label>
                 </div>
                 @error('submission_method')
-                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- 4. BATAS PERCOBAAN PENGERJAAN (Max Attempts) -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Batas Percobaan Pengerjaan (Max Attempts)</label>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Batas Percobaan Pengerjaan (Max Attempts)
+                </label>
                 <input type="number" name="max_attempts" value="{{ old('max_attempts') }}" min="1" placeholder="Kosongkan jika Tanpa Batas (Infinite Attempts)"
-                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 @error('max_attempts') border-red-500 @enderror">
-                <p class="text-[10px] text-slate-400 mt-1">*Kosongkan jika siswa diperbolehkan mencoba/retake tugas tanpa batasan jumlah attempt.</p>
+                       class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition @error('max_attempts') border-red-500 @enderror">
+                <p class="text-[11px] text-slate-500 mt-1">*Kosongkan jika siswa diperbolehkan mencoba/retake tugas tanpa batasan jumlah attempt.</p>
                 @error('max_attempts')
-                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- 5. Tanggal Dibuka & Ditutup (Optional) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 sm:p-5 bg-[#F7F5EE] rounded-2xl border border-slate-300 shadow-2xs">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Waktu Dibuka (Opsional)</label>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">Waktu Dibuka (Opsional)</label>
                     <input type="datetime-local" name="available_from" value="{{ old('available_from') }}"
-                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <p class="text-[10px] text-slate-400 mt-1">Kosongkan jika tugas dapat dikerjakan kapan saja.</p>
+                           class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">
+                    <p class="text-[10px] text-slate-500 mt-1">Kosongkan jika tugas dapat dikerjakan kapan saja.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Waktu Ditutup / Tenggat (Opsional)</label>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">Waktu Ditutup / Tenggat (Opsional)</label>
                     <input type="datetime-local" name="available_until" value="{{ old('available_until') }}"
-                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 @error('available_until') border-red-500 @enderror">
+                           class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition @error('available_until') border-red-500 @enderror">
                     @error('available_until')
-                        <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p>
+                        <p class="text-[10px] text-red-600 font-semibold mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -117,69 +130,75 @@
             <!-- 6. Penilaian: Nilai Maksimal & Passing Grade -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nilai Maksimal <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                        Nilai Maksimal <span class="text-red-600">*</span>
+                    </label>
                     <input type="number" name="max_score" value="{{ old('max_score', 100) }}" step="0.01" min="1" max="1000" required
-                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <p class="text-[10px] text-slate-400 mt-1">Default skor tertinggi adalah 100.</p>
+                           class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-[#123F35] focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">
+                    <p class="text-[11px] text-slate-500 mt-1">Default skor tertinggi adalah 100.</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Passing Grade (Nilai Kelulusan Minimal) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                        Passing Grade (Nilai Kelulusan Minimal) <span class="text-red-600">*</span>
+                    </label>
                     <input type="number" name="passing_score" value="{{ old('passing_score', 75) }}" step="0.01" min="0" required
-                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-amber-500 @error('passing_score') border-red-500 @enderror">
+                           class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-[#28745B] focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition @error('passing_score') border-red-500 @enderror">
                     @error('passing_score')
-                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
             <!-- 7. LAMPIRAN BERKAS PENGAJAR -->
             <div x-data="attachmentUploader()" class="space-y-3">
-                <label class="block text-xs font-semibold text-slate-700">Lampirkan Berkas Soal / Acuan (Opsional)</label>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35]">
+                    Lampirkan Berkas Soal / Acuan (Opsional)
+                </label>
 
-                <div class="border-2 border-dashed border-slate-200 hover:border-amber-400 rounded-2xl p-5 text-center transition bg-slate-50/50 relative">
+                <div class="border-2 border-dashed border-slate-300 hover:border-[#28745B] rounded-2xl p-6 text-center transition bg-[#F7F5EE]/60 relative">
                     <input type="file" x-ref="fileInput" @change="addFiles($event)" multiple
                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     <div class="space-y-1.5 pointer-events-none">
-                        <div class="w-9 h-9 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                        <div class="w-10 h-10 bg-[#28745B]/15 text-[#28745B] border border-[#28745B]/30 rounded-xl flex items-center justify-center mx-auto">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
                         </div>
-                        <div class="text-xs text-slate-700 font-semibold">+ Pilih atau Seret Berkas ke Sini</div>
-                        <p class="text-[10px] text-slate-400">PDF, DOCX, PPTX, ZIP, gambar maks 10MB per berkas</p>
+                        <div class="text-xs text-[#123F35] font-bold">+ Pilih atau Seret Berkas ke Sini</div>
+                        <p class="text-[11px] text-slate-500">PDF, DOCX, PPTX, ZIP, gambar maks 10MB per berkas</p>
                     </div>
                 </div>
 
                 <div x-ref="hiddenInputsContainer" class="hidden"></div>
 
                 <template x-if="fileList.length > 0">
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                    <div class="space-y-2.5 pt-3 border-t border-slate-300">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            <span class="text-xs font-extrabold text-[#123F35] uppercase tracking-wider">
                                 Daftar Lampiran Berkas (<span x-text="fileList.length"></span>)
                             </span>
-                            <button type="button" @click="removeAllFiles()" class="text-[11px] font-semibold text-red-500 hover:underline">
+                            <button type="button" @click="removeAllFiles()" class="text-[11px] font-bold text-red-600 hover:underline">
                                 Hapus Semua
                             </button>
                         </div>
 
-                        <div class="space-y-1.5">
+                        <div class="space-y-2">
                             <template x-for="(f, index) in fileList" :key="index">
-                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between hover:bg-slate-100 transition">
+                                <div class="p-3 bg-[#d1e4da]/60 rounded-xl border border-slate-300 flex items-center justify-between transition">
                                     <div class="flex items-center space-x-3 overflow-hidden pr-2">
-                                        <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-lg bg-[#28745B] text-white flex items-center justify-center flex-shrink-0">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                             </svg>
                                         </div>
                                         <div class="overflow-hidden">
-                                            <div class="text-xs font-semibold text-slate-800 truncate" x-text="f.name"></div>
-                                            <div class="text-[10px] text-slate-400" x-text="(f.size / 1024 / 1024).toFixed(2) + ' MB'"></div>
+                                            <div class="text-xs font-bold text-[#123F35] truncate" x-text="f.name"></div>
+                                            <div class="text-[10px] text-slate-600" x-text="(f.size / 1024 / 1024).toFixed(2) + ' MB'"></div>
                                         </div>
                                     </div>
 
-                                    <button type="button" @click="removeFile(index)" class="p-1 text-slate-400 hover:text-red-600 transition" title="Hapus Berkas">
+                                    <button type="button" @click="removeFile(index)" class="p-1.5 bg-white border border-slate-300 rounded-lg text-slate-500 hover:text-red-600 hover:border-red-300 transition shadow-2xs" title="Hapus Berkas">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
@@ -193,8 +212,10 @@
 
             <!-- 8. Status Publikasi -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Status Publikasi <span class="text-red-500">*</span></label>
-                <select name="status" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Status Publikasi <span class="text-red-600">*</span>
+                </label>
+                <select name="status" required class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs font-bold text-[#123F35] focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition cursor-pointer">
                     <option value="published" {{ old('status') == 'published' ? 'selected' : '' }}>Published (Langsung dapat dilihat siswa)</option>
                     <option value="draft" {{ old('status') == 'draft' ? 'selected' : '' }}>Draft (Disimpan sementara)</option>
                     <option value="closed" {{ old('status') == 'closed' ? 'selected' : '' }}>Closed (Ditutup)</option>
@@ -202,11 +223,11 @@
             </div>
 
             <!-- Form Submit Actions -->
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <div class="pt-5 border-t border-slate-300 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
+                <a href="{{ route('teacher.courses.show', $meeting->course_id) }}" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition text-center shadow-2xs">
                     Batal
                 </a>
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition">
+                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center">
                     Simpan Submission
                 </button>
             </div>

@@ -48,6 +48,7 @@ class StudentQuizController extends Controller
         $canStartNewAttempt = $enrollment->isAccessValid() 
             && !$activeAttempt 
             && (!$hasMaxAttempts || ($attemptCount < $assignment->max_attempts));
+            
         $isPastDeadline = $assignment->available_until && now()->greaterThan($assignment->available_until);
         $isEnrollmentCompleted = $enrollment->status === 'completed';
         $isQuizLocked = $isPastDeadline || $isEnrollmentCompleted;

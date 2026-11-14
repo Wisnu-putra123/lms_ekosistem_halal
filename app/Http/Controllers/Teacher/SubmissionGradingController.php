@@ -24,13 +24,21 @@ class SubmissionGradingController extends Controller
             'assignment.meeting', 
             'enrollment.user', 
             'attachments.media', 
-            'feedbackAttachments.media'
+            'feedbackAttachments.media',
+            'grader'
         ]);
 
         // Otorisasi Akses Pengajar
         $this->authorizeAccess($submission->assignment->course);
 
-        return view('teacher.submissions.grade', compact('submission'));
+        // Ambil seluruh attempt submission dari siswa (enrollment) yang sama pada tugas ini
+        $allAttempts = AssignmentSubmission::with('grader')
+            ->where('assignment_id', $submission->assignment_id)
+            ->where('enrollment_id', $submission->enrollment_id)
+            ->orderBy('attempt_number', 'asc')
+            ->get();
+
+        return view('teacher.submissions.grade', compact('submission', 'allAttempts'));
     }
 
     /**
