@@ -11,7 +11,7 @@
         addMeetingModal: {{ $errors->has('meeting_number') || $errors->has('title') ? 'true' : 'false' }}, 
         editMeetingModal: false, 
         activeEditMeeting: {}, 
-        allExpanded: false 
+        allExpanded: true
     }" 
      class="space-y-5 sm:space-y-6">
 
@@ -236,7 +236,7 @@
     <!-- ACCORDION LIST PERTEMUAN -->
     <div class="space-y-4">
         @forelse($course->meetings->sortBy('meeting_number') as $meeting)
-            <div x-data="{ expanded: false }" x-init="$watch('allExpanded', val => expanded = val)" class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden transition">
+            <div x-data="{ expanded: true }" x-init="$watch('allExpanded', val => expanded = val)" class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden transition">
                 
                 <!-- Header Pertemuan (Warna Background Hijau bg-[#28745B]) -->
                 <div class="p-4 bg-[#28745B] hover:bg-[#123F35] flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 cursor-pointer transition text-white" @click="expanded = !expanded">
@@ -348,7 +348,9 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 00-2-2V5a2 2 0 012-2h5.586a1 1 0 00.1.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                             </svg>
                                                         </div>
-                                                        <span class="text-xs text-[#123F35] font-bold truncate">{{ $material->title }}</span>
+                                                        <a href="{{ route('teacher.materials.show', $material->id) }}" class="text-xs text-[#123F35] font-bold hover:underline truncate">
+                                                            {{ $material->title }}
+                                                        </a>
                                                     </div>
 
                                                     <div class="flex items-center space-x-1 flex-shrink-0">

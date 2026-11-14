@@ -38,7 +38,10 @@ class SubmissionGradingController extends Controller
             ->orderBy('attempt_number', 'asc')
             ->get();
 
-        return view('teacher.submissions.grade', compact('submission', 'allAttempts'));
+        // Kunci form penilaian jika status enrollment sudah completed atau dropped
+        $isLocked = in_array($submission->enrollment?->status, ['completed', 'dropped'], true);
+
+        return view('teacher.submissions.grade', compact('submission', 'allAttempts', 'isLocked'));
     }
 
     /**
@@ -46,8 +49,13 @@ class SubmissionGradingController extends Controller
      */
     public function update(Request $request, AssignmentSubmission $submission)
     {
-        $submission->load('assignment.course');
+        $submission->load(['assignment.course', 'enrollment']);
         $this->authorizeAccess($submission->assignment->course);
+
+        // Cegah perubahan nilai & feedback jika status enrollment sudah completed atau dropped
+        if (in_array($submission->enrollment?->status, ['completed', 'dropped'], true)) {
+            return back()->with('error', 'Penilaian dan feedback tidak dapat diubah karena status enrollment siswa sudah ' . strtoupper($submission->enrollment->status) . '.');
+        }
 
         $maxScore = $submission->assignment->max_score;
 
@@ -78,7 +86,10 @@ class SubmissionGradingController extends Controller
 
             // 2. Hapus file lampiran feedback yang dicentang
             if (!empty($validated['delete_feedback_attachments'])) {
-                $attachmentsToDelete = SubmissionFeedbackAttachment::whereIn('id', $validated['delete_feedback_attachments'])->get();
+                $attachmentsToDelete = SubmissionFeedbackAttachment::where('submission_id', $submission->id)
+                    ->whereIn('id', $validated['delete_feedback_attachments'])
+                    ->get();
+
                 foreach ($attachmentsToDelete as $att) {
                     if ($att->media) {
                         Storage::disk('public')->delete($att->media->file_path);
@@ -124,12 +135,38 @@ class SubmissionGradingController extends Controller
     }
 
     /**
+     * Unduh Berkas Lampiran Submission / Feedback dengan Nama File Asli
+     */
+    public function downloadMedia(AssignmentSubmission $submission, Media $media)
+    {
+        $submission->load(['assignment.course', 'attachments', 'feedbackAttachments']);
+        $this->authorizeAccess($submission->assignment->course);
+
+        $isAttached = $submission->attachments->contains('media_id', $media->id)
+            || $submission->feedbackAttachments->contains('media_id', $media->id);
+
+        if (!$isAttached) {
+            abort(404, 'Berkas tidak ditemukan pada submission ini.');
+        }
+
+        if (!Storage::disk('public')->exists($media->file_path)) {
+            abort(404, 'File fisik tidak ditemukan di penyimpanan.');
+        }
+
+        return Storage::disk('public')->download($media->file_path, $media->file_name);
+    }
+
+    /**
      * Hapus Attempt Submission Siswa
      */
     public function destroy(AssignmentSubmission $submission)
     {
-        $submission->load(['assignment.course', 'attachments.media', 'feedbackAttachments.media']);
+        $submission->load(['assignment.course', 'enrollment', 'attachments.media', 'feedbackAttachments.media']);
         $this->authorizeAccess($submission->assignment->course);
+
+        if (in_array($submission->enrollment?->status, ['completed', 'dropped'], true)) {
+            return back()->with('error', 'Attempt submission tidak dapat dihapus karena status enrollment siswa sudah ' . strtoupper($submission->enrollment->status) . '.');
+        }
 
         DB::beginTransaction();
         try {
