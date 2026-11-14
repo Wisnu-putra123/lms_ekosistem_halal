@@ -16,7 +16,7 @@
      class="space-y-5 sm:space-y-6">
 
     <!-- Flash Session Success & Error Alerts -->
-    @if(session('success'))
+    <!-- @if(session('success'))
         <div class="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl flex items-center justify-between text-xs font-medium shadow-2xs">
             <div class="flex items-center space-x-2">
                 <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,7 +25,7 @@
                 <span>{{ session('success') }}</span>
             </div>
         </div>
-    @endif
+    @endif -->
 
     @if(session('error') || $errors->any())
         <div class="p-4 bg-red-50 border border-red-300 text-red-800 rounded-2xl space-y-1 text-xs font-medium shadow-2xs">
@@ -79,9 +79,13 @@
 
             <div class="space-y-2 min-w-0 flex-1 w-full">
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-white border border-white/20 uppercase backdrop-blur-xs">
+                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase bg-[#E7C982] text-[#123F35] border border-[#E7C982]">
                         {{ $course->category_label }}
                     </span>
+
+                    <!-- <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-white border border-white/20 uppercase backdrop-blur-xs">
+                        {{ $course->category_label }}
+                    </span> -->
 
                     <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-white border border-white/20 uppercase backdrop-blur-xs">
                         {{ $course->code }}

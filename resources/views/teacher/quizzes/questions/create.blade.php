@@ -6,29 +6,44 @@
 @section('content')
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-4xl mx-auto space-y-5 sm:space-y-6">
 
-    <div class="flex items-center justify-between">
-        <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="inline-flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-amber-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    <!-- Header Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="inline-flex items-center justify-center sm:justify-start space-x-2 text-xs font-semibold text-slate-700 hover:text-[#123F35] transition bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs self-start">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
             <span>Kembali ke Detail Quiz</span>
         </a>
+
+        <span class="px-3 py-1.5 rounded-xl text-xs font-bold tracking-wider bg-[#28745B]/10 text-[#123F35] border border-[#28745B]/30 self-start sm:self-auto shadow-2xs truncate max-w-full">
+            {{ $assignment->title }}
+        </span>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-        <div class="border-b border-slate-100 pb-4 mb-6">
-            <h1 class="text-lg font-bold text-slate-800">Tambah Soal Baru</h1>
-            <p class="text-xs text-slate-500">Buat pertanyaan, unggah gambar/file pendukung, serta fleksibel menentukan opsi pilihan jawaban.</p>
+    <!-- Form Container -->
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
+        <!-- Card Header Gradasi Hijau Tua -->
+        <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-5 sm:p-8 border-b border-slate-300 text-white">
+            <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase mb-2">
+                Bank Soal Quiz &bull; Tambah Butir Soal
+            </span>
+            <h1 class="text-lg sm:text-xl font-bold text-white">Tambah Soal Baru</h1>
+            <p class="text-xs text-emerald-100/85 mt-1">Buat pertanyaan, unggah gambar/file pendukung, serta tentukan opsi pilihan jawaban dan kunci jawabannya.</p>
         </div>
 
         <form action="{{ route('teacher.quizzes.questions.store', $assignment->id) }}" method="POST" enctype="multipart/form-data" 
-              x-data="questionForm()" class="space-y-6">
+              x-data="questionForm()" class="p-5 sm:p-8 space-y-6">
             @csrf
 
             <!-- 1. Tipe Soal -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe Soal <span class="text-red-500">*</span></label>
-                <select name="question_type" x-model="questionType" @change="handleTypeChange()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Tipe Soal <span class="text-red-600">*</span>
+                </label>
+                <select name="question_type" x-model="questionType" @change="handleTypeChange()" 
+                        class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs font-bold text-[#123F35] focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition cursor-pointer">
                     <option value="multiple_choice">Pilihan Ganda (Multiple Choice)</option>
                     <option value="true_false">Benar / Salah (True or False)</option>
                 </select>
@@ -36,27 +51,38 @@
 
             <!-- 2. Teks Pertanyaan -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Pertanyaan / Soal <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Pertanyaan / Soal <span class="text-red-600">*</span>
+                </label>
                 <textarea name="question_text" rows="4" placeholder="Tuliskan pertanyaan soal di sini..." required
-                          class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('question_text') }}</textarea>
+                          class="w-full p-3.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition @error('question_text') border-red-500 @enderror">{{ old('question_text') }}</textarea>
+                @error('question_text')
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- 3. Lampiran Media Soal (Gambar/Audio/File) -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Lampiran Media Soal (Gambar/Audio - Opsional)</label>
-                <input type="file" name="question_media" class="w-full text-xs bg-slate-50 p-2 border border-slate-200 rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Lampiran Media Soal (Gambar/Audio - Opsional)
+                </label>
+                <input type="file" name="question_media" 
+                       class="w-full text-xs bg-[#F7F5EE]/50 p-2 border border-slate-300 rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#28745B] file:text-white hover:file:bg-[#123F35] cursor-pointer transition">
+                @error('question_media')
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- 4. DAFTAR OPSIONAL PILIHAN JAWABAN (FLEKSIBEL) -->
-            <div class="p-5 bg-amber-50/50 border border-amber-200/80 rounded-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-amber-200/80 pb-3">
+            <div class="p-4 sm:p-5 bg-[#F7F5EE] border border-slate-300 rounded-2xl space-y-4 shadow-2xs">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-300 pb-3.5">
                     <div>
-                        <h3 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Opsi Pilihan Jawaban</h3>
-                        <p class="text-[11px] text-amber-700">Pilih salah satu bulatan radio sebagai **Kunci Jawaban yang Benar**.</p>
+                        <h3 class="text-xs font-extrabold text-[#123F35] uppercase tracking-wider">Opsi Pilihan Jawaban</h3>
+                        <p class="text-[11px] text-slate-600 mt-0.5">Pilih salah satu bulatan radio sebagai <strong class="text-[#123F35]">Kunci Jawaban yang Benar</strong>.</p>
                     </div>
 
                     <template x-if="questionType === 'multiple_choice'">
-                        <button type="button" @click="addOption()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm transition">
+                        <button type="button" @click="addOption()" class="px-3.5 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 rounded-xl text-xs font-extrabold shadow-2xs transition self-start sm:self-auto">
                             + Tambah Opsi
                         </button>
                     </template>
@@ -64,30 +90,42 @@
 
                 <div class="space-y-3">
                     <template x-for="(opt, index) in options" :key="index">
-                        <div class="p-3 bg-white rounded-xl border border-amber-200 flex items-start space-x-3 shadow-sm">
+                        <div class="p-3.5 rounded-xl border transition shadow-2xs flex items-start space-x-2.5 sm:space-x-3"
+                             :class="Number(correctOption) === index ? 'bg-emerald-50/90 border-[#28745B]' : 'bg-white border-slate-300'">
                             <!-- Radio Kunci Jawaban -->
                             <div class="pt-2 flex-shrink-0">
-                                <input type="radio" name="correct_option" :value="index" x-model="correctOption" required class="text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" title="Pilih sebagai kunci jawaban">
+                                <input type="radio" name="correct_option" :value="index" x-model="correctOption" required 
+                                       class="text-[#28745B] focus:ring-[#28745B] w-4 h-4 cursor-pointer" title="Pilih sebagai kunci jawaban">
                             </div>
 
                             <!-- Indikator Huruf -->
-                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5"
+                            <div class="w-7 h-7 rounded-lg font-extrabold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 transition"
+                                 :class="Number(correctOption) === index ? 'bg-[#28745B] text-white' : 'bg-[#F7F5EE] border border-slate-300 text-[#123F35]'"
                                  x-text="String.fromCharCode(65 + index)"></div>
 
                             <!-- Input Teks & Media Opsi -->
-                            <div class="flex-1 space-y-2">
+                            <div class="flex-1 min-w-0 space-y-2">
+                                <div class="flex items-center justify-between gap-2" x-show="Number(correctOption) === index">
+                                    <span class="inline-block text-[10px] font-extrabold text-[#28745B] uppercase tracking-wider">
+                                        ✓ Kunci Jawaban Benar
+                                    </span>
+                                </div>
+
                                 <input type="text" :name="`options[${index}][text]`" x-model="opt.text" placeholder="Isi pilihan jawaban..." required
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                       class="w-full px-3 py-2 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">
 
                                 <template x-if="questionType === 'multiple_choice'">
-                                    <input type="file" :name="`options[${index}][media]`" class="block w-full text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                                    <input type="file" :name="`options[${index}][media]`" 
+                                           class="block w-full text-[10px] text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-slate-300 file:text-[10px] file:font-bold file:bg-[#F7F5EE] file:text-[#123F35] hover:file:bg-[#28745B] hover:file:text-white cursor-pointer transition">
                                 </template>
                             </div>
 
                             <!-- Tombol Hapus Opsi -->
                             <template x-if="questionType === 'multiple_choice' && options.length > 2">
-                                <button type="button" @click="removeOption(index)" class="p-1.5 text-slate-400 hover:text-red-600 transition flex-shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <button type="button" @click="removeOption(index)" class="p-1.5 bg-white border border-slate-300 rounded-lg text-slate-500 hover:text-red-600 hover:border-red-300 transition flex-shrink-0 shadow-2xs" title="Hapus Opsi">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
                                 </button>
                             </template>
                         </div>
@@ -97,17 +135,19 @@
 
             <!-- 5. Pembahasan / Penjelasan Jawaban (Opsional) -->
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Pembahasan / Penjelasan Jawaban (Opsional)</label>
-                <textarea name="explanation" rows="2" placeholder="Tuliskan penjelasan mengapa jawaban tersebut benar..."
-                          class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">{{ old('explanation') }}</textarea>
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35] mb-1.5">
+                    Pembahasan / Penjelasan Jawaban (Opsional)
+                </label>
+                <textarea name="explanation" rows="3" placeholder="Tuliskan penjelasan mengapa jawaban tersebut benar..."
+                          class="w-full p-3.5 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">{{ old('explanation') }}</textarea>
             </div>
 
             <!-- Actions -->
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <div class="pt-5 border-t border-slate-300 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
+                <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition text-center shadow-2xs">
                     Batal
                 </a>
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-sm transition">
+                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center">
                     Simpan Soal
                 </button>
             </div>
@@ -132,7 +172,7 @@
             },
             removeOption(index) {
                 this.options.splice(index, 1);
-                if (this.correctOption >= this.options.length) {
+                if (Number(this.correctOption) >= this.options.length) {
                     this.correctOption = 0;
                 }
             },
