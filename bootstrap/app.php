@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureCourseAccessIsValid;
 use App\Http\Middleware\EnsureAssignmentOpen;
+use App\Http\Middleware\EnsureTeacherCourseAccess;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckRole::class,
             'course.access.valid' => EnsureCourseAccessIsValid::class,
             'assignment.open' => EnsureAssignmentOpen::class,
+            'teacher.course.access' => EnsureTeacherCourseAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

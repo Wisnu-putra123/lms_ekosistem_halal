@@ -16,7 +16,7 @@ class MeetingController extends Controller
      */
     public function store(Request $request, Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -55,7 +55,7 @@ class MeetingController extends Controller
      */
     public function update(Request $request, Meeting $meeting)
     {
-        $this->authorizeAccess($meeting->course);
+        // $this->authorizeAccess($meeting->course);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -96,7 +96,7 @@ class MeetingController extends Controller
      */
     public function destroy(Meeting $meeting)
     {
-        $this->authorizeAccess($meeting->course);
+        // $this->authorizeAccess($meeting->course);
 
         $meeting->delete();
 
@@ -106,14 +106,14 @@ class MeetingController extends Controller
     /**
      * Helper privat untuk mengecek akses pengajar.
      */
-    private function authorizeAccess(Course $course): void
-    {
-        $userId = Auth::id();
-        $isCreator = $course->created_by === $userId;
-        $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
+    // private function authorizeAccess(Course $course): void
+    // {
+    //     $userId = Auth::id();
+    //     $isCreator = $course->created_by === $userId;
+    //     $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
 
-        if (!$isCreator && !$isInstructor) {
-            abort(403, 'Anda tidak memiliki akses ke kursus ini.');
-        }
-    }
+    //     if (!$isCreator && !$isInstructor) {
+    //         abort(403, 'Anda tidak memiliki akses ke kursus ini.');
+    //     }
+    // }
 }
