@@ -28,7 +28,9 @@ class User extends Authenticatable
         'nik',
         'ktp_media_id',
         'family_card_number',
-        // 'kk_media_id', // Jika kelak beralih ke upload foto KK
+        'kk_media_id',
+        'ijazah_number',
+        'ijazah_media_id',
         'address',
         'institution',
     ];
@@ -118,15 +120,21 @@ class User extends Authenticatable
         return $this->belongsTo(Media::class, 'ktp_media_id');
     }
 
-    /* 
-    |--------------------------------------------------------------------------
-    | RELASI FOTO KK (DIKOMENTAR KARENA MEMAKAI TEKS NOMOR KK)
-    |--------------------------------------------------------------------------
-    | public function kkMedia()
-    | {
-    |     return $this->belongsTo(Media::class, 'kk_media_id');
-    | }
-    */
+    /**
+     * Relasi Berkas/Foto KK ke Tabel Media Pusat.
+     */
+    public function kkMedia()
+    {
+        return $this->belongsTo(Media::class, 'kk_media_id');
+    }
+
+    /**
+     * Relasi Berkas/Scan Ijazah ke Tabel Media Pusat.
+     */
+    public function ijazahMedia()
+    {
+        return $this->belongsTo(Media::class, 'ijazah_media_id');
+    }
 
     /* --- HELPER ACCESSORS / URL ACCESSIBLE --- */
 
@@ -157,6 +165,30 @@ class User extends Authenticatable
     {
         if ($this->ktpMedia && $this->ktpMedia->file_path) {
             return asset('storage/' . $this->ktpMedia->file_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper URL Berkas / Foto KK.
+     */
+    public function getKkPhotoUrlAttribute(): ?string
+    {
+        if ($this->kkMedia && $this->kkMedia->file_path) {
+            return asset('storage/' . $this->kkMedia->file_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper URL Berkas / Scan Ijazah.
+     */
+    public function getIjazahUrlAttribute(): ?string
+    {
+        if ($this->ijazahMedia && $this->ijazahMedia->file_path) {
+            return asset('storage/' . $this->ijazahMedia->file_path);
         }
 
         return null;

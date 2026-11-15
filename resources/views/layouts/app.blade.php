@@ -39,8 +39,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'LPP-JPH LMS')</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js CDN (Untuk Toggle Sidebar Mobile & Dropdown Menu) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Google Fonts -->
@@ -48,6 +46,7 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gradient-to-br bg-white text-slate-800 antialiased min-h-screen flex flex-col" x-data="{ sidebarOpen: false }">
 
