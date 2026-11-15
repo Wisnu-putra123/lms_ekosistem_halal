@@ -16,21 +16,18 @@ use App\Http\Controllers\Teacher\MaterialController;
 use App\Http\Controllers\Teacher\SubmissionGradingController;
 use App\Http\Controllers\Teacher\QuizController;
 use App\Http\Controllers\Teacher\QuestionController;
-use \App\Http\Controllers\Teacher\GradebookController;
-use \App\Http\Controllers\Teacher\TeacherDashboardController;
+use App\Http\Controllers\Teacher\GradebookController;
+use App\Http\Controllers\Teacher\TeacherDashboardController;
 
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
-use App\Http\Controllers\Student\TaskSubmissionController as StudentTaskSubmissionController;
 use App\Http\Controllers\Student\MaterialController as StudentMaterialController;
 use App\Http\Controllers\Student\TaskSubmissionController;
 use App\Http\Controllers\Student\StudentQuizController;
 use App\Http\Controllers\Student\StudentGradebookController;
 use App\Http\Controllers\Student\StudentDashboardController;
-use App\Http\Controllers\Student\CertificateController;
 use App\Http\Controllers\Student\CertificateController as StudentCertificateController;
 
 use Illuminate\Support\Facades\Route;
-
 
 // Redirect root to home
 Route::get('/', function () {
@@ -45,15 +42,12 @@ Route::get('/verify-certificate/{code?}', [CertificateVerificationController::cl
 
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
-    // User Login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 
-    // User Registration
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
-
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
@@ -67,10 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::delete('/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
 
-    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    // Admin Protected User Management (CRUD)
-    Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // =========================================================================
+    // ADMIN ROUTES
+    // =========================================================================
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -90,13 +84,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/certificates/{certificate}/regenerate', [AdminCertificateController::class, 'regenerate'])->name('certificates.regenerate');
     });
 
-
-
-
-    Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    // =========================================================================
+    // STUDENT ROUTES
+    // =========================================================================
+    Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
-        // Rute Katalog & Pendaftaran (TIDAK boleh dibatasi course.access.valid)
+        // Rute Katalog & Pendaftaran (TIDAK dibatasi course.access.valid)
         Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/category/{category}', [StudentCourseController::class, 'index'])->name('courses.category');
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
@@ -106,10 +100,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/certificates/{id}', [StudentCertificateController::class, 'show'])->name('certificates.show');
         Route::get('/certificates/{id}/download', [StudentCertificateController::class, 'download'])->name('certificates.download');
 
-        // Rute yang WAJIB memiliki akses kelas aktif (dilindungi course.access.valid)
+        // Rute yang WAJIB memiliki akses kelas aktif
         Route::middleware('course.access.valid')->group(function () {
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
-
             Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
 
             Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
@@ -132,73 +125,75 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-
-
-
-    Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+    // =========================================================================
+    // TEACHER ROUTES
+    // =========================================================================
+    Route::middleware('role:teacher')->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
-        
-        //Course Management
-        // Route Course Management (Mendukung query parameter ?category=penyelia_halal)
-        Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
 
-        // (Opsional) Route khusus jika ingin URL berbentuk /teacher/courses/category/penyelia_halal
+        // Daftar Kelas & Pembuatan Kelas Baru (TIDAK dibatasi teacher.course.access)
+        Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/category/{category}', [TeacherCourseController::class, 'index'])->name('courses.category');
-        // Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
         Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
         Route::post('/courses', [TeacherCourseController::class, 'store'])->name('courses.store');
-        Route::get('/courses/{course}', [TeacherCourseController::class, 'show'])->name('courses.show');
-        Route::get('/courses/{course}/edit', [TeacherCourseController::class, 'edit'])->name('courses.edit');
-        Route::put('/courses/{course}', [TeacherCourseController::class, 'update'])->name('courses.update');
-        Route::delete('/courses/{course}', [TeacherCourseController::class, 'destroy'])->name('courses.destroy');
-        Route::post('/courses/{course}/regenerate-key', [TeacherCourseController::class, 'regenerateKey'])->name('courses.regenerateKey');
 
-        // CRUD Pertemuan (Meetings)
-        Route::post('/courses/{course}/meetings', [MeetingController::class, 'store'])->name('courses.meetings.store');
-        Route::put('/meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
-        Route::delete('/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
-        
-        // Manajement Materi
-        Route::get('/meetings/{meeting}/materials/create', [MaterialController::class, 'create'])->name('meetings.materials.create');
-        Route::post('/meetings/{meeting}/materials', [MaterialController::class, 'store'])->name('meetings.materials.store');
-        Route::get('/materials/{material}', [MaterialController::class, 'show'])->name('materials.show');
-        Route::get('/materials/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
-        Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
-        Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+        // Rute yang WAJIB dimiliki / diampu oleh Teacher tersebut
+        Route::middleware('teacher.course.access')->group(function () {
+            
+            // Detail & Pengaturan Course
+            Route::get('/courses/{course}', [TeacherCourseController::class, 'show'])->name('courses.show');
+            Route::get('/courses/{course}/edit', [TeacherCourseController::class, 'edit'])->name('courses.edit');
+            Route::put('/courses/{course}', [TeacherCourseController::class, 'update'])->name('courses.update');
+            Route::delete('/courses/{course}', [TeacherCourseController::class, 'destroy'])->name('courses.destroy');
+            Route::post('/courses/{course}/regenerate-key', [TeacherCourseController::class, 'regenerateKey'])->name('courses.regenerateKey');
 
-        // Management Assignment Submission
-        Route::get('/meetings/{meeting}/assignments/create', [SubmissionController::class, 'create'])->name('meetings.assignments.create');
-        Route::post('/meetings/{meeting}/assignments', [SubmissionController::class, 'store'])->name('meetings.assignments.store');
-        Route::get('/assignments/{assignment}', [SubmissionController::class, 'show'])->name('assignments.show');
-        Route::get('/assignments/{assignment}/edit', [SubmissionController::class, 'edit'])->name('assignments.edit');
-        Route::put('/assignments/{assignment}', [SubmissionController::class, 'update'])->name('assignments.update');
-        Route::delete('/assignments/{assignment}', [SubmissionController::class, 'destroy'])->name('assignments.destroy');
+            // CRUD Pertemuan (Meetings)
+            Route::post('/courses/{course}/meetings', [MeetingController::class, 'store'])->name('courses.meetings.store');
+            Route::put('/meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
+            Route::delete('/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
 
-        // Penilaian Submission oleh Teacher
-        Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
-        Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
-        Route::get('/submissions/{submission}/media/{media}/download', [SubmissionGradingController::class, 'downloadMedia'])->name('submissions.media.download');
-        Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
-        Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook.show');
-        Route::get('/courses/{course}/gradebook/export', [GradebookController::class, 'exportCsv'])->name('courses.gradebook.export');
-        Route::get('/courses/{course}/gradebook/assignments/{assignment}/enrollments/{enrollment}', [GradebookController::class, 'studentDetail'])->name('courses.gradebook.student_detail');
+            // Manajemen Materi (Materials)
+            Route::get('/meetings/{meeting}/materials/create', [MaterialController::class, 'create'])->name('meetings.materials.create');
+            Route::post('/meetings/{meeting}/materials', [MaterialController::class, 'store'])->name('meetings.materials.store');
+            Route::get('/materials/{material}', [MaterialController::class, 'show'])->name('materials.show');
+            Route::get('/materials/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
+            Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
+            Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
 
-        // Quiz Management
-        Route::get('/meetings/{meeting}/quizzes/create', [QuizController::class, 'create'])->name('meetings.quizzes.create');
-        Route::post('/meetings/{meeting}/quizzes', [QuizController::class, 'store'])->name('meetings.quizzes.store');
-        Route::get('/quizzes/{assignment}', [QuizController::class, 'show'])->name('quizzes.show');
-        Route::get('/quizzes/{assignment}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-        Route::put('/quizzes/{assignment}', [QuizController::class, 'update'])->name('quizzes.update');
-        Route::delete('/quizzes/{assignment}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
-        Route::get('/quiz-attempts/{attempt}', [QuizController::class, 'showAttempt'])->name('quizzes.attempts.show');
-        Route::delete('/quiz-attempts/{attempt}', [QuizController::class, 'destroyAttempt'])->name('quizzes.attempts.destroy');
+            // Manajemen Assignment Submission
+            Route::get('/meetings/{meeting}/assignments/create', [SubmissionController::class, 'create'])->name('meetings.assignments.create');
+            Route::post('/meetings/{meeting}/assignments', [SubmissionController::class, 'store'])->name('meetings.assignments.store');
+            Route::get('/assignments/{assignment}', [SubmissionController::class, 'show'])->name('assignments.show');
+            Route::get('/assignments/{assignment}/edit', [SubmissionController::class, 'edit'])->name('assignments.edit');
+            Route::put('/assignments/{assignment}', [SubmissionController::class, 'update'])->name('assignments.update');
+            Route::delete('/assignments/{assignment}', [SubmissionController::class, 'destroy'])->name('assignments.destroy');
 
-        // Bank Soal Management (Questions)
-        Route::get('/quizzes/{assignment}/questions/create', [QuestionController::class, 'create'])->name('quizzes.questions.create');
-        Route::post('/quizzes/{assignment}/questions', [QuestionController::class, 'store'])->name('quizzes.questions.store');
-        Route::get('/quizzes/{assignment}/questions/{question}/edit', [QuestionController::class, 'edit'])->name('quizzes.questions.edit');
-        Route::put('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'update'])->name('quizzes.questions.update');
-        Route::delete('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'destroy'])->name('quizzes.questions.destroy');
+            // Penilaian Submission & Gradebook
+            Route::get('/submissions/{submission}/grade', [SubmissionGradingController::class, 'edit'])->name('submissions.grade');
+            Route::put('/submissions/{submission}/grade', [SubmissionGradingController::class, 'update'])->name('submissions.update-grade');
+            Route::get('/submissions/{submission}/media/{media}/download', [SubmissionGradingController::class, 'downloadMedia'])->name('submissions.media.download');
+            Route::delete('/submissions/{submission}', [SubmissionGradingController::class, 'destroy'])->name('submissions.destroy');
+
+            Route::get('/courses/{course}/gradebook', [GradebookController::class, 'show'])->name('courses.gradebook.show');
+            Route::get('/courses/{course}/gradebook/export', [GradebookController::class, 'exportCsv'])->name('courses.gradebook.export');
+            Route::get('/courses/{course}/gradebook/assignments/{assignment}/enrollments/{enrollment}', [GradebookController::class, 'studentDetail'])->name('courses.gradebook.student_detail');
+
+            // Manajemen Quiz & Attempt
+            Route::get('/meetings/{meeting}/quizzes/create', [QuizController::class, 'create'])->name('meetings.quizzes.create');
+            Route::post('/meetings/{meeting}/quizzes', [QuizController::class, 'store'])->name('meetings.quizzes.store');
+            Route::get('/quizzes/{assignment}', [QuizController::class, 'show'])->name('quizzes.show');
+            Route::get('/quizzes/{assignment}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
+            Route::put('/quizzes/{assignment}', [QuizController::class, 'update'])->name('quizzes.update');
+            Route::delete('/quizzes/{assignment}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+            Route::get('/quiz-attempts/{attempt}', [QuizController::class, 'showAttempt'])->name('quizzes.attempts.show');
+            Route::delete('/quiz-attempts/{attempt}', [QuizController::class, 'destroyAttempt'])->name('quizzes.attempts.destroy');
+
+            // Bank Soal (Questions)
+            Route::get('/quizzes/{assignment}/questions/create', [QuestionController::class, 'create'])->name('quizzes.questions.create');
+            Route::post('/quizzes/{assignment}/questions', [QuestionController::class, 'store'])->name('quizzes.questions.store');
+            Route::get('/quizzes/{assignment}/questions/{question}/edit', [QuestionController::class, 'edit'])->name('quizzes.questions.edit');
+            Route::put('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'update'])->name('quizzes.questions.update');
+            Route::delete('/quizzes/{assignment}/questions/{question}', [QuestionController::class, 'destroy'])->name('quizzes.questions.destroy');
+        });
     });
 });
-

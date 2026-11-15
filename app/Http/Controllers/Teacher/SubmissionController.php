@@ -17,13 +17,13 @@ class SubmissionController extends Controller
 {
     public function create(Meeting $meeting)
     {
-        $this->authorizeAccess($meeting->course);
+        // $this->authorizeAccess($meeting->course);
         return view('teacher.submissions.create', compact('meeting'));
     }
 
     public function store(Request $request, Meeting $meeting)
     {
-        $this->authorizeAccess($meeting->course);
+        // $this->authorizeAccess($meeting->course);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -99,7 +99,7 @@ class SubmissionController extends Controller
      */
     public function show(Request $request, Assignment $assignment)
     {
-        $this->authorizeAccess($assignment->course);
+        // $this->authorizeAccess($assignment->course);
 
         $assignment->load(['attachments.media', 'meeting']);
 
@@ -163,14 +163,14 @@ class SubmissionController extends Controller
 
     public function edit(Assignment $assignment)
     {
-        $this->authorizeAccess($assignment->course);
+        // $this->authorizeAccess($assignment->course);
         $assignment->load(['attachments.media']);
         return view('teacher.submissions.edit', compact('assignment'));
     }
 
     public function update(Request $request, Assignment $assignment)
     {
-        $this->authorizeAccess($assignment->course);
+        // $this->authorizeAccess($assignment->course);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -252,7 +252,7 @@ class SubmissionController extends Controller
 
     public function destroy(Assignment $assignment)
     {
-        $this->authorizeAccess($assignment->course);
+        // $this->authorizeAccess($assignment->course);
 
         DB::beginTransaction();
         try {
@@ -279,14 +279,14 @@ class SubmissionController extends Controller
         }
     }
 
-    private function authorizeAccess($course): void
-    {
-        $userId = Auth::id();
-        $isCreator = $course->created_by === $userId;
-        $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
+    // private function authorizeAccess($course): void
+    // {
+    //     $userId = Auth::id();
+    //     $isCreator = $course->created_by === $userId;
+    //     $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
 
-        if (!$isCreator && !$isInstructor) {
-            abort(403, 'Anda tidak memiliki akses ke kelas ini.');
-        }
-    }
+    //     if (!$isCreator && !$isInstructor) {
+    //         abort(403, 'Anda tidak memiliki akses ke kelas ini.');
+    //     }
+    // }
 }

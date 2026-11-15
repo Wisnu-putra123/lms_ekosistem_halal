@@ -19,6 +19,9 @@ class SubmissionGradingController extends Controller
      */
     public function edit(AssignmentSubmission $submission)
     {
+        // Otorisasi Akses Pengajar
+        // $this->authorizeAccess($submission->assignment->course);
+
         $submission->load([
             'assignment.course', 
             'assignment.meeting', 
@@ -27,9 +30,6 @@ class SubmissionGradingController extends Controller
             'feedbackAttachments.media',
             'grader'
         ]);
-
-        // Otorisasi Akses Pengajar
-        $this->authorizeAccess($submission->assignment->course);
 
         // Ambil seluruh attempt submission dari siswa (enrollment) yang sama pada tugas ini
         $allAttempts = AssignmentSubmission::with('grader')
@@ -49,8 +49,9 @@ class SubmissionGradingController extends Controller
      */
     public function update(Request $request, AssignmentSubmission $submission)
     {
+        // $this->authorizeAccess($submission->assignment->course);
+
         $submission->load(['assignment.course', 'enrollment']);
-        $this->authorizeAccess($submission->assignment->course);
 
         // Cegah perubahan nilai & feedback jika status enrollment sudah completed atau dropped
         if (in_array($submission->enrollment?->status, ['completed', 'dropped'], true)) {
@@ -139,8 +140,9 @@ class SubmissionGradingController extends Controller
      */
     public function downloadMedia(AssignmentSubmission $submission, Media $media)
     {
+        // $this->authorizeAccess($submission->assignment->course);
+
         $submission->load(['assignment.course', 'attachments', 'feedbackAttachments']);
-        $this->authorizeAccess($submission->assignment->course);
 
         $isAttached = $submission->attachments->contains('media_id', $media->id)
             || $submission->feedbackAttachments->contains('media_id', $media->id);
@@ -161,8 +163,9 @@ class SubmissionGradingController extends Controller
      */
     public function destroy(AssignmentSubmission $submission)
     {
+        // $this->authorizeAccess($submission->assignment->course);
+
         $submission->load(['assignment.course', 'enrollment', 'attachments.media', 'feedbackAttachments.media']);
-        $this->authorizeAccess($submission->assignment->course);
 
         if (in_array($submission->enrollment?->status, ['completed', 'dropped'], true)) {
             return back()->with('error', 'Attempt submission tidak dapat dihapus karena status enrollment siswa sudah ' . strtoupper($submission->enrollment->status) . '.');
@@ -205,14 +208,14 @@ class SubmissionGradingController extends Controller
         }
     }
 
-    private function authorizeAccess($course): void
-    {
-        $userId = Auth::id();
-        $isCreator = $course->created_by === $userId;
-        $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
+    // private function authorizeAccess($course): void
+    // {
+    //     $userId = Auth::id();
+    //     $isCreator = $course->created_by === $userId;
+    //     $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
 
-        if (!$isCreator && !$isInstructor) {
-            abort(403, 'Anda tidak memiliki akses ke kelas ini.');
-        }
-    }
+    //     if (!$isCreator && !$isInstructor) {
+    //         abort(403, 'Anda tidak memiliki akses ke kelas ini.');
+    //     }
+    // }
 }

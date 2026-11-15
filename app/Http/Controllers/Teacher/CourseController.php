@@ -180,7 +180,7 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         $course->load(['meetings', 'thumbnail', 'certificateBackground', 'instructors']);
         return view('teacher.courses.show', compact('course'));
@@ -188,7 +188,7 @@ class CourseController extends Controller
 
     public function edit(Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         $teachers = User::where('role', 'teacher')
             ->where('id', '!=', $course->created_by)
@@ -205,7 +205,7 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -303,7 +303,7 @@ class CourseController extends Controller
 
     public function regenerateKey(Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         $newKey = Course::generateEnrollmentKey();
         $course->update(['enrollment_key' => $newKey]);
@@ -313,7 +313,7 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
-        $this->authorizeAccess($course);
+        // $this->authorizeAccess($course);
 
         if ($course->thumbnail) {
             Storage::disk('public')->delete($course->thumbnail->file_path);
@@ -331,14 +331,14 @@ class CourseController extends Controller
             ->with('success', 'Pelatihan berhasil dihapus.');
     }
 
-    private function authorizeAccess(Course $course): void
-    {
-        $userId = Auth::id();
-        $isCreator = $course->created_by === $userId;
-        $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
+    // private function authorizeAccess(Course $course): void
+    // {
+    //     $userId = Auth::id();
+    //     $isCreator = $course->created_by === $userId;
+    //     $isInstructor = $course->instructors()->where('user_id', $userId)->exists();
 
-        if (!$isCreator && !$isInstructor) {
-            abort(403, 'Anda tidak memiliki akses ke kursus ini.');
-        }
-    }
+    //     if (!$isCreator && !$isInstructor) {
+    //         abort(403, 'Anda tidak memiliki akses ke kursus ini.');
+    //     }
+    // }
 }
