@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -16,14 +15,14 @@ class ProfileController extends Controller
      */
     public function edit(Request $request)
     {
-        // Load relasi foto profil dan berkas KTP dari tabel media
-        $user = $request->user()->load(['profilePhotoMedia', 'ktpMedia']);
+        // Load seluruh relasi dokumen media (Foto Profil, KTP, KK, dan Ijazah)
+        $user = $request->user()->load(['profilePhotoMedia', 'ktpMedia', 'kkMedia', 'ijazahMedia']);
 
         return view('profile.edit', compact('user'));
     }
 
     /**
-     * Perbarui data informasi profil pengguna (Nama, Email, Foto Profil, Telepon, NIK, Berkas KTP, KK, Alamat, Instansi).
+     * Perbarui data informasi profil pengguna.
      */
     public function update(Request $request)
     {
@@ -32,12 +31,14 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name'               => ['required', 'string', 'max:255'],
             'email'              => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'profile_photo'      => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'], // Maksimal 2MB
+            'profile_photo'      => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'phone'              => ['required', 'string', 'max:20'],
             'nik'                => ['required', 'string', 'size:16'],
-            'ktp'                => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'], // Opsional saat update profil
+            'ktp'                => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'],
             'family_card_number' => ['required', 'string', 'size:16'],
-            // 'kk'              => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'], // Jika kelak beralih ke upload foto KK
+            'kk'                 => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'],
+            'ijazah_number'      => ['required', 'string', 'max:100'],
+            'ijazah'             => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:2048'],
             'address'            => ['required', 'string'],
             'institution'        => ['required', 'string', 'max:255'],
         ], [
@@ -57,20 +58,27 @@ class ProfileController extends Controller
             'ktp.max'                     => 'Ukuran berkas KTP maksimal 2MB.',
             'family_card_number.required' => 'Nomor Kartu Keluarga (KK) wajib diisi.',
             'family_card_number.size'     => 'Nomor Kartu Keluarga (KK) harus terdiri dari 16 digit.',
+            'kk.mimes'                    => 'Format berkas KK harus berupa JPEG, PNG, JPG, atau PDF.',
+            'kk.max'                      => 'Ukuran berkas KK maksimal 2MB.',
+            'ijazah_number.required'      => 'Nomor Ijazah wajib diisi.',
+            'ijazah_number.max'           => 'Nomor Ijazah maksimal 100 karakter.',
+            'ijazah.mimes'                => 'Format berkas Ijazah harus berupa JPEG, PNG, JPG, atau PDF.',
+            'ijazah.max'                  => 'Ukuran berkas Ijazah maksimal 2MB.',
             'address.required'            => 'Alamat lengkap wajib diisi.',
             'institution.required'        => 'Asal instansi wajib diisi.',
         ]);
 
         $profileMediaId = $user->profile_photo;
-        $ktpMediaId = $user->ktp_media_id;
+        $ktpMediaId     = $user->ktp_media_id;
+        $kkMediaId      = $user->kk_media_id;
+        $ijazahMediaId  = $user->ijazah_media_id;
 
         // 1. Proses unggah foto profil jika ada berkas baru
         if ($request->hasFile('profile_photo')) {
-            $fileProfile = $request->file('profile_photo');
+            $fileProfile     = $request->file('profile_photo');
             $fileNameProfile = time() . '_' . $fileProfile->getClientOriginalName();
             $filePathProfile = $fileProfile->storeAs('profile-photos', $fileNameProfile, 'public');
 
-            // Hapus foto profil lama jika ada
             if ($user->profilePhotoMedia) {
                 if (Storage::disk('public')->exists($user->profilePhotoMedia->file_path)) {
                     Storage::disk('public')->delete($user->profilePhotoMedia->file_path);
@@ -78,7 +86,6 @@ class ProfileController extends Controller
                 $user->profilePhotoMedia->delete();
             }
 
-            // Buat record media baru untuk foto profil
             $mediaProfile = Media::create([
                 'type'        => 'image',
                 'file_name'   => $fileProfile->getClientOriginalName(),
@@ -93,11 +100,10 @@ class ProfileController extends Controller
 
         // 2. Proses unggah/replace berkas KTP baru jika ada
         if ($request->hasFile('ktp')) {
-            $fileKtp = $request->file('ktp');
+            $fileKtp     = $request->file('ktp');
             $fileNameKtp = time() . '_ktp_' . $fileKtp->getClientOriginalName();
             $filePathKtp = $fileKtp->storeAs('ktp', $fileNameKtp, 'public');
 
-            // Hapus berkas KTP lama dari storage & database jika ada
             if ($user->ktpMedia) {
                 if (Storage::disk('public')->exists($user->ktpMedia->file_path)) {
                     Storage::disk('public')->delete($user->ktpMedia->file_path);
@@ -105,7 +111,6 @@ class ProfileController extends Controller
                 $user->ktpMedia->delete();
             }
 
-            // Buat record media baru untuk KTP
             $mediaKtp = Media::create([
                 'type'        => str_contains($fileKtp->getMimeType(), 'pdf') ? 'document' : 'image',
                 'file_name'   => $fileKtp->getClientOriginalName(),
@@ -118,31 +123,57 @@ class ProfileController extends Controller
             $ktpMediaId = $mediaKtp->id;
         }
 
-        /* 
-        |--------------------------------------------------------------------------
-        | PROSES UPDATE BERKAS KK (JIKA KELAK DIPERLUKAN KEMBALI)
-        |--------------------------------------------------------------------------
-        | $kkMediaId = $user->kk_media_id;
-        | if ($request->hasFile('kk')) {
-        |     $fileKk = $request->file('kk');
-        |     $filePathKk = $fileKk->store('kk', 'public');
-        |     if ($user->kkMedia) {
-        |         Storage::disk('public')->delete($user->kkMedia->file_path);
-        |         $user->kkMedia->delete();
-        |     }
-        |     $mediaKk = Media::create([
-        |         'type'        => 'image',
-        |         'file_name'   => $fileKk->getClientOriginalName(),
-        |         'file_path'   => $filePathKk,
-        |         'file_size'   => $fileKk->getSize(),
-        |         'mime_type'   => $fileKk->getMimeType(),
-        |         'uploaded_by' => $user->id,
-        |     ]);
-        |     $kkMediaId = $mediaKk->id;
-        | }
-        */
+        // 3. Proses unggah/replace berkas KK baru jika ada
+        if ($request->hasFile('kk')) {
+            $fileKk     = $request->file('kk');
+            $fileNameKk = time() . '_kk_' . $fileKk->getClientOriginalName();
+            $filePathKk = $fileKk->storeAs('kk', $fileNameKk, 'public');
 
-        // 3. Update data user
+            if ($user->kkMedia) {
+                if (Storage::disk('public')->exists($user->kkMedia->file_path)) {
+                    Storage::disk('public')->delete($user->kkMedia->file_path);
+                }
+                $user->kkMedia->delete();
+            }
+
+            $mediaKk = Media::create([
+                'type'        => str_contains($fileKk->getMimeType(), 'pdf') ? 'document' : 'image',
+                'file_name'   => $fileKk->getClientOriginalName(),
+                'file_path'   => $filePathKk,
+                'file_size'   => $fileKk->getSize(),
+                'mime_type'   => $fileKk->getMimeType(),
+                'uploaded_by' => $user->id,
+            ]);
+
+            $kkMediaId = $mediaKk->id;
+        }
+
+        // 4. Proses unggah/replace berkas Ijazah baru jika ada
+        if ($request->hasFile('ijazah')) {
+            $fileIjazah     = $request->file('ijazah');
+            $fileNameIjazah = time() . '_ijazah_' . $fileIjazah->getClientOriginalName();
+            $filePathIjazah = $fileIjazah->storeAs('ijazah', $fileNameIjazah, 'public');
+
+            if ($user->ijazahMedia) {
+                if (Storage::disk('public')->exists($user->ijazahMedia->file_path)) {
+                    Storage::disk('public')->delete($user->ijazahMedia->file_path);
+                }
+                $user->ijazahMedia->delete();
+            }
+
+            $mediaIjazah = Media::create([
+                'type'        => str_contains($fileIjazah->getMimeType(), 'pdf') ? 'document' : 'image',
+                'file_name'   => $fileIjazah->getClientOriginalName(),
+                'file_path'   => $filePathIjazah,
+                'file_size'   => $fileIjazah->getSize(),
+                'mime_type'   => $fileIjazah->getMimeType(),
+                'uploaded_by' => $user->id,
+            ]);
+
+            $ijazahMediaId = $mediaIjazah->id;
+        }
+
+        // 5. Update data user
         $user->update([
             'name'               => $validated['name'],
             'email'              => $validated['email'],
@@ -151,7 +182,9 @@ class ProfileController extends Controller
             'nik'                => $validated['nik'],
             'ktp_media_id'       => $ktpMediaId,
             'family_card_number' => $validated['family_card_number'],
-            // 'kk_media_id'      => $kkMediaId,
+            'kk_media_id'        => $kkMediaId,
+            'ijazah_number'      => $validated['ijazah_number'],
+            'ijazah_media_id'    => $ijazahMediaId,
             'address'            => $validated['address'],
             'institution'        => $validated['institution'],
         ]);
@@ -199,19 +232,15 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->profile_photo) {
-            // Ambil data media
             $media = Media::find($user->profile_photo);
 
             if ($media) {
-                // 1. Hapus berkas fisik dari storage
                 if (Storage::disk('public')->exists($media->file_path)) {
                     Storage::disk('public')->delete($media->file_path);
                 }
-                // 2. Hapus record dari tabel media
                 $media->delete();
             }
 
-            // 3. Set kolom profile_photo di tabel users menjadi null
             $user->update([
                 'profile_photo' => null,
             ]);
