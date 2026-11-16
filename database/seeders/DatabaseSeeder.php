@@ -14,18 +14,34 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@email.com'],
+            ['email' => 'admin1@email.com'],
             [
-                'name' => 'Administrator',
+                'name' => 'Administrator 1',
+                'password' => bcrypt('12345678'),
+                'role' => 'admin',
+            ]
+        );
+        User::updateOrCreate(
+            ['email' => 'admin2@email.com'],
+            [
+                'name' => 'Administrator 2',
+                'password' => bcrypt('12345678'),
+                'role' => 'admin',
+            ]
+        );
+        User::updateOrCreate(
+            ['email' => 'admin3@email.com'],
+            [
+                'name' => 'Administrator 3',
                 'password' => bcrypt('12345678'),
                 'role' => 'admin',
             ]
         );
 
         User::updateOrCreate(
-            ['email' => 'student@email.com'],
+            ['email' => 'student1@email.com'],
             [
-                'name' => 'Siswa Example',
+                'name' => 'Siswa Example 1',
                 'password' => bcrypt('12345678'),
                 'role' => 'student',
             ]
@@ -34,24 +50,25 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'student2@email.com'],
             [
-                'name' => 'Siswa2 Example',
+                'name' => 'Siswa2 Example 2',
                 'password' => bcrypt('12345678'),
                 'role' => 'student',
             ]
         );
 
         User::updateOrCreate(
-            ['email' => 'teacher@email.com'],
+            ['email' => 'student3@email.com'],
             [
-                'name' => 'Guru Example',
+                'name' => 'Siswa2 Example 3',
                 'password' => bcrypt('12345678'),
-                'role' => 'teacher',
+                'role' => 'student',
             ]
         );
+
         User::updateOrCreate(
             ['email' => 'teacher1@email.com'],
             [
-                'name' => 'Guru Example',
+                'name' => 'Guru Example 1',
                 'password' => bcrypt('12345678'),
                 'role' => 'teacher',
             ]
@@ -59,7 +76,15 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'teacher2@email.com'],
             [
-                'name' => 'Guru Example',
+                'name' => 'Guru Example 2',
+                'password' => bcrypt('12345678'),
+                'role' => 'teacher',
+            ]
+        );
+        User::updateOrCreate(
+            ['email' => 'teacher3@email.com'],
+            [
+                'name' => 'Guru Example 3',
                 'password' => bcrypt('12345678'),
                 'role' => 'teacher',
             ]

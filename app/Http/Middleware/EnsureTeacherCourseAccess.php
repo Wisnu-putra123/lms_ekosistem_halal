@@ -2,7 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Assignment;
 use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\Material;
+use App\Models\Meeting;
+use App\Models\Question;
+use App\Models\QuizAttempt;
+use App\Models\AssignmentSubmission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,15 +31,20 @@ class EnsureTeacherCourseAccess
             }
 
             // Validasi parameter bersarang (Nested Parameter Integrity)
-            if ($assignment = $request->route('assignment')) {
-                if ((int) $assignment->course_id !== (int) $course->id) {
+            if ($assignmentParam = $request->route('assignment')) {
+                $assignment = $assignmentParam instanceof Assignment
+                    ? $assignmentParam
+                    : Assignment::find($assignmentParam);
+
+                if (!$assignment || (int) $assignment->course_id !== (int) $course->id) {
                     abort(404);
                 }
 
                 // Pastikan soal (question) benar-benar bagian dari kuis ini
-                if ($question = $request->route('question')) {
+                if ($questionParam = $request->route('question')) {
+                    $questionId = $questionParam instanceof Question ? $questionParam->id : $questionParam;
                     $belongsToQuiz = $assignment->quiz?->questions()
-                        ->where('questions.id', $question->id)
+                        ->where('questions.id', $questionId)
                         ->exists();
 
                     if (!$belongsToQuiz) {
@@ -41,8 +53,12 @@ class EnsureTeacherCourseAccess
                 }
             }
 
-            if ($enrollment = $request->route('enrollment')) {
-                if ((int) $enrollment->course_id !== (int) $course->id) {
+            if ($enrollmentParam = $request->route('enrollment')) {
+                $enrollment = $enrollmentParam instanceof Enrollment
+                    ? $enrollmentParam
+                    : Enrollment::find($enrollmentParam);
+
+                if (!$enrollment || (int) $enrollment->course_id !== (int) $course->id) {
                     abort(404);
                 }
             }
@@ -58,23 +74,28 @@ class EnsureTeacherCourseAccess
         }
 
         if ($meeting = $request->route('meeting')) {
-            return $meeting->course;
+            $model = $meeting instanceof Meeting ? $meeting : Meeting::find($meeting);
+            return $model?->course;
         }
 
         if ($material = $request->route('material')) {
-            return $material->meeting?->course;
+            $model = $material instanceof Material ? $material : Material::find($material);
+            return $model?->meeting?->course;
         }
 
         if ($assignment = $request->route('assignment')) {
-            return $assignment->course;
+            $model = $assignment instanceof Assignment ? $assignment : Assignment::find($assignment);
+            return $model?->course;
         }
 
         if ($submission = $request->route('submission')) {
-            return $submission->assignment?->course;
+            $model = $submission instanceof AssignmentSubmission ? $submission : AssignmentSubmission::find($submission);
+            return $model?->assignment?->course;
         }
 
         if ($attempt = $request->route('attempt')) {
-            return $attempt->quiz?->assignment?->course;
+            $model = $attempt instanceof QuizAttempt ? $attempt : QuizAttempt::find($attempt);
+            return $model?->quiz?->assignment?->course;
         }
 
         return null;
