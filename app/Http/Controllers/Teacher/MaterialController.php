@@ -31,7 +31,7 @@ class MaterialController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'media_type' => 'nullable|in:file,embed',
+            'media_type' => 'nullable|in:file,embed,none',
             'external_url' => 'nullable|required_if:media_type,embed|url',
             'file' => 'nullable|required_if:media_type,file|file|mimes:pdf,doc,docx,ppt,pptx,zip,rar,png,jpg,jpeg|max:20480',
             'sort_order' => 'nullable|integer',
