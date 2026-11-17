@@ -8,6 +8,9 @@ use App\Http\Controllers\HomeController;
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CertificateController as AdminCertificateController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\EnrollmentController as AdminEnrollmentController;
 
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\SubmissionController;
@@ -65,14 +68,19 @@ Route::middleware('auth')->group(function () {
     // ADMIN ROUTES
     // =========================================================================
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        // Manajemen Pengguna (Admin)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.updateRole');
+        Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
+        Route::delete('/users/{user}/photo', [UserController::class, 'destroyPhoto'])->name('users.photo.destroy');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('/certificates', [AdminCertificateController::class, 'index'])->name('certificates.index');
@@ -82,6 +90,28 @@ Route::middleware('auth')->group(function () {
         Route::post('/certificates/{certificate}/upload-signed', [AdminCertificateController::class, 'uploadSigned'])->name('certificates.upload-signed');
         Route::post('/certificates/bulk-upload-signed', [AdminCertificateController::class, 'bulkUploadSigned'])->name('certificates.bulk-upload-signed');
         Route::post('/certificates/{certificate}/regenerate', [AdminCertificateController::class, 'regenerate'])->name('certificates.regenerate');
+
+        // Manajemen Pelatihan (Courses)
+        Route::get('/courses', [AdminCourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/create', [AdminCourseController::class, 'create'])->name('courses.create');
+        Route::post('/courses', [AdminCourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course}', [AdminCourseController::class, 'show'])->name('courses.show');
+        Route::get('/courses/{course}/edit', [AdminCourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/courses/{course}', [AdminCourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course}', [AdminCourseController::class, 'destroy'])->name('courses.destroy');
+        Route::post('/courses/{course}/regenerate-key', [AdminCourseController::class, 'regenerateKey'])->name('courses.regenerateKey');
+
+        Route::get('/enrollments', [AdminEnrollmentController::class, 'index'])->name('enrollments.index');
+        Route::post('/enrollments', [AdminEnrollmentController::class, 'store'])->name('enrollments.store');
+        Route::post('/enrollments/bulk-access', [AdminEnrollmentController::class, 'bulkAccess'])->name('enrollments.bulkAccess');
+        Route::get('/enrollments/{enrollment}', [AdminEnrollmentController::class, 'show'])->name('enrollments.show');
+        Route::put('/enrollments/{enrollment}', [AdminEnrollmentController::class, 'update'])->name('enrollments.update');
+        Route::post('/enrollments/{enrollment}/recalculate', [AdminEnrollmentController::class, 'recalculateProgress'])->name('enrollments.recalculate');
+        Route::delete('/enrollments/{enrollment}/submissions/{submission}', [AdminEnrollmentController::class, 'resetSubmission'])->name('enrollments.submissions.reset');
+        Route::delete('/enrollments/{enrollment}/quiz-attempts/{attempt}', [AdminEnrollmentController::class, 'resetQuizAttempt'])->name('enrollments.quizAttempts.reset');
+        Route::delete('/enrollments/{enrollment}', [AdminEnrollmentController::class, 'destroy'])->name('enrollments.destroy');
+        Route::post('/enrollments/purge-expired-files', [AdminEnrollmentController::class, 'purgeExpiredFiles'])->name('enrollments.purgeExpiredFiles');
+        Route::delete('/enrollments/{enrollment}/purge-files', [AdminEnrollmentController::class, 'purgeFiles'])->name('enrollments.purgeFiles');
     });
 
     // =========================================================================
