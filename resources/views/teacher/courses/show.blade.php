@@ -16,7 +16,7 @@
      class="space-y-5 sm:space-y-6">
 
     <!-- Flash Session Success & Error Alerts -->
-    <!-- @if(session('success'))
+    @if(session('success'))
         <div class="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl flex items-center justify-between text-xs font-medium shadow-2xs">
             <div class="flex items-center space-x-2">
                 <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,7 +25,7 @@
                 <span>{{ session('success') }}</span>
             </div>
         </div>
-    @endif -->
+    @endif
 
     @if(session('error') || $errors->any())
         <div class="p-4 bg-red-50 border border-red-300 text-red-800 rounded-2xl space-y-1 text-xs font-medium shadow-2xs">
@@ -115,7 +115,7 @@
                         <form action="{{ route('teacher.courses.destroy', $course->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kursus ini beserta seluruh pertemuannya?')" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="p-1 text-emerald-100 hover:text-red-300 transition rounded-lg hover:bg-white/10" title="Hapus Kursus">
+                            <button type="submit" class="p-1 text-emerald-100 hover:text-red-300 transition rounded-lg hover:bg-white/10 cursor-pointer" title="Hapus Kursus">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
