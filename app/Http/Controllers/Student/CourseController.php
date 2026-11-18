@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\MaterialView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,15 +31,12 @@ class CourseController extends Controller
             ->where('user_id', $userId)
             ->whereIn('status', ['active', 'completed'])
             ->whereHas('course', function ($q) use ($search, $category) {
-                // Filter course yang statusnya published
                 $q->where('status', 'published');
 
-                // Filter berdasarkan kategori jika ada
                 if ($category) {
                     $q->where('category', $category);
                 }
 
-                // Filter pencarian berdasarkan judul atau kode
                 if ($search) {
                     $q->where(function ($querySearch) use ($search) {
                         $querySearch->where('title', 'like', "%{$search}%")
@@ -72,9 +70,8 @@ class CourseController extends Controller
             })
             ->latest()
             ->paginate(9)
-            ->withQueryString(); // Mempertahankan query param ?category=... & ?search=... pada pagination
+            ->withQueryString();
 
-        // Array label kategori untuk keperluan UI/Breadcrumb/Header
         $categoryLabels = [
             'penyelia_halal' => 'Penyelia Halal',
             'juleha'         => 'Juleha (Juru Sembelih Halal)',
@@ -95,7 +92,6 @@ class CourseController extends Controller
      */
     public function enroll(Request $request, Course $course)
     {
-        // Proteksi: Cek apakah course yang akan di-enroll berstatus published
         if ($course->status !== 'published') {
             return redirect()->route('student.courses.index')
                 ->with('error', 'Pelatihan ini sedang diarsipkan dan tidak menerima pendaftaran baru.');
@@ -107,24 +103,20 @@ class CourseController extends Controller
             'enrollment_key.required' => 'Enrollment Key wajib diisi.',
         ]);
 
-        // Verifikasi Enrollment Key
         if (strtoupper($request->enrollment_key) !== strtoupper($course->enrollment_key)) {
             return back()->withErrors(['enrollment_key' => 'Enrollment Key yang Anda masukkan salah.'])->withInput();
         }
 
-        // Cek enrollment terbaru milik user pada course ini
         $latestEnrollment = Enrollment::where('course_id', $course->id)
             ->where('user_id', Auth::id())
             ->latest()
             ->first();
 
-        // Jika aksesnya masih berlaku, langsung arahkan ke kelas tanpa buat enrollment baru
         if ($latestEnrollment && $latestEnrollment->isAccessValid()) {
             return redirect()->route('student.courses.show', $course->id)
                 ->with('info', 'Anda masih memiliki akses aktif dalam pelatihan ini.');
         }
 
-        // Jika tidak ada enrollment atau aksesnya sudah kedaluwarsa, buat enrollment baru
         Enrollment::create([
             'course_id'   => $course->id,
             'user_id'     => Auth::id(),
@@ -141,7 +133,6 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        // Proteksi: Cek apakah course berstatus published
         if ($course->status !== 'published') {
             return redirect()->route('student.courses.index')
                 ->with('error', 'Pelatihan ini sedang diarsipkan atau tidak tersedia untuk diakses.');
@@ -165,6 +156,17 @@ class CourseController extends Controller
             'instructors'
         ]);
 
-        return view('student.courses.show', compact('course', 'enrollment'));
+        // Ambil daftar ID materi yang sudah dipelajari pada enrollment ini
+        $viewedMaterialIds = $enrollment
+            ? MaterialView::where('enrollment_id', $enrollment->id)
+                ->pluck('material_id')
+                ->toArray()
+            : [];
+
+        return view('student.courses.show', compact(
+            'course',
+            'enrollment',
+            'viewedMaterialIds'
+        ));
     }
 }

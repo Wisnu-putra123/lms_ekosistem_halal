@@ -54,6 +54,10 @@ class Enrollment extends Model
         return $this->hasOne(Certificate::class);
     }
 
+    public function materialViews()
+    {
+        return $this->hasMany(MaterialView::class);
+    }
     // /**
     //  * Relasi ke Course Progress.
     //  */

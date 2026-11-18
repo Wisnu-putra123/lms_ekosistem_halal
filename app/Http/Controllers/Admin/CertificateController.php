@@ -288,10 +288,15 @@ class CertificateController extends Controller
         $baseName = pathinfo($filename, PATHINFO_FILENAME);
 
         // Pola 1: Format bawaan downloadZip -> Sertifikat_{courseCode}_{id}_{studentName}
-        if (preg_match('/^Sertifikat_[a-zA-Z0-9\-]+_(\d+)_/i', $baseName, $matches)) {
-            $cert = Certificate::find((int) $matches[1]);
-            if ($cert) {
-                return $cert;
+        // Karena courseCode bisa mengandung tahun (misal sjh_2026), ambil semua segmen angka di antara underscore
+        if (str_starts_with(strtolower($baseName), 'sertifikat_')) {
+            if (preg_match_all('/(?:^|_)(\d+)(?:_|$)/', $baseName, $allMatches)) {
+                foreach ($allMatches[1] as $candidateId) {
+                    $cert = Certificate::find((int) $candidateId);
+                    if ($cert) {
+                        return $cert;
+                    }
+                }
             }
         }
 

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Teacher;
 
+use App\Helpers\CourseProgressHelper;
+use App\Helpers\EmbedHelper;
 use App\Http\Controllers\Controller;
-use App\Models\Meeting;
+use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\Media;
-use App\Helpers\EmbedHelper;
+use App\Models\Meeting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,7 @@ class MaterialController extends Controller
     }
 
     /**
-     * Simpan materi baru.
+     * Simpan materi baru dan hitung ulang progres seluruh peserta aktif.
      */
     public function store(Request $request, Meeting $meeting)
     {
@@ -84,19 +86,122 @@ class MaterialController extends Controller
                 'sort_order' => $sortOrder,
                 'created_by' => Auth::id(),
             ]);
+
+            // Hitung ulang progres seluruh peserta aktif karena total item wajib bertambah
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($meeting->course_id);
         });
 
         return redirect()->route('teacher.courses.show', $meeting->course_id)
-            ->with('success', 'Materi berhasil ditambahkan!');
+            ->with('success', 'Materi berhasil ditambahkan dan progres peserta telah disesuaikan!');
     }
 
     /**
-     * Tampilkan detail materi.
+     * Tampilkan detail materi beserta tabel aktivitas belajar peserta (dengan filter & sortir).
      */
-    public function show(Material $material)
+    public function show(Request $request, Material $material)
     {
         $material->load(['meeting.course', 'media']);
-        return view('teacher.materials.show', compact('material'));
+        $courseId = $material->meeting->course_id;
+
+        // Parameter filter & sortir
+        $search           = trim((string) $request->input('search', ''));
+        $status           = $request->input('status', 'all');            // all | viewed | not_viewed
+        $enrollmentStatus = $request->input('enrollment_status', 'all'); // all | active | completed | dropped
+        $sort             = $request->input('sort', 'name');             // name | enrollment_status | viewed_at | status
+        $direction        = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        if (!in_array($status, ['all', 'viewed', 'not_viewed'], true)) {
+            $status = 'all';
+        }
+
+        if (!in_array($enrollmentStatus, ['all', 'active', 'completed', 'dropped'], true)) {
+            $enrollmentStatus = 'all';
+        }
+
+        if (!in_array($sort, ['name', 'enrollment_status', 'viewed_at', 'status'], true)) {
+            $sort = 'name';
+        }
+
+        // Ambil seluruh enrollment peserta pada course ini (termasuk active, completed, dropped)
+        $allEnrollments = Enrollment::with([
+            'user:id,name,email,nik,institution',
+            'materialViews' => function ($query) use ($material) {
+                $query->where('material_id', $material->id);
+            },
+        ])
+            ->where('course_id', $courseId)
+            ->get()
+            ->map(function ($enrollment) {
+                $viewRecord = $enrollment->materialViews->first();
+                $enrollment->has_viewed = !is_null($viewRecord);
+                $enrollment->viewed_at  = $viewRecord?->viewed_at;
+
+                return $enrollment;
+            });
+
+        // Statistik keseluruhan sebelum filter diterapkan
+        $totalStudents  = $allEnrollments->count();
+        $viewedCount    = $allEnrollments->where('has_viewed', true)->count();
+        $notViewedCount = $totalStudents - $viewedCount;
+        $completionRate = $totalStudents > 0 ? round(($viewedCount / $totalStudents) * 100, 1) : 0;
+
+        $stats = [
+            'total'           => $totalStudents,
+            'viewed'          => $viewedCount,
+            'not_viewed'      => $notViewedCount,
+            'completion_rate' => $completionRate,
+        ];
+
+        // Terapkan filter pencarian, status baca materi, & status enrollment
+        $filteredEnrollments = $allEnrollments->filter(function ($enrollment) use ($search, $status, $enrollmentStatus) {
+            if ($status === 'viewed' && !$enrollment->has_viewed) {
+                return false;
+            }
+
+            if ($status === 'not_viewed' && $enrollment->has_viewed) {
+                return false;
+            }
+
+            if ($enrollmentStatus !== 'all' && $enrollment->status !== $enrollmentStatus) {
+                return false;
+            }
+
+            if ($search !== '') {
+                $keyword     = mb_strtolower($search);
+                $name        = mb_strtolower($enrollment->user->name ?? '');
+                $email       = mb_strtolower($enrollment->user->email ?? '');
+                $nik         = mb_strtolower($enrollment->user->nik ?? '');
+                $institution = mb_strtolower($enrollment->user->institution ?? '');
+
+                return str_contains($name, $keyword)
+                    || str_contains($email, $keyword)
+                    || str_contains($nik, $keyword)
+                    || str_contains($institution, $keyword);
+            }
+
+            return true;
+        });
+
+        // Terapkan sortir
+        $sortedEnrollments = $filteredEnrollments->sortBy(function ($enrollment) use ($sort) {
+            return match ($sort) {
+                'enrollment_status' => $enrollment->status ?? '',
+                'viewed_at'         => $enrollment->viewed_at ? $enrollment->viewed_at->timestamp : 0,
+                'status'            => $enrollment->has_viewed ? 1 : 0,
+                default             => mb_strtolower($enrollment->user->name ?? ''),
+            };
+        }, SORT_REGULAR, $direction === 'desc')->values();
+
+        return view('teacher.materials.show', compact(
+            'material',
+            'sortedEnrollments',
+            'stats',
+            'search',
+            'status',
+            'enrollmentStatus',
+            'sort',
+            'direction'
+        ));
     }
 
     /**
@@ -134,7 +239,6 @@ class MaterialController extends Controller
             if ($mediaTypeChoice === 'embed' && !empty($validated['external_url'])) {
                 $embedUrl = EmbedHelper::formatToEmbedUrl($validated['external_url']);
 
-                // Hapus berkas file lama jika sebelumnya berbentuk file upload
                 if ($material->media && $material->media->type !== 'embed' && $material->media->file_path) {
                     Storage::disk('public')->delete($material->media->file_path);
                 }
@@ -157,7 +261,6 @@ class MaterialController extends Controller
                 }
             } elseif ($mediaTypeChoice === 'file') {
                 if ($request->hasFile('file')) {
-                    // Hapus file fisik lama
                     if ($material->media && $material->media->file_path) {
                         Storage::disk('public')->delete($material->media->file_path);
                     }
@@ -187,7 +290,6 @@ class MaterialController extends Controller
                     }
                 }
             } else {
-                // Jika tidak memilih media / memilih hapus media
                 if ($material->media) {
                     $oldMedia = $material->media;
                     if ($oldMedia->file_path) {
@@ -213,13 +315,13 @@ class MaterialController extends Controller
     }
 
     /**
-     * Hapus materi.
+     * Hapus materi dan hitung ulang progres seluruh peserta aktif.
      */
     public function destroy(Material $material)
     {
         $courseId = $material->meeting->course_id;
 
-        DB::transaction(function () use ($material) {
+        DB::transaction(function () use ($material, $courseId) {
             $media = $material->media;
             $material->delete();
 
@@ -229,9 +331,12 @@ class MaterialController extends Controller
                 }
                 $media->delete();
             }
+
+            // Hitung ulang progres seluruh peserta aktif setelah materi dihapus
+            CourseProgressHelper::recalculateAllActiveStudentsProgress($courseId);
         });
 
         return redirect()->route('teacher.courses.show', $courseId)
-            ->with('success', 'Materi berhasil dihapus.');
+            ->with('success', 'Materi berhasil dihapus dan progres peserta telah disesuaikan.');
     }
 }

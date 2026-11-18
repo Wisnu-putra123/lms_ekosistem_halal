@@ -33,4 +33,9 @@ class Material extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function views()
+    {
+        return $this->hasMany(MaterialView::class);
+    }
 }
