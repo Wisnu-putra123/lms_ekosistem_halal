@@ -7,11 +7,9 @@
 <div class="space-y-6">
 
     <!-- Welcome Card Banner (Deep Forest Green dengan Aksen Muted Gold) -->
-    <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-8 text-white shadow-md border border-[#E7C982]/40">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-6 sm:p-8 text-white shadow-md border border-[#E7C982]/40">
         <!-- Background Radial Gradient & Glow Effect -->
-        <div class="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#28745B]/60 via-[#123F35] to-[#123F35]"></div>
-        <div class="absolute -right-10 -bottom-10 -z-0 h-48 w-48 rounded-full border border-[#E7C982]/20 blur-xl"></div>
-
+        
         <div class="relative z-10 space-y-2 max-w-2xl">
             <span class="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider bg-[#E7C982]/20 text-[#E7C982] border border-[#E7C982]/40 uppercase">
                 Panel Pengajar
@@ -29,7 +27,7 @@
         <div class="bg-white rounded-2xl border border-slate-300 p-5 shadow-2xs flex items-center justify-between hover:border-[#28745B]/60 transition">
             <div class="space-y-1">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#123F35]/70">Total Pelatihan Dikelola</span>
-                <div class="text-2xl font-black text-[#123F35]">{{ $myCourses->count() }} Kelas</div>
+                <div class="text-2xl font-black text-[#28745B]">{{ $myCourses->count() }} Kelas</div>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-[#F7F5EE] text-[#123F35] flex items-center justify-center font-bold border border-[#28745B]/30">
                 <svg class="w-6 h-6 text-[#28745B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>

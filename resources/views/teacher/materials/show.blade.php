@@ -155,5 +155,230 @@
         </div>
     </div>
 
+    <!-- MONITORING AKTIVITAS BELAJAR PESERTA -->
+    @php
+        $toggleDirection = ($direction ?? 'asc') === 'asc' ? 'desc' : 'asc';
+        $buildSortUrl = function (string $column) use ($material, $search, $status, $enrollmentStatus, $sort, $direction, $toggleDirection) {
+            $nextDir = ($sort === $column) ? $toggleDirection : 'asc';
+            return route('teacher.materials.show', [
+                'material'          => $material->id,
+                'search'            => $search ?: null,
+                'status'            => $status !== 'all' ? $status : null,
+                'enrollment_status' => $enrollmentStatus !== 'all' ? $enrollmentStatus : null,
+                'sort'              => $column,
+                'direction'         => $nextDir,
+            ]) . '#aktivitas-peserta';
+        };
+    @endphp
+
+    <div id="aktivitas-peserta" class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
+        <!-- Header Seksi Monitoring -->
+        <div class="bg-[#28745B] p-4 sm:px-6 border-b border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-[#123F35] text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <svg class="w-4 h-4 text-[#E7C982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-white">Aktivitas Belajar Peserta</h2>
+                    <p class="text-[11px] text-white">Pantau peserta yang telah membuka dan mempelajari materi ini.</p>
+                </div>
+            </div>
+
+            <!-- Ringkasan Rasio Keterbacaan -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="px-3 py-1 rounded-xl bg-[#123F35] text-white text-xs font-bold shadow-2xs">
+                    {{ $stats['viewed'] }} / {{ $stats['total'] }} Peserta ({{ $stats['completion_rate'] }}%)
+                </span>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-4">
+            <!-- Kartu Statistik Ringkas -->
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-300">
+                    <span class="block text-[10px] sm:text-xs font-semibold text-slate-500">Total Peserta</span>
+                    <span class="mt-0.5 block text-base sm:text-lg font-extrabold text-slate-700">{{ $stats['total'] }}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-300">
+                    <span class="block text-[10px] sm:text-xs font-semibold text-slate-700">Sudah Dipelajari</span>
+                    <span class="mt-0.5 block text-base sm:text-lg font-extrabold text-slate-700">{{ $stats['viewed'] }}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-300">
+                    <span class="block text-[10px] sm:text-xs font-semibold text-slate-500">Belum Dipelajari</span>
+                    <span class="mt-0.5 block text-base sm:text-lg font-extrabold text-slate-700">{{ $stats['not_viewed'] }}</span>
+                </div>
+            </div>
+
+            <!-- Bar Filter & Pencarian -->
+            <form method="GET" action="{{ route('teacher.materials.show', $material->id) }}#aktivitas-peserta" class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
+                <input type="hidden" name="sort" value="{{ $sort }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+
+                <!-- Pencarian Peserta -->
+                <div class="relative flex-1">
+                    <input type="text"
+                           name="search"
+                           value="{{ $search }}"
+                           placeholder="Cari nama, email, NIK, atau instansi peserta..."
+                           class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:border-[#28745B] focus:ring-[#28745B]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+
+                <!-- Filter Status Enrollment -->
+                <select name="enrollment_status"
+                        {{-- onchange="this.form.submit()" --}}
+                        class="py-2 px-3 text-xs font-semibold text-slate-700 rounded-xl border border-slate-300 bg-white focus:border-[#28745B] focus:ring-[#28745B]">
+                    <option value="all" @selected($enrollmentStatus === 'all')>Semua Kepesertaan</option>
+                    <option value="active" @selected($enrollmentStatus === 'active')>Aktif</option>
+                    <option value="completed" @selected($enrollmentStatus === 'completed')>Selesai (Completed)</option>
+                    <option value="dropped" @selected($enrollmentStatus === 'dropped')>Berhenti (Dropped)</option>
+                </select>
+
+                <!-- Filter Status Materi -->
+                <select name="status"
+                        {{-- onchange="this.form.submit()" --}}
+                        class="py-2 px-3 text-xs font-semibold text-slate-700 rounded-xl border border-slate-300 bg-white focus:border-[#28745B] focus:ring-[#28745B]">
+                    <option value="all" @selected($status === 'all')>Semua Status Belajar ({{ $stats['total'] }})</option>
+                    <option value="viewed" @selected($status === 'viewed')>Sudah Dipelajari ({{ $stats['viewed'] }})</option>
+                    <option value="not_viewed" @selected($status === 'not_viewed')>Belum Dipelajari ({{ $stats['not_viewed'] }})</option>
+                </select>
+
+                <div class="flex items-center gap-1.5">
+                    <button type="submit"
+                            class="flex-1 lg:flex-initial px-4 py-2 rounded-xl bg-[#28745B] hover:bg-[#123F35] text-white text-xs font-bold transition shadow-2xs">
+                        Cari
+                    </button>
+
+                    @if($search !== '' || $status !== 'all' || $enrollmentStatus !== 'all' || $sort !== 'name' || $direction !== 'asc')
+                        <a href="{{ route('teacher.materials.show', $material->id) }}#aktivitas-peserta"
+                           title="Reset Filter & Sortir"
+                           class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-600 text-xs font-semibold transition">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+            </form>
+
+            <!-- Tabel Aktivitas Peserta -->
+            <div class="rounded-xl border border-slate-300 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead class="bg-[#28745B] text-white">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider w-10">No</th>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider">
+                                    <a href="{{ $buildSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-[#E7C982] transition">
+                                        <span>Peserta</span>
+                                        @if($sort === 'name')
+                                            <span>{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                                        @else
+                                            <span class="opacity-40">↕</span>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider hidden sm:table-cell">Instansi</th>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider">
+                                    <a href="{{ $buildSortUrl('enrollment_status') }}" class="inline-flex items-center gap-1 hover:text-[#E7C982] transition">
+                                        <span>Status Kepesertaan</span>
+                                        @if($sort === 'enrollment_status')
+                                            <span>{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                                        @else
+                                            <span class="opacity-40">↕</span>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider">
+                                    <a href="{{ $buildSortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-[#E7C982] transition">
+                                        <span>Status Belajar</span>
+                                        @if($sort === 'status')
+                                            <span>{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                                        @else
+                                            <span class="opacity-40">↕</span>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th scope="col" class="px-4 py-3 text-left font-bold uppercase tracking-wider">
+                                    <a href="{{ $buildSortUrl('viewed_at') }}" class="inline-flex items-center gap-1 hover:text-[#E7C982] transition">
+                                        <span>Waktu Pertama Dibuka</span>
+                                        @if($sort === 'viewed_at')
+                                            <span>{{ $direction === 'asc' ? '↑' : '↓' }}</span>
+                                        @else
+                                            <span class="opacity-40">↕</span>
+                                        @endif
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            @forelse($sortedEnrollments as $index => $item)
+                                <tr class="hover:bg-[#F7F5EE]/60 transition">
+                                    <td class="px-4 py-3 text-slate-500 font-medium">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-bold text-[#123F35]">{{ $item->user->name ?? '-' }}</div>
+                                        <div class="text-[11px] text-slate-500">{{ $item->user->email ?? '-' }}</div>
+                                        @if(!empty($item->user->nik))
+                                            <div class="text-[10px] font-mono text-slate-400">NIK: {{ $item->user->nik }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 hidden sm:table-cell">
+                                        {{ $item->user->institution ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @if($item->status === 'completed')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-200 text-[10px] font-bold">
+                                                Selesai
+                                            </span>
+                                        @elseif($item->status === 'dropped')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold">
+                                                Dropped
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                                                Aktif
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @if($item->has_viewed)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#28745B]/15 text-[#28745B] border border-[#28745B]/40 text-[10px] font-extrabold shadow-2xs">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Sudah Dipelajari
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-300 text-[10px] font-bold shadow-2xs">
+                                                Belum Dipelajari
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 whitespace-nowrap">
+                                        @if($item->viewed_at)
+                                            <div class="font-semibold text-slate-800">{{ $item->viewed_at->format('d M Y, H:i') }}</div>
+                                            <div class="text-[10px] text-slate-400">{{ $item->viewed_at->diffForHumans() }}</div>
+                                        @else
+                                            <span class="text-slate-400 italic">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-4 py-8 text-center text-slate-400 italic">
+                                        Tidak ada data peserta yang sesuai dengan filter saat ini.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection

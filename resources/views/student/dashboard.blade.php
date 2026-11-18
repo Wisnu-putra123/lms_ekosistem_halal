@@ -7,11 +7,8 @@
 <div class="space-y-6">
 
     <!-- Welcome Card Banner (Deep Forest Green dengan Aksen Muted Gold) -->
-    <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-8 text-white shadow-md border border-[#E7C982]/40">
-        <!-- Background Radial Gradient & Glow Effect -->
-        <div class="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#28745B]/60 via-[#123F35] to-[#123F35]"></div>
-        <div class="absolute -right-10 -bottom-10 -z-0 h-48 w-48 rounded-full border border-[#E7C982]/20 blur-xl"></div>
-
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-6 sm:p-8 text-white shadow-md border border-[#E7C982]/40">
+        
         <div class="relative z-10 space-y-2 max-w-2xl">
             <span class="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider bg-[#E7C982]/20 text-[#E7C982] border border-[#E7C982]/40 uppercase">
                 Selamat Datang Kembali

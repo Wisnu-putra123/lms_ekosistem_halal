@@ -230,6 +230,7 @@
                         <option value="">Semua Status</option>
                         <option value="active" {{ request('enrollment_status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="completed" {{ request('enrollment_status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                        <option value="dropped" {{ request('enrollment_status') == 'dropped' ? 'selected' : '' }}>Dropped</option>
                     </select>
                 </div>
 

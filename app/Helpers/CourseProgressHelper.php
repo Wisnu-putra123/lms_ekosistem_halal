@@ -7,6 +7,8 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\CourseProgress;
 use App\Models\Enrollment;
+use App\Models\Material;
+use App\Models\MaterialView;
 use App\Models\QuizAttempt;
 
 class CourseProgressHelper
@@ -40,7 +42,7 @@ class CourseProgressHelper
     }
 
     /**
-     * Kalkulasi progres belajar dan pemicu pembuatan draf sertifikat otomatis saat 100%.
+     * Kalkulasi progres belajar (Materi + Submission + Quiz) dan pemicu pembuatan draf sertifikat otomatis saat 100%.
      */
     private static function calculateAndSaveProgress(Enrollment $enrollment, int $courseId): void
     {
@@ -49,12 +51,19 @@ class CourseProgressHelper
             return;
         }
 
-        // 1. Hitung total assignment yang HANYA berstatus 'published'
+        // 1a. Hitung total assignment yang HANYA berstatus 'published'
         $totalAssignments = Assignment::where('course_id', $courseId)
             ->where('status', 'published')
             ->count();
 
-        if ($totalAssignments === 0) {
+        // 1b. Hitung total materi pada seluruh meeting di course ini
+        $totalMaterials = Material::whereHas('meeting', function ($query) use ($courseId) {
+            $query->where('course_id', $courseId);
+        })->count();
+
+        $totalRequiredItems = $totalAssignments + $totalMaterials;
+
+        if ($totalRequiredItems === 0) {
             CourseProgress::updateOrCreate(
                 ['enrollment_id' => $enrollment->id],
                 [
@@ -66,7 +75,15 @@ class CourseProgressHelper
             return;
         }
 
-        // 2. Hitung SUBMISSION lulus KKM pada assignment 'published'
+        // 2. Hitung MATERI yang sudah dibuka/dipelajari oleh enrollment ini pada course terkait
+        $viewedMaterialsCount = MaterialView::join('materials', 'materials.id', '=', 'material_views.material_id')
+            ->join('meetings', 'meetings.id', '=', 'materials.meeting_id')
+            ->where('meetings.course_id', $courseId)
+            ->where('material_views.enrollment_id', $enrollment->id)
+            ->distinct('material_views.material_id')
+            ->count('material_views.material_id');
+
+        // 3. Hitung SUBMISSION lulus KKM pada assignment 'published'
         $passedSubmissionsCount = AssignmentSubmission::join('assignments', 'assignments.id', '=', 'assignment_submissions.assignment_id')
             ->where('assignments.course_id', $courseId)
             ->where('assignments.type', 'submission')
@@ -79,7 +96,7 @@ class CourseProgressHelper
             ->get()
             ->count();
 
-        // 3. Hitung QUIZ lulus KKM pada assignment 'published'
+        // 4. Hitung QUIZ lulus KKM pada assignment 'published'
         $passedQuizzesCount = QuizAttempt::join('quizzes', 'quizzes.id', '=', 'quiz_attempts.quiz_id')
             ->join('assignments', 'assignments.id', '=', 'quizzes.assignment_id')
             ->where('assignments.course_id', $courseId)
@@ -93,14 +110,14 @@ class CourseProgressHelper
             ->get()
             ->count();
 
-        $totalPassedCount = $passedSubmissionsCount + $passedQuizzesCount;
+        $totalCompletedItems = $viewedMaterialsCount + $passedSubmissionsCount + $passedQuizzesCount;
 
-        // 4. Hitung persentase progres
-        $progressPercentage = min(100.00, round(($totalPassedCount / $totalAssignments) * 100, 2));
+        // 5. Hitung persentase progres
+        $progressPercentage = min(100.00, round(($totalCompletedItems / $totalRequiredItems) * 100, 2));
         $isCompleted        = $progressPercentage >= 100.00;
         $now                = now();
 
-        // 5. Simpan / perbarui progres ke database
+        // 6. Simpan / perbarui progres ke database
         CourseProgress::updateOrCreate(
             ['enrollment_id' => $enrollment->id],
             [
@@ -110,7 +127,7 @@ class CourseProgressHelper
             ]
         );
 
-        // 6. Apabila mencapai 100%, tandai completed dan buat draf sertifikat (status: 'draft')
+        // 7. Apabila mencapai 100%, tandai completed dan buat draf sertifikat (status: 'draft')
         if ($isCompleted) {
             $expiryDays = 30;
 

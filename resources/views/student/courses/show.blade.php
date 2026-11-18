@@ -301,6 +301,9 @@
                                         @if($meeting->materials && $meeting->materials->count() > 0)
                                             <div class="space-y-2.5">
                                                 @foreach($meeting->materials as $material)
+                                                    @php
+                                                        $isMaterialStudied = in_array($material->id, $viewedMaterialIds ?? []);
+                                                    @endphp
                                                     <div class="p-3 bg-[#F7F5EE]/40 rounded-xl border border-slate-300 space-y-2">
                                                         <div class="flex items-center justify-between gap-2">
                                                             <div class="flex items-center gap-2 min-w-0">
@@ -319,6 +322,16 @@
                                                             <span class="px-2 py-0.5 bg-[#28745B]/10 text-[#123F35] border border-[#28745B]/40 text-[10px] font-bold rounded-md shadow-2xs">
                                                                 Tersedia
                                                             </span>
+
+                                                            @if($isMaterialStudied)
+                                                                <span class="px-2 py-0.5 bg-[#28745B]/15 text-[#28745B] border border-[#28745B]/40 text-[9px] font-extrabold rounded-md shadow-2xs">
+                                                                    Sudah Dipelajari
+                                                                </span>
+                                                            @else
+                                                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-300 text-[9px] font-bold rounded-md shadow-2xs">
+                                                                    Belum Dipelajari
+                                                                </span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 @endforeach

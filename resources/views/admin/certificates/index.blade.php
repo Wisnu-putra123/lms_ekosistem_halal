@@ -30,22 +30,31 @@
         <!-- Global Batch Action Buttons -->
         <div class="relative z-10 flex flex-wrap items-center gap-2.5">
             <!-- Tombol Download Draft ZIP berdasarkan Filter Kelas -->
+            <!-- Tombol Download ZIP (Mendukung Checkbox Terpilih maupun Filter Kelas) -->
+            <button type="button"
+                    @click="
+                        if (selectedCerts.length > 0) {
+                            $refs.bulkDownloadForm.submit();
+                        } else if ('{{ $courseId }}') {
+                            $refs.courseFilterDownloadForm.submit();
+                        } else {
+                            alert('Silakan pilih filter Kelas/Pelatihan terlebih dahulu, atau centang sertifikat pada tabel untuk mengunduh ZIP.');
+                        }
+                    "
+                    class="inline-flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white border border-white/25 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-2xs backdrop-blur-xs">
+                <svg class="w-4 h-4 text-[#E7C982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span x-text="selectedCerts.length > 0 ? 'Download ZIP (' + selectedCerts.length + ' Terpilih)' : 'Download Draft ZIP'">
+                    Download Draft ZIP
+                </span>
+            </button>
+
             @if($courseId)
-                <a href="{{ route('admin.certificates.download-zip', ['course_id' => $courseId]) }}" 
-                   class="inline-flex items-center space-x-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs">
-                    <svg class="w-4 h-4 text-[#123F35]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    <span>Download Draft ZIP (Kelas Ini)</span>
-                </a>
-            @else
-                <button type="button" onclick="alert('Silakan pilih filter Kelas/Pelatihan terlebih dahulu, atau centang sertifikat pada tabel untuk mengunduh ZIP.')" 
-                        class="inline-flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white/80 px-4 py-2.5 rounded-xl text-xs font-bold transition border border-white/20 cursor-pointer">
-                    <svg class="w-4 h-4 text-[#E7C982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    <span>Download Draft ZIP</span>
-                </button>
+                <form x-ref="courseFilterDownloadForm" action="{{ route('admin.certificates.download-zip') }}" method="POST" class="hidden">
+                    @csrf
+                    <input type="hidden" name="course_id" value="{{ $courseId }}">
+                </form>
             @endif
 
             <!-- Tombol Buka Modal Bulk Upload TTD (Multi-PDF / ZIP) -->
@@ -151,15 +160,14 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <!-- Form Bulk Download ZIP Terpilih -->
-            <form action="{{ route('admin.certificates.download-zip') }}" method="POST" class="inline">
+            <form x-ref="bulkDownloadForm" action="{{ route('admin.certificates.download-zip') }}" method="POST">
                 @csrf
-                <template x-for="id in selectedCerts" :key="'zip-' + id">
+                <template x-for="id in selectedCerts" :key="id">
                     <input type="hidden" name="selected_ids[]" :value="id">
                 </template>
-                <button type="submit" 
-                        class="inline-flex items-center space-x-1.5 bg-[#123F35] hover:bg-[#0d2e27] text-[#E7C982] px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                <button type="submit" class="inline-flex items-center space-x-1.5 bg-[#123F35] hover:bg-[#28745B] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs">
+                    <svg class="w-3.5 h-3.5 text-[#E7C982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     <span>Download ZIP Terpilih</span>
                 </button>
