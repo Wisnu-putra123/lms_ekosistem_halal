@@ -185,7 +185,7 @@ class CertificateController extends Controller
             'signed_pdf.max'      => 'Ukuran maksimal file adalah 10MB.',
         ]);
 
-        $autoPublish = $request->boolean('auto_publish', true);
+        $autoPublish = $request->boolean('auto_publish', false);
         $this->storeSignedPdfFile($certificate, $request->file('signed_pdf')->getRealPath(), $request->file('signed_pdf')->getClientOriginalName(), $autoPublish);
 
         $statusMsg = $autoPublish ? 'dan langsung dipublikasikan ke Student' : 'dengan status Draft';
@@ -206,7 +206,7 @@ class CertificateController extends Controller
             'signed_files.*.mimes'  => 'Hanya file berformat PDF atau ZIP yang diizinkan.',
         ]);
 
-        $autoPublish   = $request->boolean('auto_publish', true);
+        $autoPublish   = $request->boolean('auto_publish', false);
         $matchedCount  = 0;
         $unmatchedList = [];
 
