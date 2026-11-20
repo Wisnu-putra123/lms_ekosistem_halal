@@ -117,7 +117,7 @@
             <div>
                 <label for="course_id" class="block font-bold text-[#123F35] mb-1">Filter Kelas / Pelatihan</label>
                 <select id="course_id" name="course_id" class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/60 border border-slate-200 rounded-xl text-xs font-semibold text-[#123F35] focus:outline-none focus:ring-2 focus:ring-[#28745B] focus:bg-white transition">
-                    <option value="">-- Semua Pelatihan --</option>
+                    <option value="">Semua Pelatihan</option>
                     @foreach($courses as $c)
                         <option value="{{ $c->id }}" {{ (string)$courseId === (string)$c->id ? 'selected' : '' }}>
                             [{{ $c->code }}] {{ $c->title }}
@@ -130,7 +130,7 @@
             <div>
                 <label for="status" class="block font-bold text-[#123F35] mb-1">Filter Status Penerbitan</label>
                 <select id="status" name="status" class="w-full px-3.5 py-2.5 bg-[#F7F5EE]/60 border border-slate-200 rounded-xl text-xs font-semibold text-[#123F35] focus:outline-none focus:ring-2 focus:ring-[#28745B] focus:bg-white transition">
-                    <option value="">-- Semua Status --</option>
+                    <option value="">Semua Status</option>
                     <option value="draft" {{ $status === 'draft' ? 'selected' : '' }}>Draft (Menunggu Publish / BPJPH)</option>
                     <option value="published" {{ $status === 'published' ? 'selected' : '' }}>Published (Terbit ke Student)</option>
                 </select>

@@ -7,7 +7,7 @@
 <div class="space-y-6">
 
     <!-- Header Banner -->
-    <div class="bg-[#123F35] rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden border border-[#E7C982]/20 shadow-md">
+    <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden border border-[#E7C982]/20 shadow-md">
         <div class="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#28745B]/60 via-[#123F35] to-[#123F35]"></div>
         <div class="absolute -right-10 -bottom-10 -z-0 h-48 w-48 rounded-full border border-[#E7C982]/10 blur-xl"></div>
 

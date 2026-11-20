@@ -63,8 +63,9 @@
 
             <div class="hidden items-center gap-6 lg:flex">
                 <a href="#beranda" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Beranda</a>
-                <a href="#tentang" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Tentang</a>
-                <a href="#program" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Program</a>
+                <a href="#profil" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Profil</a>
+                <a href="#organisasi" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Organisasi</a>
+                <a href="#layanan" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Layanan</a>
                 <a href="#fitur" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Fitur LMS</a>
                 <a href="#alur" class="text-sm font-medium text-slate-600 hover:text-emerald-800">Alur Pelatihan</a>
                 <a href="#faq" class="text-sm font-medium text-slate-600 hover:text-emerald-800">FAQ</a>
@@ -102,7 +103,7 @@
 
                 <!-- Deskripsi Platform -->
                 <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-emerald-100/85 sm:text-lg">
-                    Platform pembelajaran digital {{ $institutionFullName }} untuk mendukung proses pelatihan melalui materi terstruktur, evaluasi pembelajaran, tugas, dan pemantauan progres peserta.
+                    Menjadi pusat unggulan berbasis teknologi digital untuk memberdayakan UMKM dan membangun ekosistem halal nasional menuju pusat industri halal dunia. Kami berfokus meningkatkan daya saing yang efisien, produktif, ramah lingkungan, dan berkelanjutan bagi kesejahteraan masyarakat.
                 </p>
 
                 <!-- CTA Action Buttons -->
@@ -132,7 +133,7 @@
                     </div>
                     <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md transition hover:border-[#E7C982]/30">
                         <div class="text-xl sm:text-2xl font-bold text-[#E7C982]">Evaluatif</div>
-                        <div class="mt-1 text-xs text-emerald-100/70">Kuis & Tugas Otomatis/Terpenilai</div>
+                        <div class="mt-1 text-xs text-emerald-100/70">Penilaian Berbasis Assignment</div>
                     </div>
                     <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md transition hover:border-[#E7C982]/30">
                         <div class="text-xl sm:text-2xl font-bold text-[#E7C982]">Sertifikasi</div>
@@ -142,199 +143,463 @@
             </div>
         </section>
 
-        <!-- About LPP-JPH -->
-        <section id="tentang" class="scroll-mt-24 bg-[#F7F5EE] py-20 sm:py-24 relative overflow-hidden min-h-screen flex flex-col justify-center">
+        <!-- Profil Singkat, Visi & Misi LPP-JPH -->
+        <section id="profil" class="scroll-mt-24 bg-[#F7F5EE] py-20 sm:py-24 relative overflow-hidden min-h-screen flex flex-col justify-center">
             <!-- Dekorasi Radial Latar Belakang Halus -->
             <div class="absolute -left-20 -top-20 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
             <div class="absolute -right-20 -bottom-20 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/20 blur-3xl"></div>
 
-            <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="grid gap-12 lg:grid-cols-12 lg:items-center">
+            <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+                
+                <div class="grid gap-10 lg:grid-cols-12 lg:items-center">
                     
-                    <!-- Kolom Kiri: Judul & Pengenalan -->
-                    <div class="lg:col-span-5 space-y-4">
+                    <!-- Komponen 1: Profil Singkat (Kolom Kiri) -->
+                    <div class="lg:col-span-5 space-y-5">
                         <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
                             <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
-                            Tentang Lembaga
+                            Profil &amp; Visi Misi
                         </div>
 
                         <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl leading-tight">
-                            Mendukung Pembelajaran <span class="text-[#28745B]">Jaminan Produk Halal</span>
+                            LPP-JPH <span class="text-[#28745B] block sm:inline">Universitas Telkom</span>
                         </h2>
 
-                        <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/80 pt-2">
-                            LPP-JPH hadir sebagai ekosistem pelatihan terpadu yang memfasilitasi pengembangan kompetensi SDM secara terstruktur, akuntabel, dan berbasis teknologi digital.
+                        <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/85">
+                            Bernaung di bawah <strong>Center of Excellence (CoE) Smart MSME &amp; Halal Ecosystem</strong>, kami hadir sebagai pusat unggulan dalam pemberdayaan UMKM dan pembangunan ekosistem halal nasional berbasis teknologi digital guna mendukung Indonesia sebagai pusat industri halal dunia.
                         </p>
+
+                        <!-- <p class="text-sm leading-relaxed text-slate-600">
+                            LPP-JPH memfokuskan kegiatannya dalam meningkatkan daya saing pelaku usaha dan kualitas sumber daya manusia Jaminan Produk Halal dengan memperhatikan efisiensi, produktivitas, keberlanjutan (<em>sustainability</em>), serta kepatuhan terhadap regulasi nasional.
+                        </p> -->
                     </div>
 
-                    <!-- Kolom Kanan: Detail Paragraf & Kartu Komitmen -->
+                    <!-- Komponen 2 & 3: Visi & Misi Lembaga (Kolom Kanan) -->
                     <div class="lg:col-span-7 space-y-6">
-                        <!-- Grid Paragraf Utama -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            @foreach ($aboutParagraphs as $index => $paragraph)
-                                <div class="p-5 rounded-2xl bg-white border border-[#123F35]/10 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between">
-                                    <div class="w-8 h-8 rounded-lg bg-[#F7F5EE] text-[#123F35] font-bold text-xs flex items-center justify-center mb-3 border border-[#28745B]/20">
-                                        0{{ $index + 1 }}
-                                    </div>
-                                    <p class="text-sm leading-6 text-slate-700 font-medium">{{ $paragraph }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Kartu Komitmen Pembelajaran (Highlight Warm Ivory & Muted Gold) -->
-                        <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 text-white shadow-xl border border-[#E7C982]/30">
-                            <!-- Accent Line Warna Gold -->
-                            <div class="absolute top-0 left-0 h-1 w-full bg-[#E7C982]"></div>
-                            
+                        
+                        <!-- Komponen 2: Kartu Visi -->
+                        <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-7 text-white shadow-xl border border-[#E7C982]/30">
+                            <div class="absolute top-0 left-0 h-1.5 w-full bg-[#E7C982]"></div>
                             <div class="flex items-start gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-[#E7C982] text-[#123F35] flex items-center justify-center font-bold flex-shrink-0 mt-0.5 shadow-md">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                    </svg>
-                                </div>
-                                <div class="space-y-1">
-                                    <h3 class="font-bold text-base text-[#E7C982] tracking-wide">Komitmen Pembelajaran & Mutu</h3>
-                                    <p class="text-xs sm:text-sm leading-relaxed text-emerald-100/90">
-                                        Informasi profil, visi-misi, legalitas, serta ruang lingkup pelatihan senantiasa diperbarui dan diselaraskan secara berkala mengikuti dokumen resmi standar lembaga.
+                                <div class="space-y-1.5">
+                                    <span class="text-xs font-extrabold uppercase tracking-widest text-[#E7C982]">Visi LPP-JPH Universitas Telkom</span>
+                                    <p class="text-sm sm:text-base font-semibold leading-relaxed text-white">
+                                        “Menjadi lembaga pelatihan terdepan dan terpercaya dalam pengembangan kompetensi sumber daya manusia di bidang Jaminan Produk Halal yang profesional, berintegritas, dan berstandar nasional.”
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Komponen 3: Kartu Misi Lembaga -->
+                        <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-7 text-white shadow-xl border border-[#E7C982]/30">
+                            <div class="absolute top-0 left-0 h-1.5 w-full bg-[#E7C982]"></div>
+                            <div class="flex items-center justify-between pb-4 mb-5 border-b border-white/15">
+                                <span class="text-xs font-extrabold uppercase tracking-widest text-[#E7C982]">Misi LPP-JPH Universitas Telkom</span>
+                                <span class="text-xs font-bold text-[#123F35] bg-[#E7C982] px-3 py-1 rounded-full shadow-xs">
+                                    5 Pilar Utama
+                                </span>
+                            </div>
+
+                            @php
+                                $missions = [
+                                    'Menyelenggarakan pelatihan berkualitas yang berbasis pada regulasi halal nasional.',
+                                    'Meningkatkan kompetensi SDM pelaku usaha melalui pendekatan pembelajaran yang inovatif dan aplikatif.',
+                                    'Mendukung implementasi Sistem Jaminan Produk Halal (SJPH) secara efektif di berbagai sektor industri.',
+                                    'Menjalin kerja sama strategis dengan instansi pemerintah, lembaga sertifikasi halal, industri, dan akademisi dalam pengembangan ekosistem halal.',
+                                    'Mengembangkan kurikulum dan metode pelatihan yang adaptif terhadap perkembangan ilmu pengetahuan, teknologi, dan kebutuhan industri halal global.',
+                                ];
+                            @endphp
+
+                            <div class="space-y-3.5">
+                                @foreach ($missions as $index => $mission)
+                                    <div class="flex items-start gap-3.5 group">
+                                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#E7C982] text-xs font-extrabold text-[#123F35] shadow-xs transition group-hover:scale-105">
+                                            0{{ $index + 1 }}
+                                        </span>
+                                        <p class="text-xs sm:text-sm leading-relaxed text-emerald-50/95 pt-0.5">
+                                            {{ $mission }}
+                                        </p>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
                     </div>
 
                 </div>
+
             </div>
         </section>
 
-        <!-- Course Catalog / Program Pelatihan -->
-        <section id="program" class="scroll-mt-24 bg-white py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
-            <!-- Dekorasi Radial Background Halus -->
-            <div class="absolute -right-24 -top-24 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
-            <div class="absolute -left-24 -bottom-24 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/15 blur-3xl"></div>
+        <!-- Struktur Organisasi LPP-JPH -->
+        <section id="organisasi" class="scroll-mt-24 bg-white py-20 sm:py-24 relative overflow-hidden">
+            <!-- Dekorasi Radial Latar Belakang Halus -->
+            <div class="absolute -right-24 top-10 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
+            <div class="absolute -left-24 bottom-10 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/20 blur-3xl"></div>
 
-            <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-between">
+            <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
                 
-                <!-- Section Header -->
-                <div>
-                    <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end border-b border-[#123F35]/10 pb-6">
-                        <div class="max-w-2xl space-y-2">
-                            <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                                <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
-                                Program Pelatihan
-                            </div>
-                            <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
-                                Temukan Program yang Sesuai
-                            </h2>
-                            <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/75 pt-1">
-                                Lihat ringkasan program pelatihan yang dipublikasikan oleh pengelola. Informasi ditampilkan berdasarkan data course pada platform.
-                            </p>
-                        </div>
-                        
-                        @auth
-                            <a href="{{ route('home') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#123F35] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#28745B]">
-                                Ke Dashboard Saya <span aria-hidden="true">→</span>
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#123F35] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#28745B]">
-                                Masuk untuk Belajar <span aria-hidden="true">→</span>
-                            </a>
-                        @endauth
+                <!-- Header Section -->
+                <div class="mx-auto max-w-3xl text-center space-y-3 mb-14">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
+                        <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                        Tata Kelola Lembaga
                     </div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl">
+                        Struktur Organisasi <span class="text-[#28745B]">LPP-JPH</span>
+                    </h2>
+                    <p class="text-sm sm:text-base text-[#123F35]/80">
+                        Susunan kepengurusan serta uraian tugas pengawakan Lembaga Pelaksana Pelatihan Jaminan Produk Halal Universitas Telkom.
+                    </p>
                 </div>
 
-                <!-- Grid Cards Course -->
-                <div class="my-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 flex-1 items-start">
-                    @isset($courses)
-                        @forelse ($courses as $course)
-                            <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#28745B]/15 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-[#28745B]/30">
-                                <!-- Card Header Green Palette -->
-                                <div class="relative flex min-h-36 items-start justify-between gap-4 bg-[#28745B] p-6 text-white transition duration-300 group-hover:bg-[#123F35]">
-                                    <div class="space-y-1">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#E7C982]">Program Pelatihan</span>
-                                        <h3 class="text-lg font-bold leading-snug text-white line-clamp-2">{{ $course->title }}</h3>
+                <!-- Bagan Hierarki Struktur Organisasi -->
+                <div class="flex flex-col items-center">
+                    
+                    <!-- Level 1: Unsur Pembina -->
+                    <div class="w-full max-w-2xl relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-7 text-white shadow-xl border border-[#E7C982]/30">
+                        <!-- <div class="absolute top-0 left-0 h-1.5 w-full bg-[#E7C982]"></div> -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-white/15">
+                            <span class="text-xs font-extrabold uppercase tracking-widest text-[#E7C982]">Dewan Pembina</span>
+                            <span class="text-[11px] font-medium text-emerald-100/80">Universitas Telkom</span>
+                        </div>
+                        <ol class="space-y-2 text-xs sm:text-sm font-semibold text-white list-decimal list-inside">
+                            <li>Rektor Universitas Telkom</li>
+                            <li>Wakil Rektor Bidang Riset, Inovasi dan Kerjasama Universitas Telkom</li>
+                            <li>Ketua CoE Smart MSME &amp; Halal Ecosystem Universitas Telkom</li>
+                        </ol>
+                        <p class="mt-4 pt-3 border-t border-white/10 text-xs text-emerald-100/90 leading-relaxed">
+                            <strong class="text-[#E7C982]">Tugas Pokok:</strong> Melakukan pembinaan dalam pelaksanaan tugas dan fungsi LPP-JPH Universitas Telkom.
+                        </p>
+                    </div>
+
+                    <!-- Garis Penghubung Vertikal (Level 1 -> Level 2) -->
+                    <div class="h-8 w-0.5 bg-[#28745B]/50"></div>
+
+                    <!-- Level 2: Kepala LPP-JPH -->
+                    <div class="w-full max-w-xl relative overflow-hidden rounded-2xl bg-[#123F35] p-6 text-white shadow-xl border border-[#E7C982]/40 text-center">
+                        <!-- <div class="absolute top-0 left-0 h-1.5 w-full bg-[#E7C982]"></div> -->
+                        <span class="inline-block rounded-full bg-[#E7C982] px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-[#123F35] mb-2">
+                            Kepala LPP-JPH
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-white">
+                            Ir. Sri Widaningrum, M.T.
+                        </h3>
+                        <p class="mt-2.5 text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
+                            Memimpin pelaksanaan tugas dan fungsi LPP-JPH Universitas Telkom.
+                        </p>
+                    </div>
+
+                    <!-- Garis Penghubung Cabang (Level 2 -> Level 3) -->
+                    <div class="h-8 w-0.5 bg-[#28745B]/50"></div>
+                    <div class="hidden lg:block w-3/4 h-0.5 bg-[#28745B]/40"></div>
+
+                    @php
+                        $managers = [
+                            [
+                                'role' => 'Manajer SDM',
+                                'name' => 'Dr. Farda Hasun',
+                                'duty' => 'Mengkoordinir pembinaan, pengembangan dan ketersediaan trainer di LPP-JPH.',
+                                'sub_unit' => 'Tim Pelatih',
+                            ],
+                            [
+                                'role' => 'Manajer Training',
+                                'name' => 'Haryasena Panduwiyasa, S.Kom., M.T., CPHRM',
+                                'duty' => 'Mengkoordinir pelaksanaan pelatihan, sertifikasi dan evaluasi di LPP-JPH Universitas Telkom.',
+                                'sub_unit' => null,
+                            ],
+                            [
+                                'role' => 'Manajer Pemasaran',
+                                'name' => 'Mifta Ardianti, S.T., M.Kom',
+                                'duty' => 'Mengkoordinir pelaksanaan kegiatan pemasaran dan pengelolaan media sosial LPP-JPH.',
+                                'sub_unit' => null,
+                            ],
+                            [
+                                'role' => 'Manajer Administrasi & Keuangan',
+                                'name' => 'Dr. Galuh Tresna Murti, S.E., M.Si.Ak',
+                                'duty' => 'Memimpin penyediaan dukungan administrasi dan keuangan dalam pelaksanaan tugas dan fungsi LPP-JPH.',
+                                'sub_unit' => null,
+                            ],
+                        ];
+                    @endphp
+
+                    <!-- Level 3: Jajaran 4 Manajer -->
+                    <div class="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-4 lg:mt-0">
+                        @foreach ($managers as $manager)
+                            <div class="flex flex-col items-center">
+                                <!-- Garis Vertikal Cabang Desktop -->
+                                <div class="hidden lg:block h-6 w-0.5 bg-[#28745B]/40"></div>
+
+                                <!-- Kartu Manajer -->
+                                <div class="w-full flex-1 flex flex-col justify-between rounded-2xl bg-white border border-[#123F35]/15 p-5 shadow-sm hover:shadow-md hover:border-[#28745B]/40 transition">
+                                    <div>
+                                        <span class="inline-block rounded-lg bg-[#28745B]/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#28745B]">
+                                            {{ $manager['role'] }}
+                                        </span>
+                                        <h4 class="mt-3 text-base font-extrabold text-[#123F35] leading-snug">
+                                            {{ $manager['name'] }}
+                                        </h4>
+                                        <p class="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                                            {{ $manager['duty'] }}
+                                        </p>
                                     </div>
-                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 backdrop-blur-xs text-[#E7C982]">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                        </svg>
+                                </div>
+
+                                <!-- Sub-unit di bawah Manajer SDM (Tim Pelatih) -->
+                                @if ($manager['sub_unit'])
+                                    <div class="h-6 w-0.5 bg-[#28745B]/40"></div>
+                                    <div class="w-full rounded-xl bg-[#123F35] px-4 py-3 text-center text-white shadow-sm border border-[#E7C982]/30">
+                                        <span class="text-xs font-extrabold tracking-wide text-[#E7C982] uppercase">
+                                            {{ $manager['sub_unit'] }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Layanan Pelatihan & Katalog Kelas Aktif LPP-JPH -->
+        <section id="layanan" class="scroll-mt-24 bg-[#F7F5EE] py-20 sm:py-24 relative overflow-hidden">
+            <!-- Dekorasi Radial Background Halus -->
+            <div class="absolute -right-24 -top-24 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
+            <div class="absolute -left-24 -bottom-24 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/20 blur-3xl"></div>
+
+            <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full space-y-16">
+                
+                <!-- Header Utama Section -->
+                <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end border-b border-[#123F35]/10 pb-6">
+                    <div class="max-w-2xl space-y-2">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
+                            <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                            Layanan &amp; Program Pelatihan
+                        </div>
+                        <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
+                            Ruang Lingkup Layanan <span class="text-[#28745B]">LPP-JPH</span>
+                        </h2>
+                        <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/80 pt-1">
+                            Program pengembangan kompetensi SDM Jaminan Produk Halal serta kelas pelatihan aktif yang dapat Anda ikuti melalui platform LMS kami.
+                        </p>
+                    </div>
+                    
+                    @auth
+                        <a href="{{ route('home') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#123F35] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#28745B]">
+                            Ke Dashboard Saya <span aria-hidden="true">→</span>
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#123F35] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#28745B]">
+                            Masuk untuk Belajar <span aria-hidden="true">→</span>
+                        </a>
+                    @endauth
+                </div>
+
+                <!-- BAGIAN A: 10 Ruang Lingkup Layanan LPP-JPH (3 Klaster) -->
+                @php
+                    $serviceClusters = [
+                        [
+                            'badge' => 'Klaster 01',
+                            'title' => 'Pelatihan Penyelia Halal',
+                            'subtitle' => 'Pembekalan kompetensi penyelia halal sesuai skala dan skema sertifikasi usaha.',
+                            'items' => [
+                                'Pelatihan Penyelia Halal Mikro dan Kecil',
+                                'Pelatihan Penyelia Halal Self-Declare',
+                                'Pelatihan Penyelia Halal Reguler',
+                            ],
+                        ],
+                        [
+                            'badge' => 'Klaster 02',
+                            'title' => 'Bimbingan Teknis (Bimtek)',
+                            'subtitle' => 'Pendampingan praktis penerapan dan audit sistem jaminan halal di dunia usaha.',
+                            'items' => [
+                                'Bimbingan Teknis (Bimtek) Implementasi SJPH di Industri',
+                                'Bimbingan Teknis (Bimtek) Pengembangan Dokumen Halal',
+                                'Bimbingan Teknis (Bimtek) Audit Internal',
+                                'Bimbingan Teknis (Bimtek) Sertifikasi Halal',
+                            ],
+                        ],
+                        [
+                            'badge' => 'Klaster 03',
+                            'title' => 'Pelatihan Spesifik & Digital',
+                            'subtitle' => 'Program keahlian teknis khusus profesi halal dan pembelajaran jarak jauh.',
+                            'items' => [
+                                'Pelatihan Juru Sembelih Halal (Juleha)',
+                                'Pelatihan Auditor Halal',
+                                'Pelatihan On-line / E-Learning Halal',
+                            ],
+                        ],
+                    ];
+                @endphp
+
+                <div class="grid gap-6 lg:grid-cols-3">
+                    @foreach ($serviceClusters as $cluster)
+                        <div class="relative overflow-hidden rounded-2xl bg-[#123F35] p-6 sm:p-7 text-white shadow-xl border border-[#E7C982]/30 flex flex-col justify-between">
+                            <div class="absolute top-0 left-0 h-1.5 w-full bg-[#E7C982]"></div>
+                            
+                            <div>
+                                <div class="flex items-center justify-between gap-2 mb-3">
+                                    <span class="text-[11px] font-extrabold uppercase tracking-widest text-[#E7C982]">
+                                        {{ $cluster['badge'] }}
+                                    </span>
+                                    <span class="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-100">
+                                        {{ count($cluster['items']) }} Layanan
                                     </span>
                                 </div>
 
-                                <!-- Card Body -->
-                                <div class="flex flex-1 flex-col justify-between p-6">
-                                    <p class="flex-1 text-xs sm:text-sm leading-relaxed text-slate-600 line-clamp-4">
-                                        {{ \Illuminate\Support\Str::limit($course->description ?: 'Informasi program pelatihan akan tersedia melalui halaman course.', 140) }}
-                                    </p>
-                                    
-                                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                        @if (!empty($course->code))
-                                            <span class="inline-flex items-center rounded-md bg-[#F7F5EE] px-2.5 py-1 text-[11px] font-semibold text-[#123F35] border border-[#28745B]/15">
-                                                {{ $course->code }}
-                                            </span>
-                                        @else
-                                            <span></span>
-                                        @endif
+                                <h3 class="text-xl font-extrabold text-white">
+                                    {{ $cluster['title'] }}
+                                </h3>
+                                <p class="mt-1.5 text-xs text-emerald-100/80 leading-relaxed">
+                                    {{ $cluster['subtitle'] }}
+                                </p>
 
-                                        @auth
-                                            <a href="{{ route('home') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#28745B] hover:text-[#123F35] transition">
-                                                Lihat Dashboard <span aria-hidden="true">→</span>
-                                            </a>
-                                        @else
-                                            <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#28745B] hover:text-[#123F35] transition">
-                                                Masuk Ikuti <span aria-hidden="true">→</span>
-                                            </a>
-                                        @endauth
-                                    </div>
-                                </div>
-                            </article>
-                        @empty
-                            <div class="col-span-full rounded-2xl border border-dashed border-[#28745B]/30 bg-white/80 p-12 text-center backdrop-blur-xs">
-                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#28745B]/10 text-[#28745B]">
-                                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/>
-                                    </svg>
-                                </div>
-                                <h3 class="mt-4 text-base font-bold text-[#123F35]">Program Belum Tersedia</h3>
-                                <p class="mt-1 text-xs sm:text-sm text-slate-500">Belum ada course yang dipublikasikan. Silakan periksa kembali secara berkala.</p>
+                                <ul class="mt-5 pt-4 border-t border-white/15 space-y-2.5">
+                                    @foreach ($cluster['items'] as $item)
+                                        <li class="flex items-start gap-2.5 text-xs sm:text-sm text-emerald-50/95">
+                                            <svg class="h-4 w-4 shrink-0 text-[#E7C982] mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>{{ $item }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
                             </div>
-                        @endforelse
-                    @else
-                        <div class="col-span-full rounded-2xl border border-[#E7C982] bg-[#E7C982]/15 p-6 backdrop-blur-xs">
-                            <p class="font-bold text-[#123F35]">Daftar course belum terhubung ke controller.</p>
-                            <p class="mt-1 text-xs sm:text-sm text-[#123F35]/80">
-                                Kirim variabel <code>$courses</code> ke view ini dan filter course dengan status <code>published</code>. Setelah terhubung, kartu program akan dibuat otomatis dari tabel <code>courses</code>.
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- BAGIAN B: Katalog Kelas Aktif di LMS -->
+                <div class="pt-4 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-extrabold text-[#123F35]">
+                                Katalog Kelas Aktif di LMS
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+                                Daftar kelas pelatihan yang saat ini dibuka dan dipublikasikan pada sistem pembelajaran.
                             </p>
                         </div>
-                    @endisset
+                    </div>
+
+                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-start">
+                        @isset($courses)
+                            @forelse ($courses as $course)
+                                @php
+                                    // Deteksi label kategori dari kolom category (jika ada) atau otomatis dari judul course
+                                    $courseCategory = $course->category ?? null;
+                                    if (empty($courseCategory)) {
+                                        $titleLower = strtolower($course->title ?? '');
+                                        if (str_contains($titleLower, 'bimtek') || str_contains($titleLower, 'bimbingan teknis')) {
+                                            $courseCategory = 'Bimbingan Teknis';
+                                        } elseif (str_contains($titleLower, 'juleha') || str_contains($titleLower, 'auditor') || str_contains($titleLower, 'e-learning') || str_contains($titleLower, 'online')) {
+                                            $courseCategory = 'Pelatihan Spesifik & Digital';
+                                        } else {
+                                            $courseCategory = 'Pelatihan Penyelia Halal';
+                                        }
+                                    }
+                                @endphp
+
+                                <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#28745B]/15 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-[#28745B]/30">
+                                    <!-- Card Header Green Palette -->
+                                    <div class="relative flex min-h-40 flex-col justify-between gap-4 bg-[#28745B] p-6 text-white transition duration-300 group-hover:bg-[#123F35]">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <!-- Label Kategori -->
+                                            <span class="inline-flex items-center gap-1.5 rounded-full bg-[#E7C982] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#123F35] shadow-xs">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-[#123F35]"></span>
+                                                {{ $courseCategory }}
+                                            </span>
+
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 backdrop-blur-xs text-[#E7C982]">
+                                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                    <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                                </svg>
+                                            </span>
+                                        </div>
+
+                                        <h4 class="text-lg font-bold leading-snug text-white line-clamp-2">
+                                            {{ $course->title }}
+                                        </h4>
+                                    </div>
+
+                                    <!-- Card Body -->
+                                    <div class="flex flex-1 flex-col justify-between p-6">
+                                        <p class="flex-1 text-xs sm:text-sm leading-relaxed text-slate-600 line-clamp-4">
+                                            {{ \Illuminate\Support\Str::limit($course->description ?: 'Informasi program pelatihan akan tersedia melalui halaman course.', 140) }}
+                                        </p>
+                                        
+                                        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                                            @if (!empty($course->code))
+                                                <span class="inline-flex items-center rounded-md bg-[#F7F5EE] px-2.5 py-1 text-[11px] font-semibold text-[#123F35] border border-[#28745B]/15">
+                                                    {{ $course->code }}
+                                                </span>
+                                            @else
+                                                <span class="text-[11px] font-medium text-slate-400">Kelas Aktif</span>
+                                            @endif
+
+                                            @auth
+                                                <a href="{{ route('home') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#28745B] hover:text-[#123F35] transition">
+                                                    Masuk Kelas <span aria-hidden="true">→</span>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#28745B] hover:text-[#123F35] transition">
+                                                    Daftar / Masuk <span aria-hidden="true">→</span>
+                                                </a>
+                                            @endauth
+                                        </div>
+                                    </div>
+                                </article>
+                            @empty
+                                <div class="col-span-full rounded-2xl border border-dashed border-[#28745B]/30 bg-white/80 p-12 text-center backdrop-blur-xs">
+                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#28745B]/10 text-[#28745B]">
+                                        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="mt-4 text-base font-bold text-[#123F35]">Kelas Aktif Belum Tersedia</h4>
+                                    <p class="mt-1 text-xs sm:text-sm text-slate-500">Belum ada course yang dipublikasikan. Silakan periksa kembali secara berkala.</p>
+                                </div>
+                            @endforelse
+                        @else
+                            <div class="col-span-full rounded-2xl border border-[#E7C982] bg-[#E7C982]/15 p-6 backdrop-blur-xs">
+                                <p class="font-bold text-[#123F35]">Daftar course belum terhubung ke controller.</p>
+                                <p class="mt-1 text-xs sm:text-sm text-[#123F35]/80">
+                                    Kirim variabel <code>$courses</code> ke view ini dan filter course dengan status <code>published</code>. Setelah terhubung, kartu program akan dibuat otomatis dari tabel <code>courses</code>.
+                                </p>
+                            </div>
+                        @endisset
+                    </div>
                 </div>
 
                 <!-- Section Footer Note -->
-                <p class="text-center text-[11px] leading-relaxed text-slate-400">
-                    Catatan: Durasi, jadwal, biaya, persyaratan peserta, dan kuota dapat disesuaikan pada konfigurasi modul kelas masing-masing.
+                <p class="text-center text-[11px] leading-relaxed text-slate-500">
+                    Catatan: Durasi, jadwal, persyaratan peserta, dan kuota dapat disesuaikan pada konfigurasi modul kelas masing-masing.
                 </p>
 
             </div>
         </section>
 
         <!-- Learning Features / Fitur LMS -->
-        <section id="fitur" class="scroll-mt-24 bg-[#F7F5EE] py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
-            <!-- Dekorasi Radial Background Halus -->
-            <div class="absolute -left-24 -top-24 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
-            <div class="absolute -right-24 -bottom-24 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/20 blur-3xl"></div>
+        <section id="fitur" class="scroll-mt-24 relative isolate overflow-hidden bg-[#123F35] py-16 sm:py-24 text-white min-h-screen flex flex-col justify-center">
+            <!-- Background Radial Gradient & Decorative Glow Rings (Menyamai Hero Section) -->
+            <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#28745B]/60 via-[#123F35] to-[#123F35]"></div>
+            <div class="absolute -left-20 -top-20 -z-10 h-96 w-96 rounded-full border border-white/10 blur-2xl"></div>
+            <div class="absolute -right-20 -bottom-20 -z-10 h-96 w-96 rounded-full border border-white/10 blur-2xl"></div>
 
             <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-center">
                 
                 <!-- Header Section -->
                 <div class="mx-auto max-w-2xl text-center space-y-3">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                        <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#E7C982]/30 bg-[#E7C982]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#E7C982] backdrop-blur-sm">
+                        <span class="h-2 w-2 rounded-full bg-[#E7C982]"></span>
                         Pembelajaran Digital
                     </div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
-                        Fitur untuk Mendukung Proses Belajar
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                        Fitur untuk Mendukung <span class="text-[#E7C982]">Proses Belajar</span>
                     </h2>
-                    <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/75">
+                    <p class="text-sm sm:text-base leading-relaxed text-emerald-100/80">
                         Seluruh aktivitas pembelajaran dirancang agar lebih terstruktur, terintegrasi, dan mudah dipantau secara real-time.
                     </p>
                 </div>
@@ -342,10 +607,10 @@
                 <!-- Cards Grid -->
                 <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($learningFeatures as $feature)
-                        <article class="group relative rounded-2xl border border-[#28745B]/15 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#28745B]/40 hover:shadow-xl flex flex-col justify-between">
+                        <article class="group relative rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-[#E7C982]/40 hover:bg-white/10 hover:shadow-2xl flex flex-col justify-between">
                             <div>
-                                <!-- Icon Box Warm Ivory + Green Border -->
-                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F7F5EE] text-[#28745B] border border-[#28745B]/20 transition duration-300 group-hover:bg-[#28745B] group-hover:text-white group-hover:border-[#28745B]">
+                                <!-- Icon Box -->
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-[#E7C982] border border-white/15 transition duration-300 group-hover:bg-[#E7C982] group-hover:text-[#123F35] group-hover:border-[#E7C982]">
                                     @if ($feature['icon'] === 'book-open')
                                         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6.5C9.5 4.5 6.5 4 3 5v14c3.5-1 6.5-.5 9 1.5m0-14C14.5 4.5 17.5 4 21 5v14c-3.5-1-6.5-.5-9 1.5m0-14v14"/></svg>
                                     @elseif ($feature['icon'] === 'clipboard-check')
@@ -362,10 +627,10 @@
                                 </div>
 
                                 <!-- Content -->
-                                <h3 class="mt-5 text-lg font-bold text-[#123F35] transition duration-200 group-hover:text-[#28745B]">
+                                <h3 class="mt-5 text-lg font-bold text-white transition duration-200 group-hover:text-[#E7C982]">
                                     {{ $feature['title'] }}
                                 </h3>
-                                <p class="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600">
+                                <p class="mt-2 text-xs sm:text-sm leading-relaxed text-emerald-100/75">
                                     {{ $feature['description'] }}
                                 </p>
                             </div>
@@ -380,23 +645,23 @@
         </section>
 
         <!-- Training Flow / Alur Pelatihan -->
-        <section id="alur" class="scroll-mt-24 bg-[#123F35] py-16 sm:py-24 text-white min-h-screen flex flex-col justify-center relative overflow-hidden">
-            <!-- Dekorasi Background Radial & Ring -->
-            <div class="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-[#28745B]/40 via-[#123F35] to-[#123F35]"></div>
-            <div class="absolute -left-20 -bottom-20 -z-0 h-96 w-96 rounded-full border border-[#E7C982]/10 blur-xl"></div>
+        <section id="alur" class="scroll-mt-24 bg-[#F7F5EE] py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
+            <!-- Dekorasi Radial Background Halus (Menyamai Section Layanan) -->
+            <div class="absolute -right-24 -top-24 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
+            <div class="absolute -left-24 -bottom-24 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/20 blur-3xl"></div>
 
             <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-center">
                 
                 <!-- Header Section -->
                 <div class="mx-auto max-w-2xl text-center space-y-3">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-[#E7C982]/30 bg-[#E7C982]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#E7C982] backdrop-blur-sm">
-                        <span class="h-2 w-2 rounded-full bg-[#E7C982] animate-pulse"></span>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
+                        <span class="h-2 w-2 rounded-full bg-[#28745B] animate-pulse"></span>
                         Alur Pelatihan
                     </div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-                        Empat Langkah Mengikuti Pembelajaran
+                    <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
+                        Empat Langkah Mengikuti <span class="text-[#28745B]">Pembelajaran</span>
                     </h2>
-                    <p class="text-sm sm:text-base leading-relaxed text-emerald-100/80">
+                    <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/75">
                         Gambaran umum proses peserta dari pendaftaran sampai menyelesaikan seluruh persyaratan program.
                     </p>
                 </div>
@@ -404,35 +669,35 @@
                 <!-- Steps Grid dengan Line Connector -->
                 <div class="relative mt-14">
                     <!-- Garis Penghubung Alur (Hanya Tampil di Layar Desktop Large) -->
-                    <div class="hidden lg:block absolute top-12 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-[#28745B] via-[#E7C982]/60 to-[#28745B] -z-0"></div>
+                    <div class="hidden lg:block absolute top-12 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-[#28745B]/30 via-[#28745B] to-[#28745B]/30 -z-0"></div>
 
                     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative z-10">
                         @foreach ($trainingSteps as $index => $step)
-                            <article class="group relative rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-[#E7C982]/50 hover:bg-white/10 hover:shadow-2xl flex flex-col justify-between">
+                            <article class="group relative rounded-2xl border border-[#28745B]/15 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#28745B]/40 hover:shadow-xl flex flex-col justify-between">
                                 <div>
                                     <!-- Header Kartu: Nomor Langkah & Indicator -->
                                     <div class="flex items-center justify-between mb-5">
-                                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#E7C982] text-base font-black text-[#123F35] shadow-lg shadow-[#E7C982]/20 transition duration-300 group-hover:scale-110">
+                                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#123F35] text-base font-black text-[#E7C982] shadow-md transition duration-300 group-hover:scale-110 group-hover:bg-[#28745B] group-hover:text-white">
                                             {{ $step['number'] }}
                                         </span>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-200/50">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#28745B]/70">
                                             Langkah 0{{ $index + 1 }}
                                         </span>
                                     </div>
 
                                     <!-- Judul & Deskripsi -->
-                                    <h3 class="text-lg font-bold text-white transition duration-200 group-hover:text-[#E7C982]">
+                                    <h3 class="text-lg font-bold text-[#123F35] transition duration-200 group-hover:text-[#28745B]">
                                         {{ $step['title'] }}
                                     </h3>
-                                    <p class="mt-2.5 text-xs sm:text-sm leading-relaxed text-emerald-100/75">
+                                    <p class="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-600">
                                         {{ $step['description'] }}
                                     </p>
                                 </div>
 
                                 <!-- Indicator Dot Aksesibilitas di Bawah -->
-                                <div class="mt-6 flex items-center gap-1.5 pt-4 border-t border-white/10">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-[#E7C982]"></span>
-                                    <span class="text-[11px] font-medium text-emerald-200/60">Proses Berurutan</span>
+                                <div class="mt-6 flex items-center gap-1.5 pt-4 border-t border-slate-100">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-[#28745B]"></span>
+                                    <span class="text-[11px] font-medium text-slate-500">Proses Berurutan</span>
                                 </div>
                             </article>
                         @endforeach
@@ -441,8 +706,8 @@
 
                 <!-- Footer Callout Note -->
                 <div class="mt-12 text-center">
-                    <p class="inline-flex items-center gap-2 rounded-xl bg-[#28745B]/30 border border-[#28745B]/50 px-4 py-2 text-xs text-emerald-100/90">
-                        <svg class="w-4 h-4 text-[#E7C982] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p class="inline-flex items-center gap-2 rounded-xl bg-white border border-[#28745B]/20 px-4 py-2 text-xs text-[#123F35] shadow-xs">
+                        <svg class="w-4 h-4 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span>Selesaikan setiap tahapan secara berurutan untuk mendapatkan evaluasi dan sertifikat resmi.</span>
@@ -453,7 +718,7 @@
         </section>
 
         <!-- FAQ Section -->
-        <section id="faq" class="scroll-mt-24 bg-[#F7F5EE] py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
+        <section id="faq" class="scroll-mt-24 bg-white py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
             <!-- Dekorasi Radial Background Halus -->
             <div class="absolute -right-20 -top-20 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
             <div class="absolute -left-20 -bottom-20 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/15 blur-3xl"></div>
@@ -469,7 +734,7 @@
                         </div>
 
                         <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl leading-tight">
-                            Pertanyaan yang Sering Diajukan
+                            Pertanyaan yang <span class="text-[#28745B]">Sering Diajukan</span>
                         </h2>
 
                         <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/75 pt-1">
@@ -515,7 +780,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="kontak" class="scroll-mt-24 bg-white py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
+        <section id="kontak" class="scroll-mt-24 bg-[#F7F5EE] py-16 sm:py-24 min-h-screen flex flex-col justify-center relative overflow-hidden">
             <!-- Dekorasi Radial Background Halus -->
             <div class="absolute -left-20 -top-20 -z-0 h-96 w-96 rounded-full bg-[#28745B]/10 blur-3xl"></div>
             <div class="absolute -right-20 -bottom-20 -z-0 h-96 w-96 rounded-full bg-[#E7C982]/15 blur-3xl"></div>
