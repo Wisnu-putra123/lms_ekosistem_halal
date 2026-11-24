@@ -75,13 +75,19 @@ class QuizController extends Controller
     }
 
     /**
-     * Tampilkan detail Quiz beserta daftar attempt siswa (Dukungan Filter & Sort)
+     * Tampilkan detail Quiz beserta daftar attempt siswa & paginasi Bank Soal
      */
     public function show(Request $request, Assignment $assignment)
     {
-        $quiz = Quiz::with(['questions.options', 'questions.media'])
+        $quiz = Quiz::withCount('questions')
             ->where('assignment_id', $assignment->id)
             ->firstOrFail();
+
+        // Paginasi Bank Soal menggunakan page name khusus 'questions_page'
+        $questions = $quiz->questions()
+            ->with(['options.media', 'media'])
+            ->paginate(10, ['*'], 'questions_page')
+            ->withQueryString();
 
         // Query attempts terhubung via enrollment.user
         $attemptsQuery = QuizAttempt::with(['enrollment.user'])
@@ -127,14 +133,20 @@ class QuizController extends Controller
                 break;
         }
 
-        // --- PENYESUAIAN PAGINASI (10 Data per Halaman) ---
-        $quizAttempts = $attemptsQuery->paginate(10)->appends($request->query());
+        // Paginasi Attempts Siswa (10 Data per Halaman)
+        $quizAttempts = $attemptsQuery->paginate(10)->withQueryString();
 
         $pointPerQuestion = $quiz->question_count > 0 
             ? round($assignment->max_score / $quiz->question_count, 2) 
             : 0;
 
-        return view('teacher.quizzes.show', compact('assignment', 'quiz', 'quizAttempts', 'pointPerQuestion'));
+        return view('teacher.quizzes.show', compact(
+            'assignment',
+            'quiz',
+            'questions',
+            'quizAttempts',
+            'pointPerQuestion'
+        ));
     }
 
     public function edit(Assignment $assignment)
@@ -229,38 +241,57 @@ class QuizController extends Controller
         }
     }
 
-    /**
-     * Menampilkan detail pengerjaan (attempt) kuis siswa
+/**
+     * Menampilkan detail pengerjaan (attempt) kuis siswa dengan paginasi
      */
     public function showAttempt(QuizAttempt $attempt)
     {
         $attempt->load([
             'enrollment.user',
             'quiz.assignment.meeting',
-            'attemptQuestions.question.options',
-            'attemptQuestions.selectedOption'
         ]);
+
+        // Hitung total ringkasan benar & salah keseluruhan sebelum dipaginasi
+        $totalQuestions = $attempt->attemptQuestions()->count();
+        $correctCount   = $attempt->attemptQuestions()->where('is_correct', true)->count();
+        $incorrectCount = $attempt->attemptQuestions()->where('is_correct', false)->count();
+
+        // Paginasi butir soal attempt siswa (10 soal per halaman)
+        $attemptQuestions = $attempt->attemptQuestions()
+            ->with([
+                'question.media',
+                'question.options.media',
+                'selectedOption.media',
+            ])
+            ->orderBy('question_order')
+            ->paginate(10)
+            ->withQueryString();
 
         $quiz = $attempt->quiz;
         $assignment = $quiz->assignment;
 
-        return view('teacher.quizzes.attempts.show', compact('attempt', 'quiz', 'assignment'));
+        return view('teacher.quizzes.attempts.show', compact(
+            'attempt',
+            'quiz',
+            'assignment',
+            'attemptQuestions',
+            'totalQuestions',
+            'correctCount',
+            'incorrectCount'
+        ));
     }
 
-        public function destroyAttempt(QuizAttempt $attempt)
+    public function destroyAttempt(QuizAttempt $attempt)
     {
-        // 1. Simpan course_id dan enrollment_id sebelum attempt dihapus
         $assignment = $attempt->quiz->assignment;
         $courseId = $assignment->course_id;
         $enrollmentId = $attempt->enrollment_id;
 
         DB::beginTransaction();
         try {
-            // 2. Hapus detail soal pilihan siswa dan record attempt
             $attempt->attemptQuestions()->delete();
             $attempt->delete();
 
-            // 3. Panggil Helper untuk hitung ulang progres spesifik siswa ini
             CourseProgressHelper::updateStudentProgress($courseId, $enrollmentId);
 
             DB::commit();

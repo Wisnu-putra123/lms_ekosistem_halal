@@ -177,7 +177,7 @@
                 <!-- Kondisi ketika siswa masih bisa memulai attempt baru -->
                 <form action="{{ route('student.quizzes.start', $assignment->id) }}" method="POST" onsubmit="return confirm('Mulai pengerjaan Quiz sekarang?')">
                     @csrf
-                    <button type="submit" class="bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition flex items-center space-x-2">
+                    <button type="submit" class="bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition flex items-center space-x-2 cursor-pointer">
                         <span>Mulai Mengerjakan Quiz</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>

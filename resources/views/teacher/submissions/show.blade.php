@@ -108,7 +108,7 @@
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
                 <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Passing Grade</span>
-                <div class="text-xs font-extrabold text-[#E7C982] mt-1">{{ number_format($assignment->passing_score, 0) }}</div>
+                <div class="text-xs font-extrabold text-white mt-1">{{ number_format($assignment->passing_score, 0) }}</div>
             </div>
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
@@ -120,7 +120,7 @@
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
                 <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Waktu Ditutup</span>
-                <div class="text-xs font-semibold text-[#E7C982] mt-1">
+                <div class="text-xs font-semibold text-white mt-1">
                     {{ $assignment->available_until ? \Carbon\Carbon::parse($assignment->available_until)->format('d M Y H:i') : 'Tanpa Batas' }}
                 </div>
             </div>
@@ -130,14 +130,14 @@
     <!-- 2. TAB HEADER SWITCHER -->
     <div class="flex items-center space-x-2 border-b border-slate-300 pb-2 overflow-x-auto">
         <button type="button" @click="activeTab = 'submissions'" 
-                :class="activeTab === 'submissions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
+                :class="activeTab === 'submissions' ? 'bg-[#28745B] text-white font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
                 class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             <span>Hasil &amp; Pengumpulan Siswa ({{ $submissions->total() }})</span>
         </button>
 
         <button type="button" @click="activeTab = 'instructions'" 
-                :class="activeTab === 'instructions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
+                :class="activeTab === 'instructions' ? 'bg-[#28745B] text-white font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
                 class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Instruksi &amp; Berkas Soal</span>

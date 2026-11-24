@@ -4,7 +4,7 @@
 @section('header_title', 'Detail & Hasil Quiz')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-5 sm:space-y-6" x-data="{ activeTab: 'attempts' }">
+<div class="max-w-5xl mx-auto space-y-5 sm:space-y-6" x-data="{ activeTab: '{{ request()->has('questions_page') ? 'questions' : 'attempts' }}' }">
 
     <!-- Header Navigation -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -89,7 +89,7 @@
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
                 <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Soal Diuji / Bank</span>
                 <div class="text-xs font-extrabold text-white mt-1">
-                    {{ $quiz->question_count }} / {{ $quiz->questions->count() }} Soal
+                    {{ $quiz->question_count }} / {{ $quiz->questions_count }} Soal
                 </div>
             </div>
 
@@ -115,19 +115,19 @@
             </div>
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
-                <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Status Acak</span>
-                <div class="text-[10px] font-bold text-white mt-1">
-                    Soal: {{ $quiz->shuffle_questions ? 'Ya' : 'Tidak' }} | Opsi: {{ $quiz->shuffle_answers ? 'Ya' : 'Tidak' }}
+                <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Waktu Ditutup</span>
+                <div class="text-xs font-semibold text-white mt-1">
+                    {{ $assignment->available_until ? \Carbon\Carbon::parse($assignment->available_until)->format('d M Y H:i') : 'Tanpa Batas' }}
                 </div>
             </div>
         </div>
 
-        @if($quiz->questions->count() < $quiz->question_count)
+        @if($quiz->questions_count < $quiz->question_count)
             <div class="p-3.5 bg-[#E7C982]/20 border border-[#E7C982]/50 rounded-xl text-xs text-[#E7C982] flex items-center space-x-2 backdrop-blur-xs">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
-                <span>Jumlah soal di bank soal (<strong class="text-white">{{ $quiz->questions->count() }}</strong>) masih kurang dari target soal yang diuji (<strong class="text-white">{{ $quiz->question_count }}</strong>). Mohon tambahkan soal baru.</span>
+                <span>Jumlah soal di bank soal (<strong class="text-white">{{ $quiz->questions_count }}</strong>) masih kurang dari target soal yang diuji (<strong class="text-white">{{ $quiz->question_count }}</strong>). Mohon tambahkan soal baru.</span>
             </div>
         @endif
     </div>
@@ -145,7 +145,7 @@
                 :class="activeTab === 'questions' ? 'bg-[#28745B] text-white font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
                 class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>Bank Soal Quiz ({{ $quiz->questions->count() }})</span>
+            <span>Bank Soal Quiz ({{ $quiz->questions_count }})</span>
         </button>
     </div>
 
@@ -154,7 +154,7 @@
         <!-- Heading Container bg-[#28745B] -->
         <div class="bg-[#28745B] p-4 sm:px-6 border-b border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
             <div>
-                <h2 class="text-sm sm:text-base font-bold text-white">Daftar Bank Soal ({{ $quiz->questions->count() }})</h2>
+                <h2 class="text-sm sm:text-base font-bold text-white">Daftar Bank Soal ({{ $quiz->questions_count }})</h2>
                 <p class="text-xs text-emerald-100/85">Kelola soal, media lampiran, kunci jawaban, dan pembahasan yang digunakan untuk quiz ini.</p>
             </div>
 
@@ -165,13 +165,13 @@
         </div>
 
         <div class="p-5 sm:p-8 space-y-5">
-            @forelse($quiz->questions as $index => $q)
+            @forelse($questions as $index => $q)
                 <div class="rounded-2xl border border-slate-300 bg-[#F7F5EE]/50 overflow-hidden shadow-2xs">
                     <!-- Header Kartu Soal -->
                     <div class="mx-4 sm:mx-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center flex-wrap gap-2">
                             <span class="px-2.5 py-1 bg-[#123F35] text-white rounded-lg font-bold text-xs">
-                                Soal #{{ $index + 1 }}
+                                Soal #{{ $questions->firstItem() + $index }}
                             </span>
                             <span class="px-2.5 py-1 bg-white border border-slate-300 text-[#123F35] rounded-lg font-bold text-[11px]">
                                 {{ $q->question_type === 'true_false' ? 'Benar / Salah' : 'Pilihan Ganda' }}
@@ -331,6 +331,20 @@
                 </div>
             @endforelse
         </div>
+
+        <!-- Navigasi Paginasi Bank Soal -->
+        @if($questions->hasPages())
+            <div class="p-4 sm:px-6 border-t border-slate-300 bg-[#F7F5EE]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div>
+                    Menampilkan <span class="font-bold text-[#123F35]">{{ $questions->firstItem() }}</span> - 
+                    <span class="font-bold text-[#123F35]">{{ $questions->lastItem() }}</span> dari 
+                    <span class="font-bold text-[#123F35]">{{ $questions->total() }}</span> soal
+                </div>
+                <div>
+                    {{ $questions->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- 4. TAB TABEL PENILAIAN / ATTEMPTS SISWA -->

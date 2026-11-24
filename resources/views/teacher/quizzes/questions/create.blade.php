@@ -82,7 +82,7 @@
                     </div>
 
                     <template x-if="questionType === 'multiple_choice'">
-                        <button type="button" @click="addOption()" class="px-3.5 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 rounded-xl text-xs font-extrabold shadow-2xs transition self-start sm:self-auto">
+                        <button type="button" @click="addOption()" class="px-3.5 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 rounded-xl text-xs font-extrabold shadow-2xs transition self-start sm:self-auto cursor-pointer">
                             + Tambah Opsi
                         </button>
                     </template>

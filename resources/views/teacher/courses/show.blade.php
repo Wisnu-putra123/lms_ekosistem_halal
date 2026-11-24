@@ -663,8 +663,8 @@
                     </div>
 
                     <div class="pt-3 flex justify-end space-x-2 border-t border-slate-200">
-                        <button type="button" @click="editMeetingModal = false" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition">Batal</button>
-                        <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 text-xs font-bold rounded-xl shadow-2xs transition">Perbarui Pertemuan</button>
+                        <button type="button" @click="editMeetingModal = false" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition cursor-pointer">Batal</button>
+                        <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer">Perbarui Pertemuan</button>
                     </div>
                 </form>
             </div>

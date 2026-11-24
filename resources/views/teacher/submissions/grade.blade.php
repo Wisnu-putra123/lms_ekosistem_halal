@@ -354,7 +354,7 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white font-extrabold py-2.5 rounded-xl text-xs shadow-2xs transition">
+                            <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white font-extrabold py-2.5 rounded-xl text-xs shadow-2xs transition cursor-pointer">
                                 Simpan Penilaian &amp; Feedback
                             </button>
                         @else
