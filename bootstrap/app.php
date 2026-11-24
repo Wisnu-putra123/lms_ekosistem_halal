@@ -8,6 +8,7 @@ use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureCourseAccessIsValid;
 use App\Http\Middleware\EnsureAssignmentOpen;
 use App\Http\Middleware\EnsureTeacherCourseAccess;
+use \App\Http\Middleware\EnsureMeetingIsAccessible;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'course.access.valid' => EnsureCourseAccessIsValid::class,
             'assignment.open' => EnsureAssignmentOpen::class,
             'teacher.course.access' => EnsureTeacherCourseAccess::class,
+            'meeting.accessible' => EnsureMeetingIsAccessible::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

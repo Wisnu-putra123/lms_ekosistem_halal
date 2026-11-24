@@ -15,6 +15,7 @@ class StudentDashboardController extends Controller
     public function index()
     {
         $userId = Auth::id();
+        $now = now();
 
         // 1. Ambil Enrollment Aktif & Completed yang Belum Expired HANYA untuk Course yang berstatus PUBLISHED
         $enrollments = Enrollment::with(['course.thumbnail', 'progress'])
@@ -22,13 +23,13 @@ class StudentDashboardController extends Controller
             ->whereHas('course', function ($q) {
                 $q->where('status', 'published');
             })
-            ->where(function ($query) {
+            ->where(function ($query) use ($now) {
                 $query->where('status', 'active')
-                      ->orWhere(function ($q) {
+                      ->orWhere(function ($q) use ($now) {
                           $q->where('status', 'completed')
-                            ->where(function ($subQ) {
+                            ->where(function ($subQ) use ($now) {
                                 $subQ->whereNull('access_expires_at')
-                                     ->orWhere('access_expires_at', '>', now());
+                                     ->orWhere('access_expires_at', '>', $now);
                             });
                       });
             })
@@ -37,10 +38,17 @@ class StudentDashboardController extends Controller
         $enrollmentIds = $enrollments->pluck('id')->toArray();
         $courseIds     = $enrollments->pluck('course_id')->toArray();
 
-        // 2. Ambil Semua Tugas & Kuis Terpublikasi dari Course Terkait (Otomatis terfilter hanya course published)
+        // 2. Ambil Tugas & Kuis Terpublikasi HANYA dari Pertemuan (Meeting) yang Sedang Terbuka/Accessible
         $assignments = Assignment::with(['meeting', 'course', 'quiz'])
             ->whereIn('course_id', $courseIds)
             ->where('status', 'published')
+            ->where(function ($q) use ($now) {
+                $q->whereNull('available_from')
+                  ->orWhere('available_from', '<=', $now);
+            })
+            ->whereHas('meeting', function ($q) {
+                $q->accessible();
+            })
             ->orderBy('available_until', 'asc')
             ->get();
 

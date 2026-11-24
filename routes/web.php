@@ -133,24 +133,28 @@ Route::middleware('auth')->group(function () {
         // Rute yang WAJIB memiliki akses kelas aktif
         Route::middleware('course.access.valid')->group(function () {
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
-            Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
 
             Route::get('/courses/{course}/gradebook', [StudentGradebookController::class, 'show'])->name('courses.gradebook');
             Route::get('/courses/{course}/gradebook/assignments/{assignment}/details', [StudentGradebookController::class, 'detail'])->name('courses.gradebook.detail');
 
-            Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
+            // Rute Materi, Tugas, dan Kuis yang WAJIB berada dalam jadwal pertemuan aktif
+            Route::middleware('meeting.accessible')->group(function () {
+                Route::get('/materials/{material}', [StudentMaterialController::class, 'show'])->name('materials.show');
 
-            Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
-            Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
-            Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
-            Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
-            Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
+                Route::get('/submissions/{assignment}', [TaskSubmissionController::class, 'show'])->name('submissions.show');
 
-            Route::middleware('assignment.open')->group(function () {
-                Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
-                Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
-                Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
-                Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+                Route::get('/quizzes/{assignment}', [StudentQuizController::class, 'show'])->name('quizzes.show');
+                Route::get('/quizzes/{assignment}/attempts/{attempt}', [StudentQuizController::class, 'attempt'])->name('quizzes.attempt');
+                Route::post('/quizzes/{assignment}/attempts/{attempt}/save-answer', [StudentQuizController::class, 'saveAnswer'])->name('quizzes.saveAnswer');
+                Route::post('/quizzes/{assignment}/attempts/{attempt}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
+                Route::get('/quizzes/{assignment}/attempts/{attempt}/result', [StudentQuizController::class, 'result'])->name('quizzes.result');
+
+                Route::middleware('assignment.open')->group(function () {
+                    Route::post('/submissions/{assignment}', [TaskSubmissionController::class, 'store'])->name('submissions.store');
+                    Route::put('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'update'])->name('submissions.update');
+                    Route::delete('/submissions/{assignment}/{submission}', [TaskSubmissionController::class, 'destroy'])->name('submissions.destroy');
+                    Route::post('/quizzes/{assignment}/start', [StudentQuizController::class, 'start'])->name('quizzes.start');
+                });
             });
         });
     });
