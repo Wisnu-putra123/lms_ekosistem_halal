@@ -69,7 +69,7 @@
 
             <!-- Upload Thumbnail Gambar -->
             <div>
-                <label for="thumbnail" class="block text-xs font-bold text-[#123F35] mb-1">Gambar Thumbnail Pelatihan</label>
+                <label for="thumbnail" class="block text-xs font-bold text-[#123F35] mb-1">Gambar Thumbnail Pelatihan <span class="text-slate-400 font-normal">(Opsional)</span></label>
                 <input type="file" id="thumbnail" name="thumbnail" accept="image/jpeg,image/png,image/jpg,image/webp"
                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/15 file:text-[#123F35] hover:file:bg-[#28745B]/25 bg-[#F7F5EE]/60 border border-slate-300 rounded-xl cursor-pointer">
                 <p class="text-[11px] text-slate-400 mt-1">Format: JPG, PNG, WEBP. Ukuran maksimal 2MB.</p>
@@ -78,17 +78,17 @@
                 @enderror
             </div>
 
-            <!-- Upload Custom Background Sertifikat -->
+            <!-- Upload Template Background Sertifikat (Wajib) -->
             <div class="p-4 bg-[#F7F5EE] rounded-2xl border border-slate-300 space-y-2">
                 <label for="certificate_bg" class="block text-xs font-bold text-[#123F35] flex items-center space-x-1.5">
                     <svg class="w-4 h-4 text-[#28745B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                     </svg>
-                    <span>Custom Template Background Sertifikat (Opsional)</span>
+                    <span>Template Background Sertifikat <span class="text-red-500">*</span></span>
                 </label>
-                <input type="file" id="certificate_bg" name="certificate_bg" accept="image/jpeg,image/png,image/jpg"
+                <input type="file" id="certificate_bg" name="certificate_bg" accept="image/jpeg,image/png,image/jpg,image/webp" required
                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/20 file:text-[#123F35] hover:file:bg-[#28745B]/30 bg-white border border-slate-300 rounded-xl cursor-pointer">
-                <p class="text-[11px] text-slate-500">Format: JPG, PNG (maks. 5MB), ukuran landscape A4. Jika dikosongkan, sertifikat akan menggunakan tampilan standar sistem.</p>
+                <p class="text-[11px] text-slate-500">Wajib mengunggah template gambar background sertifikat berorientasi landscape A4 (Format: JPG, PNG, WEBP, maks. 5MB).</p>
                 @error('certificate_bg')
                     <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
                 @enderror

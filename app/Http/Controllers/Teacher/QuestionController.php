@@ -9,6 +9,7 @@ use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\QuizQuestion;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -37,15 +38,22 @@ class QuestionController extends Controller
         }
 
         $request->validate([
-            'question_type' => 'required|in:multiple_choice,true_false',
-            'question_text' => 'required|string',
-            'explanation' => 'nullable|string',
-            'question_media' => 'nullable|file|mimes:jpg,jpeg,png,mp3,wav,pdf|max:10240',
-            // Validasi Opsi
-            'options' => 'required|array|min:2',
-            'options.*.text' => 'nullable|string',
-            'options.*.media' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
-            'correct_option' => 'required|integer', // Index opsi yang benar
+            'question_type'    => 'required|in:multiple_choice,true_false',
+            'question_text'    => 'required|string',
+            'explanation'      => 'nullable|string',
+            'question_media'   => 'nullable|file|mimes:jpg,jpeg,png,webp,mp3,wav,ogg,mp4,webm,mov,pdf|max:20480',
+            'options'          => 'required|array|min:2',
+            'options.*.text'   => 'nullable|string',
+            'options.*.media'  => 'nullable|file|mimes:jpg,jpeg,png,webp,mp3,wav,ogg,mp4,webm,mov|max:15360',
+            'correct_option'   => 'required|integer',
+        ], [
+            'question_text.required'   => 'Pertanyaan soal wajib diisi.',
+            'question_media.mimes'     => 'Media soal harus berupa gambar (JPG/PNG/WEBP), audio (MP3/WAV/OGG), video (MP4/WEBM/MOV), atau PDF.',
+            'question_media.max'       => 'Ukuran media soal maksimal 20MB.',
+            'options.required'         => 'Opsi pilihan jawaban wajib diisi.',
+            'options.*.media.mimes'    => 'Media jawaban harus berupa gambar (JPG/PNG/WEBP), audio (MP3/WAV/OGG), atau video (MP4/WEBM/MOV).',
+            'options.*.media.max'      => 'Ukuran media jawaban maksimal 15MB.',
+            'correct_option.required'  => 'Kunci jawaban yang benar wajib dipilih.',
         ]);
 
         DB::beginTransaction();
@@ -53,69 +61,48 @@ class QuestionController extends Controller
             // 1. Upload Media Soal (jika ada)
             $questionMediaId = null;
             if ($request->hasFile('question_media')) {
-                $file = $request->file('question_media');
-                $path = $file->store('quiz_questions', 'public');
-
-                $media = Media::create([
-                    'type' => str_contains($file->getMimeType(), 'image') ? 'image' : (str_contains($file->getMimeType(), 'audio') ? 'audio' : 'document'),
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'mime_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-                    'uploaded_by' => Auth::id(),
-                ]);
+                $media = $this->storeMediaFile($request->file('question_media'), 'quiz_questions');
                 $questionMediaId = $media->id;
             }
 
-            // Hitung kalkulasi bobot default berdasarkan kkm / jumlah soal
+            // Hitung kalkulasi bobot default berdasarkan max_score / jumlah soal
             $quiz = $assignment->quiz;
             $defaultPoints = ($quiz && $quiz->question_count > 0) ? ($assignment->max_score / $quiz->question_count) : 0;
 
             // 2. Simpan Data Soal
             $question = Question::create([
-                'created_by' => Auth::id(),
+                'created_by'    => Auth::id(),
                 'question_type' => $request->question_type,
                 'question_text' => $request->question_text,
-                'media_id' => $questionMediaId,
-                'points' => $defaultPoints,
-                'explanation' => $request->explanation,
-                'is_active' => true,
+                'media_id'      => $questionMediaId,
+                'points'        => $defaultPoints,
+                'explanation'   => $request->explanation,
+                'is_active'     => true,
             ]);
 
             // 3. Hubungkan Soal dengan Quiz via Pivot
             $lastSortOrder = QuizQuestion::where('quiz_id', $quiz->id)->max('sort_order') ?? 0;
             QuizQuestion::create([
-                'quiz_id' => $quiz->id,
+                'quiz_id'     => $quiz->id,
                 'question_id' => $question->id,
-                'sort_order' => $lastSortOrder + 1,
+                'sort_order'  => $lastSortOrder + 1,
             ]);
 
             // 4. Simpan Pilihan Jawaban (Options)
             foreach ($request->options as $index => $optionData) {
                 $optionMediaId = null;
 
-                // Upload Media Opsi Jawaban (jika ada)
-                if (isset($optionData['media']) && $request->hasFile("options.{$index}.media")) {
-                    $optFile = $request->file("options.{$index}.media");
-                    $optPath = $optFile->store('quiz_options', 'public');
-
-                    $optMedia = Media::create([
-                        'type' => 'image',
-                        'file_name' => $optFile->getClientOriginalName(),
-                        'file_path' => $optPath,
-                        'mime_type' => $optFile->getMimeType(),
-                        'file_size' => $optFile->getSize(),
-                        'uploaded_by' => Auth::id(),
-                    ]);
+                if ($request->hasFile("options.{$index}.media")) {
+                    $optMedia = $this->storeMediaFile($request->file("options.{$index}.media"), 'quiz_options');
                     $optionMediaId = $optMedia->id;
                 }
 
                 QuestionOption::create([
                     'question_id' => $question->id,
                     'option_text' => $optionData['text'] ?? '',
-                    'media_id' => $optionMediaId,
-                    'is_correct' => ($index == $request->correct_option),
-                    'sort_order' => $index + 1,
+                    'media_id'    => $optionMediaId,
+                    'is_correct'  => ($index == $request->correct_option),
+                    'sort_order'  => $index + 1,
                 ]);
             }
 
@@ -152,83 +139,100 @@ class QuestionController extends Controller
         }
 
         $request->validate([
-            'question_type' => 'required|in:multiple_choice,true_false',
-            'question_text' => 'required|string',
-            'explanation' => 'nullable|string',
-            'question_media' => 'nullable|file|mimes:jpg,jpeg,png,mp3,wav,pdf|max:10240',
-            'options' => 'required|array|min:2',
-            'options.*.text' => 'nullable|string',
-            'options.*.media' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
-            'correct_option' => 'required|integer',
+            'question_type'           => 'required|in:multiple_choice,true_false',
+            'question_text'           => 'required|string',
+            'explanation'             => 'nullable|string',
+            'question_media'          => 'nullable|file|mimes:jpg,jpeg,png,webp,mp3,wav,ogg,mp4,webm,mov,pdf|max:20480',
+            'remove_question_media'   => 'nullable|boolean',
+            'options'                 => 'required|array|min:2',
+            'options.*.id'            => 'nullable|integer',
+            'options.*.text'          => 'nullable|string',
+            'options.*.media'         => 'nullable|file|mimes:jpg,jpeg,png,webp,mp3,wav,ogg,mp4,webm,mov|max:15360',
+            'options.*.remove_media'  => 'nullable|boolean',
+            'correct_option'          => 'required|integer',
+        ], [
+            'question_text.required'   => 'Pertanyaan soal wajib diisi.',
+            'question_media.mimes'     => 'Media soal harus berupa gambar (JPG/PNG/WEBP), audio (MP3/WAV/OGG), video (MP4/WEBM/MOV), atau PDF.',
+            'question_media.max'       => 'Ukuran media soal maksimal 20MB.',
+            'options.required'         => 'Opsi pilihan jawaban wajib diisi.',
+            'options.*.media.mimes'    => 'Media jawaban harus berupa gambar (JPG/PNG/WEBP), audio (MP3/WAV/OGG), atau video (MP4/WEBM/MOV).',
+            'options.*.media.max'      => 'Ukuran media jawaban maksimal 15MB.',
+            'correct_option.required'  => 'Kunci jawaban yang benar wajib dipilih.',
         ]);
 
         DB::beginTransaction();
         try {
-            // Update / Replace Media Soal
+            // 1. Update / Replace / Remove Media Soal
             if ($request->hasFile('question_media')) {
-                // Hapus media lama jika ada
                 if ($question->media) {
                     Storage::disk('public')->delete($question->media->file_path);
-                    $question->media->delete();
+                    $oldQMedia = $question->media;
+                    $question->update(['media_id' => null]);
+                    $oldQMedia->delete();
                 }
 
-                $file = $request->file('question_media');
-                $path = $file->store('quiz_questions', 'public');
-
-                $media = Media::create([
-                    'type' => str_contains($file->getMimeType(), 'image') ? 'image' : (str_contains($file->getMimeType(), 'audio') ? 'audio' : 'document'),
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'mime_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-                    'uploaded_by' => Auth::id(),
-                ]);
+                $media = $this->storeMediaFile($request->file('question_media'), 'quiz_questions');
                 $question->media_id = $media->id;
+            } elseif ($request->boolean('remove_question_media') && $question->media) {
+                Storage::disk('public')->delete($question->media->file_path);
+                $oldQMedia = $question->media;
+                $question->update(['media_id' => null]);
+                $oldQMedia->delete();
+                $question->media_id = null;
             }
 
-            // Update Soal utama
+            // 2. Update Soal utama
             $question->update([
                 'question_type' => $request->question_type,
                 'question_text' => $request->question_text,
-                'explanation' => $request->explanation,
-                'media_id' => $question->media_id,
+                'explanation'   => $request->explanation,
+                'media_id'      => $question->media_id,
             ]);
 
-            // Hapus opsi lama & ganti dengan opsi baru
+            // 3. Petakan opsi lama berdasarkan ID agar media yang tidak diubah tetap tersimpan
+            $existingOptions = $question->options()->with('media')->get()->keyBy('id');
+            $keptMediaIds = [];
+
             foreach ($question->options as $oldOpt) {
-                if ($oldOpt->media) {
-                    Storage::disk('public')->delete($oldOpt->media->file_path);
-                    $oldOpt->media->delete();
-                }
                 $oldOpt->delete();
             }
 
-            // Simpan Opsi Jawaban Baru
+            // 4. Simpan Opsi Jawaban Baru / Diperbarui
             foreach ($request->options as $index => $optionData) {
                 $optionMediaId = null;
+                $oldOption = isset($optionData['id']) ? $existingOptions->get((int) $optionData['id']) : null;
+                $shouldRemoveMedia = filter_var($optionData['remove_media'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-                if (isset($optionData['media']) && $request->hasFile("options.{$index}.media")) {
-                    $optFile = $request->file("options.{$index}.media");
-                    $optPath = $optFile->store('quiz_options', 'public');
+                if ($request->hasFile("options.{$index}.media")) {
+                    // Hapus media lama pada opsi ini jika diganti file baru
+                    if ($oldOption && $oldOption->media) {
+                        Storage::disk('public')->delete($oldOption->media->file_path);
+                        $oldOption->media->delete();
+                    }
 
-                    $optMedia = Media::create([
-                        'type' => 'image',
-                        'file_name' => $optFile->getClientOriginalName(),
-                        'file_path' => $optPath,
-                        'mime_type' => $optFile->getMimeType(),
-                        'file_size' => $optFile->getSize(),
-                        'uploaded_by' => Auth::id(),
-                    ]);
+                    $optMedia = $this->storeMediaFile($request->file("options.{$index}.media"), 'quiz_options');
                     $optionMediaId = $optMedia->id;
+                } elseif ($oldOption && $oldOption->media_id && !$shouldRemoveMedia) {
+                    // Pertahankan media lama jika tidak diganti maupun dihapus
+                    $optionMediaId = $oldOption->media_id;
+                    $keptMediaIds[] = $optionMediaId;
                 }
 
                 QuestionOption::create([
                     'question_id' => $question->id,
                     'option_text' => $optionData['text'] ?? '',
-                    'media_id' => $optionMediaId,
-                    'is_correct' => ($index == $request->correct_option),
-                    'sort_order' => $index + 1,
+                    'media_id'    => $optionMediaId,
+                    'is_correct'  => ($index == $request->correct_option),
+                    'sort_order'  => $index + 1,
                 ]);
+            }
+
+            // 5. Bersihkan file media dari opsi yang dihapus atau media opsi yang ditandai hapus
+            foreach ($existingOptions as $oldOpt) {
+                if ($oldOpt->media && !in_array($oldOpt->media_id, $keptMediaIds)) {
+                    Storage::disk('public')->delete($oldOpt->media->file_path);
+                    $oldOpt->media->delete();
+                }
             }
 
             DB::commit();
@@ -280,5 +284,30 @@ class QuestionController extends Controller
             DB::rollBack();
             return back()->with('error', 'Gagal menghapus soal.');
         }
+    }
+
+    /**
+     * Helper internal untuk menyimpan berkas media (gambar, audio, video, atau dokumen) ke storage & tabel Media.
+     */
+    private function storeMediaFile(UploadedFile $file, string $directory): Media
+    {
+        $path = $file->store($directory, 'public');
+        $mime = $file->getMimeType() ?? 'application/octet-stream';
+
+        $type = match (true) {
+            str_contains($mime, 'image') => 'image',
+            str_contains($mime, 'audio') => 'audio',
+            str_contains($mime, 'video') => 'video',
+            default                      => 'document',
+        };
+
+        return Media::create([
+            'type'        => $type,
+            'file_name'   => $file->getClientOriginalName(),
+            'file_path'   => $path,
+            'mime_type'   => $mime,
+            'file_size'   => $file->getSize(),
+            'uploaded_by' => Auth::id(),
+        ]);
     }
 }

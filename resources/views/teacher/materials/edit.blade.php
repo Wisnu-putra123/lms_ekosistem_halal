@@ -79,19 +79,19 @@
                 <!-- Radio Selection -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <label class="flex items-center justify-center p-3 rounded-xl border text-xs font-bold cursor-pointer transition"
-                           :class="mediaType === 'none' ? 'bg-[#123F35] border-[#123F35] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
+                           :class="mediaType === 'none' ? 'bg-[#28745B] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
                         <input type="radio" name="media_type" value="none" x-model="mediaType" class="sr-only">
                         <span>Hapus / Tanpa Media</span>
                     </label>
 
                     <label class="flex items-center justify-center p-3 rounded-xl border text-xs font-bold cursor-pointer transition"
-                           :class="mediaType === 'embed' ? 'bg-[#123F35] border-[#123F35] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
+                           :class="mediaType === 'embed' ? 'bg-[#28745B] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
                         <input type="radio" name="media_type" value="embed" x-model="mediaType" class="sr-only">
                         <span>Tautan Embedded Link</span>
                     </label>
 
                     <label class="flex items-center justify-center p-3 rounded-xl border text-xs font-bold cursor-pointer transition"
-                           :class="mediaType === 'file' ? 'bg-[#123F35] border-[#123F35] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
+                           :class="mediaType === 'file' ? 'bg-[#28745B] text-white shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'">
                         <input type="radio" name="media_type" value="file" x-model="mediaType" class="sr-only">
                         <span>Unggah Berkas File</span>
                     </label>
@@ -153,7 +153,7 @@
                     Batal
                 </a>
                 <button type="submit" 
-                        class="px-5 py-2.5 rounded-xl bg-[#123F35] hover:bg-[#28745B] text-white text-xs font-bold transition shadow-2xs">
+                        class="px-5 py-2.5 rounded-xl bg-[#28745B] hover:bg-[#123F35] text-white text-xs font-bold transition shadow-2xs cursor-pointer">
                     Perbarui Materi
                 </button>
             </div>

@@ -28,7 +28,7 @@
             <form action="{{ route('teacher.assignments.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus tempat submission tugas ini beserta seluruh lampirannya?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition">
+                <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -131,14 +131,14 @@
     <div class="flex items-center space-x-2 border-b border-slate-300 pb-2 overflow-x-auto">
         <button type="button" @click="activeTab = 'submissions'" 
                 :class="activeTab === 'submissions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
-                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
+                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             <span>Hasil &amp; Pengumpulan Siswa ({{ $submissions->total() }})</span>
         </button>
 
         <button type="button" @click="activeTab = 'instructions'" 
                 :class="activeTab === 'instructions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
-                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
+                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Instruksi &amp; Berkas Soal</span>
         </button>
@@ -272,7 +272,7 @@
 
                 <!-- Tombol Aksi -->
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs">
+                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
                         Filter
                     </button>
                     <a href="{{ route('teacher.assignments.show', $assignment->id) }}" class="w-full bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center shadow-2xs">
@@ -358,7 +358,7 @@
                                         <form action="{{ route('teacher.submissions.destroy', $sub->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus attempt submission siswa ini?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 bg-red-50 text-red-600 border border-red-300 hover:bg-red-600 hover:text-white rounded-lg transition shadow-2xs" title="Hapus Submission Attempt">
+                                            <button type="submit" class="p-1.5 bg-red-50 text-red-600 border border-red-300 hover:bg-red-600 hover:text-white rounded-lg transition shadow-2xs cursor-pointer" title="Hapus Submission Attempt">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                 </svg>

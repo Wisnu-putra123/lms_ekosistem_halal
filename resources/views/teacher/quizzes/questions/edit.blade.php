@@ -4,8 +4,6 @@
 @section('header_title', 'Edit Soal')
 
 @section('content')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <div class="max-w-4xl mx-auto space-y-5 sm:space-y-6">
 
     <!-- Header Navigation -->
@@ -25,7 +23,7 @@
     <!-- Form Container -->
     <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <!-- Card Header Gradasi Hijau Tua -->
-        <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-5 sm:p-8 border-b border-slate-300 text-white">
+        <div class="bg-[#28745B] p-5 sm:p-8 border-b border-slate-300 text-white">
             <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase mb-2">
                 Bank Soal Quiz &bull; Perbarui Butir Soal
             </span>
@@ -66,15 +64,20 @@
             <div class="space-y-2.5">
                 <label class="block text-xs font-extrabold uppercase tracking-wider text-[#123F35]">Lampiran Media Soal</label>
                 @if($question->media)
-                    <div class="p-3 bg-[#d1e4da]/60 border border-slate-300 rounded-xl flex items-center justify-between gap-2 text-xs">
-                        <div class="flex items-center space-x-2 overflow-hidden">
-                            <svg class="w-4 h-4 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
+                    <div class="p-3 bg-[#d1e4da]/60 border border-slate-300 rounded-xl flex items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            @if($question->media->type === 'image')
+                                <img src="{{ asset('storage/' . $question->media->file_path) }}" alt="{{ $question->media->file_name }}"
+                                     class="w-16 h-12 rounded-lg object-cover border border-slate-300 bg-white flex-shrink-0">
+                            @else
+                                <svg class="w-5 h-5 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            @endif
                             <span class="truncate font-bold text-[#123F35]">Media Terpasang: {{ $question->media->file_name }}</span>
                         </div>
                         <a href="{{ asset('storage/' . $question->media->file_path) }}" target="_blank" rel="noopener noreferrer" 
-                           class="px-3 py-1 bg-white hover:bg-[#123F35] text-[#123F35] hover:text-white border border-slate-300 rounded-lg text-[11px] font-bold transition shadow-2xs flex-shrink-0">
+                           class="px-3 py-1.5 bg-white hover:bg-[#123F35] text-[#123F35] hover:text-white border border-slate-300 rounded-lg text-[11px] font-bold transition shadow-2xs flex-shrink-0">
                             Lihat Media
                         </a>
                     </div>
@@ -92,7 +95,7 @@
                     </div>
 
                     <template x-if="questionType === 'multiple_choice'">
-                        <button type="button" @click="addOption()" class="px-3.5 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 rounded-xl text-xs font-extrabold shadow-2xs transition self-start sm:self-auto">
+                        <button type="button" @click="addOption()" class="px-3.5 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 rounded-xl text-xs font-extrabold shadow-2xs transition self-start sm:self-auto cursor-pointer">
                             + Tambah Opsi
                         </button>
                     </template>
@@ -111,24 +114,55 @@
                                  :class="Number(correctOption) === index ? 'bg-[#28745B] text-white' : 'bg-[#F7F5EE] border border-slate-300 text-[#123F35]'"
                                  x-text="String.fromCharCode(65 + index)"></div>
 
-                            <div class="flex-1 min-w-0 space-y-2">
+                            <div class="flex-1 min-w-0 space-y-2.5">
                                 <div class="flex items-center justify-between gap-2" x-show="Number(correctOption) === index">
                                     <span class="inline-block text-[10px] font-extrabold text-[#28745B] uppercase tracking-wider">
                                         ✓ Kunci Jawaban Benar
                                     </span>
                                 </div>
 
+                                <!-- Hidden ID opsi lama agar gambar opsi tetap terpaut jika tidak diubah -->
+                                <input type="hidden" :name="`options[${index}][id]`" :value="opt.id ?? ''">
+                                <input type="hidden" :name="`options[${index}][remove_media]`" :value="opt.remove_media ? 1 : 0">
+
                                 <input type="text" :name="`options[${index}][text]`" x-model="opt.text" required
                                        class="w-full px-3 py-2 bg-[#F7F5EE]/50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-[#28745B] focus:ring-2 focus:ring-[#28745B]/20 transition">
 
+                                <!-- Pratinjau Gambar Opsi yang Sudah Terpasang -->
+                                <template x-if="opt.media_url">
+                                    <div class="p-2.5 bg-[#d1e4da]/50 border border-slate-300 rounded-xl flex items-center justify-between gap-3">
+                                        <div class="flex items-center space-x-2.5 min-w-0">
+                                            <img :src="opt.media_url" :alt="opt.media_name"
+                                                 :class="opt.remove_media ? 'opacity-40 grayscale' : ''"
+                                                 class="w-16 h-12 rounded-lg object-cover border border-slate-300 bg-white flex-shrink-0 transition">
+                                            <div class="min-w-0 text-[11px]">
+                                                <p class="font-bold text-[#123F35] truncate" x-show="!opt.remove_media" x-text="opt.media_name"></p>
+                                                <p class="font-bold text-red-600 truncate" x-show="opt.remove_media">Gambar ditandai untuk dihapus</p>
+                                                <a :href="opt.media_url" target="_blank" rel="noopener noreferrer"
+                                                   class="text-[#28745B] hover:underline font-semibold inline-block mt-0.5">
+                                                    Lihat ukuran penuh
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <button type="button"
+                                                @click="opt.remove_media = !opt.remove_media"
+                                                class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex-shrink-0 transition cursor-pointer"
+                                                :class="opt.remove_media ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white'">
+                                            <span x-text="opt.remove_media ? 'Batalkan' : 'Hapus Gambar'"></span>
+                                        </button>
+                                    </div>
+                                </template>
+
                                 <template x-if="questionType === 'multiple_choice'">
-                                    <input type="file" :name="`options[${index}][media]`" 
+                                    <input type="file" :name="`options[${index}][media]`" accept="image/jpeg,image/png,image/jpg"
+                                           @change="if ($event.target.files.length > 0) opt.remove_media = false"
                                            class="block w-full text-[10px] text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border file:border-slate-300 file:text-[10px] file:font-bold file:bg-[#F7F5EE] file:text-[#123F35] hover:file:bg-[#28745B] hover:file:text-white cursor-pointer transition">
                                 </template>
                             </div>
 
                             <template x-if="questionType === 'multiple_choice' && options.length > 2">
-                                <button type="button" @click="removeOption(index)" class="p-1.5 bg-white border border-slate-300 rounded-lg text-slate-500 hover:text-red-600 hover:border-red-300 transition flex-shrink-0 shadow-2xs" title="Hapus Opsi">
+                                <button type="button" @click="removeOption(index)" class="p-1.5 bg-white border border-slate-300 rounded-lg text-slate-500 hover:text-red-600 hover:border-red-300 transition flex-shrink-0 shadow-2xs cursor-pointer" title="Hapus Opsi">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
@@ -153,7 +187,7 @@
                 <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition text-center shadow-2xs">
                     Batal
                 </a>
-                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center">
+                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center cursor-pointer">
                     Perbarui Soal
                 </button>
             </div>
@@ -162,14 +196,32 @@
 
 </div>
 
+@php
+    $initialOptions = $question->options->map(function ($opt) {
+        return [
+            'id'           => $opt->id,
+            'text'         => $opt->option_text,
+            'media_url'    => $opt->media ? asset('storage/' . $opt->media->file_path) : null,
+            'media_name'   => $opt->media ? $opt->media->file_name : null,
+            'remove_media' => false,
+        ];
+    })->values();
+@endphp
+
 <script>
     function questionForm() {
         return {
             questionType: '{{ $question->question_type }}',
             correctOption: {{ $question->options->search(fn($opt) => $opt->is_correct) ?? 0 }},
-            options: @json($question->options->map(fn($opt) => ['text' => $opt->option_text])),
+            options: @json($initialOptions),
             addOption() {
-                this.options.push({ text: '' });
+                this.options.push({
+                    id: null,
+                    text: '',
+                    media_url: null,
+                    media_name: null,
+                    remove_media: false,
+                });
             },
             removeOption(index) {
                 this.options.splice(index, 1);
@@ -180,8 +232,8 @@
             handleTypeChange() {
                 if (this.questionType === 'true_false') {
                     this.options = [
-                        { text: 'Benar' },
-                        { text: 'Salah' }
+                        { id: null, text: 'Benar', media_url: null, media_name: null, remove_media: false },
+                        { id: null, text: 'Salah', media_url: null, media_name: null, remove_media: false }
                     ];
                     this.correctOption = 0;
                 }
@@ -189,4 +241,5 @@
         }
     }
 </script>
+
 @endsection

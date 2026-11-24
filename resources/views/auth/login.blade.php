@@ -99,7 +99,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full py-3 px-4 bg-[#123F35] hover:bg-[#28745B] text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition duration-200 mt-2 cursor-pointer">
+            <button type="submit" class="w-full py-3 px-4 bg-[#28745B] hover:bg-[#123F35] text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition duration-200 mt-2 cursor-pointer">
                 Masuk Sekarang
             </button>
 

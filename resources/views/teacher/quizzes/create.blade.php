@@ -23,7 +23,7 @@
     <!-- Form Container -->
     <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <!-- Card Header Gradasi Hijau Tua -->
-        <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-5 sm:p-8 border-b border-slate-300 text-white">
+        <div class="bg-[#28745B] p-5 sm:p-8 border-b border-slate-300 text-white">
             <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase mb-2">
                 Pertemuan {{ $meeting->meeting_number }} &bull; Tambah Aktivitas
             </span>

@@ -67,29 +67,51 @@
                 @enderror
             </div>
 
-            <!-- Upload Thumbnail Gambar -->
-            <div>
-                <label for="thumbnail" class="block text-xs font-bold text-[#123F35] mb-1">Gambar Thumbnail Kursus</label>
+            <!-- Upload & Hapus Thumbnail Gambar -->
+            <div x-data="{ removeThumbnail: false }">
+                <label for="thumbnail" class="block text-xs font-bold text-[#123F35] mb-1">Gambar Thumbnail Kursus <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                
+                <input type="hidden" name="remove_thumbnail" :value="removeThumbnail ? 1 : 0">
+
                 @if($course->thumbnail)
-                    <div class="mb-2 w-32 h-20 rounded-xl overflow-hidden border border-slate-300 shadow-2xs">
-                        <img src="{{ asset('storage/' . $course->thumbnail->file_path) }}" alt="Thumbnail saat ini" class="w-full h-full object-cover">
+                    <div class="mb-2.5 flex items-center gap-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="relative w-32 h-20 rounded-xl overflow-hidden border border-slate-300 shadow-2xs shrink-0"
+                             :class="removeThumbnail ? 'opacity-40 grayscale' : ''">
+                            <img src="{{ asset('storage/' . $course->thumbnail->file_path) }}" alt="Thumbnail saat ini" class="w-full h-full object-cover">
+                        </div>
+                        <div class="space-y-1.5">
+                            <p class="text-xs font-semibold text-slate-700" x-show="!removeThumbnail">Thumbnail aktif saat ini</p>
+                            <p class="text-xs font-semibold text-red-600" x-show="removeThumbnail" x-cloak>Thumbnail ditandai untuk dihapus saat disimpan</p>
+                            
+                            <button type="button"
+                                    @click="removeThumbnail = !removeThumbnail"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+                                    :class="removeThumbnail ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white'">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                <span x-text="removeThumbnail ? 'Batalkan Hapus Thumbnail' : 'Hapus Thumbnail'"></span>
+                            </button>
+                        </div>
                     </div>
                 @endif
+
                 <input type="file" id="thumbnail" name="thumbnail" accept="image/jpeg,image/png,image/jpg,image/webp"
+                       @change="if ($event.target.files.length > 0) removeThumbnail = false"
                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/15 file:text-[#123F35] hover:file:bg-[#28745B]/25 bg-[#F7F5EE]/60 border border-slate-300 rounded-xl cursor-pointer">
-                <p class="text-[11px] text-slate-400 mt-1">Biarkan kosong jika tidak ingin mengubah thumbnail.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Biarkan kosong jika tidak ingin mengubah thumbnail, atau klik "Hapus Thumbnail" untuk menghapus gambar yang ada.</p>
                 @error('thumbnail')
                     <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
                 @enderror
             </div>
 
-            <!-- Upload Custom Background Sertifikat -->
+            <!-- Upload Template Background Sertifikat (Wajib) -->
             <div class="p-4 bg-[#F7F5EE] rounded-2xl border border-slate-300 space-y-2">
                 <label for="certificate_background" class="block text-xs font-bold text-[#123F35] flex items-center space-x-1.5">
                     <svg class="w-4 h-4 text-[#28745B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                     </svg>
-                    <span>Custom Template Background Sertifikat</span>
+                    <span>Template Background Sertifikat <span class="text-red-500">*</span></span>
                 </label>
                 
                 @if($course->certificateBackground)
@@ -100,12 +122,15 @@
                         </div>
                     </div>
                 @else
-                    <p class="text-xs text-slate-500 italic mb-1">Saat ini menggunakan desain bawaan standar sistem.</p>
+                    <p class="text-xs text-red-600 font-medium mb-1">Belum ada template background sertifikat. Wajib mengunggah gambar background sertifikat.</p>
                 @endif
 
                 <input type="file" id="certificate_background" name="certificate_background" accept="image/jpeg,image/png,image/jpg,image/webp"
+                       {{ $course->certificateBackground ? '' : 'required' }}
                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/20 file:text-[#123F35] hover:file:bg-[#28745B]/30 bg-white border border-slate-300 rounded-xl cursor-pointer">
-                <p class="text-[11px] text-slate-500">Biarkan kosong jika tidak ingin mengaitkan/mengubah template gambar latar sertifikat.</p>
+                <p class="text-[11px] text-slate-500">
+                    {{ $course->certificateBackground ? 'Biarkan kosong jika tidak ingin mengganti template gambar latar sertifikat saat ini.' : 'Unggah template gambar background sertifikat berorientasi landscape (A4).' }}
+                </p>
                 @error('certificate_background')
                     <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
                 @enderror
@@ -168,7 +193,7 @@
                 <a href="{{ route('teacher.courses.index') }}" class="px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition">
                     Batal
                 </a>
-                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-xs">
+                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-xs cursor-pointer">
                     Perbarui Kursus
                 </button>
             </div>

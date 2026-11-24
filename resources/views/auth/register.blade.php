@@ -179,7 +179,7 @@
                 <div>
                     <label for="ktp" class="block text-xs font-bold text-[#123F35] uppercase tracking-wider mb-1.5">Upload Berkas KTP <span class="text-red-500">*</span></label>
                     <input type="file" id="ktp" name="ktp" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf" required
-                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold hover:file:bg-[#123F35] file:text-white file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
                     <p class="text-[10px] text-slate-400 mt-1">Format: PDF, JPG, JPEG, PNG (Max 2MB)</p>
                     @error('ktp')
                         <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
@@ -208,7 +208,7 @@
                 <div>
                     <label for="kk" class="block text-xs font-bold text-[#123F35] uppercase tracking-wider mb-1.5">Upload Berkas KK <span class="text-red-500">*</span></label>
                     <input type="file" id="kk" name="kk" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf" required
-                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold hover:file:bg-[#123F35] file:text-white file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
                     <p class="text-[10px] text-slate-400 mt-1">Format: PDF, JPG, JPEG, PNG (Max 2MB)</p>
                     @error('kk')
                         <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
@@ -238,7 +238,7 @@
                 <div>
                     <label for="ijazah" class="block text-xs font-bold text-[#123F35] uppercase tracking-wider mb-1.5">Upload Berkas Ijazah <span class="text-red-500">*</span></label>
                     <input type="file" id="ijazah" name="ijazah" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf" required
-                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold hover:file:bg-[#123F35] file:text-white file:bg-[#28745B] border border-slate-300 rounded-xl bg-[#F7F5EE]/60 focus:outline-none cursor-pointer transition">
                     <p class="text-[10px] text-slate-400 mt-1">Format: PDF, JPG, JPEG, PNG (Max 2MB)</p>
                     @error('ijazah')
                         <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
@@ -257,7 +257,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full py-3 px-4 bg-[#123F35] hover:bg-[#28745B] text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition duration-200 mt-4 cursor-pointer">
+            <button type="submit" class="w-full py-3 px-4 hover:bg-[#123F35] bg-[#28745B] text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition duration-200 mt-4 cursor-pointer">
                 Daftar Sekarang
             </button>
 

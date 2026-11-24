@@ -4,8 +4,6 @@
 @section('header_title', 'Detail & Hasil Quiz')
 
 @section('content')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <div class="max-w-5xl mx-auto space-y-5 sm:space-y-6" x-data="{ activeTab: 'attempts' }">
 
     <!-- Header Navigation -->
@@ -28,7 +26,7 @@
             <form action="{{ route('teacher.quizzes.destroy', $assignment->id) }}" method="POST" onsubmit="return confirm('Hapus Quiz ini beserta seluruh bank soalnya?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition">
+                <button type="submit" class="inline-flex items-center space-x-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -56,7 +54,7 @@
         </div>
     @endif
 
-    <!-- 1. TOP CARD KONFIGURASI RINGKAS QUIZ (FULL GRADASI HIJAU TUA) -->
+    <!-- 1. TOP CARD KONFIGURASI RINGKAS QUIZ -->
     <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] rounded-2xl border border-[#28745B]/40 shadow-md p-5 sm:p-8 text-white space-y-6">
         <div class="border-b border-white/20 pb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div class="space-y-1.5">
@@ -90,7 +88,7 @@
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
                 <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Soal Diuji / Bank</span>
-                <div class="text-xs font-extrabold text-[#E7C982] mt-1">
+                <div class="text-xs font-extrabold text-white mt-1">
                     {{ $quiz->question_count }} / {{ $quiz->questions->count() }} Soal
                 </div>
             </div>
@@ -104,7 +102,7 @@
 
             <div class="p-3.5 bg-white/10 border border-white/20 rounded-xl backdrop-blur-xs">
                 <span class="text-[10px] font-bold text-emerald-100/80 uppercase tracking-wider">Passing Grade</span>
-                <div class="text-xs font-extrabold text-[#E7C982] mt-1">
+                <div class="text-xs font-extrabold text-white mt-1">
                     {{ number_format($assignment->passing_score, 0) }} / {{ number_format($assignment->max_score, 0) }}
                 </div>
             </div>
@@ -137,27 +135,27 @@
     <!-- 2. TAB HEADER SWITCHER -->
     <div class="flex items-center space-x-2 border-b border-slate-300 pb-2 overflow-x-auto">
         <button type="button" @click="activeTab = 'attempts'" 
-                :class="activeTab === 'attempts' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
-                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
+                :class="activeTab === 'attempts' ? 'bg-[#28745B] text-white font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
+                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
             <span>Hasil & Nilai Siswa ({{ $quizAttempts->total() }})</span>
         </button>
 
         <button type="button" @click="activeTab = 'questions'" 
-                :class="activeTab === 'questions' ? 'bg-[#123F35] text-white font-bold border-[#123F35] shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
-                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0">
+                :class="activeTab === 'questions' ? 'bg-[#28745B] text-white font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-[#F7F5EE] font-semibold'"
+                class="px-5 py-2.5 rounded-xl border text-xs transition flex items-center space-x-2 flex-shrink-0 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>Bank Soal Quiz ({{ $quiz->questions->count() }})</span>
         </button>
     </div>
 
-<!-- 3. TAB DAFTAR BANK SOAL -->
+    <!-- 3. TAB DAFTAR BANK SOAL -->
     <div x-show="activeTab === 'questions'" x-cloak class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <!-- Heading Container bg-[#28745B] -->
         <div class="bg-[#28745B] p-4 sm:px-6 border-b border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
             <div>
                 <h2 class="text-sm sm:text-base font-bold text-white">Daftar Bank Soal ({{ $quiz->questions->count() }})</h2>
-                <p class="text-xs text-emerald-100/85">Kelola soal, kunci jawaban, dan pembahasan yang digunakan untuk quiz ini.</p>
+                <p class="text-xs text-emerald-100/85">Kelola soal, media lampiran, kunci jawaban, dan pembahasan yang digunakan untuk quiz ini.</p>
             </div>
 
             <a href="{{ route('teacher.quizzes.questions.create', $assignment->id) }}" class="bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] px-4 py-2 rounded-xl text-xs font-extrabold shadow-2xs transition flex items-center space-x-1.5 self-start sm:self-auto">
@@ -170,10 +168,20 @@
             @forelse($quiz->questions as $index => $q)
                 <div class="rounded-2xl border border-slate-300 bg-[#F7F5EE]/50 overflow-hidden shadow-2xs">
                     <!-- Header Kartu Soal -->
-                    <div class="mx-4 sm:mx-5 py-3.5 border-b border-slate-300 flex items-center justify-between gap-2">
-                        <span class="px-2.5 py-1 bg-[#123F35] text-white rounded-lg font-bold text-xs">
-                            Soal #{{ $index + 1 }}
-                        </span>
+                    <div class="mx-4 sm:mx-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center flex-wrap gap-2">
+                            <span class="px-2.5 py-1 bg-[#123F35] text-white rounded-lg font-bold text-xs">
+                                Soal #{{ $index + 1 }}
+                            </span>
+                            <span class="px-2.5 py-1 bg-white border border-slate-300 text-[#123F35] rounded-lg font-bold text-[11px]">
+                                {{ $q->question_type === 'true_false' ? 'Benar / Salah' : 'Pilihan Ganda' }}
+                            </span>
+                            @if($q->points > 0)
+                                <span class="px-2.5 py-1 bg-[#28745B]/15 text-[#28745B] rounded-lg font-extrabold text-[11px]">
+                                    {{ number_format($q->points, 1) }} Poin
+                                </span>
+                            @endif
+                        </div>
 
                         <div class="flex items-center space-x-2 flex-shrink-0">
                             <a href="{{ route('teacher.quizzes.questions.edit', [$assignment->id, $q->id]) }}" class="p-1.5 bg-[#E7C982]/40 text-[#123F35] border border-[#E7C982] hover:bg-[#123F35] hover:text-white rounded-lg transition shadow-2xs" title="Edit Soal">
@@ -182,7 +190,7 @@
                             <form action="{{ route('teacher.quizzes.questions.destroy', [$assignment->id, $q->id]) }}" method="POST" onsubmit="return confirm('Hapus soal ini dari bank soal?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="p-1.5 bg-red-50 text-red-600 border border-red-300 hover:bg-red-600 hover:text-white rounded-lg transition shadow-2xs" title="Hapus Soal">
+                                <button type="submit" class="p-1.5 bg-red-50 text-red-600 border border-red-300 hover:bg-red-600 hover:text-white rounded-lg transition shadow-2xs cursor-pointer" title="Hapus Soal">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </form>
@@ -193,33 +201,111 @@
                     <div class="p-4 sm:p-5 space-y-4">
                         <div>
                             <div class="text-xs sm:text-sm font-bold text-[#123F35] leading-relaxed">{!! nl2br(e($q->question_text)) !!}</div>
+
+                            <!-- Media Lampiran Soal (Gambar / Audio / Video / PDF) -->
                             @if($q->media)
+                                @php
+                                    $qMediaUrl  = asset('storage/' . $q->media->file_path);
+                                    $qMediaType = $q->media->type ?? '';
+                                    $qMimeType  = $q->media->mime_type ?? '';
+                                @endphp
                                 <div class="mt-3">
-                                    @if(str_contains($q->media->mime_type, 'image'))
-                                        <div class="p-2 bg-white rounded-xl border border-slate-300 inline-block">
-                                            <img src="{{ asset('storage/' . $q->media->file_path) }}" alt="Soal Media" class="max-h-48 rounded-lg object-contain">
+                                    @if($qMediaType === 'image' || str_contains($qMimeType, 'image'))
+                                        <div class="p-2.5 bg-white rounded-xl border border-slate-300 inline-block">
+                                            <a href="{{ $qMediaUrl }}" target="_blank" rel="noopener noreferrer">
+                                                <img src="{{ $qMediaUrl }}" alt="{{ $q->media->file_name }}" class="max-h-56 rounded-lg object-contain">
+                                            </a>
+                                            <p class="text-[10px] text-slate-500 mt-1.5 truncate max-w-xs">{{ $q->media->file_name }}</p>
+                                        </div>
+                                    @elseif($qMediaType === 'audio' || str_contains($qMimeType, 'audio'))
+                                        <div class="p-3 bg-white rounded-xl border border-slate-300 max-w-md space-y-1.5">
+                                            <div class="flex items-center space-x-1.5 text-[11px] font-bold text-[#123F35]">
+                                                <svg class="w-4 h-4 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                                </svg>
+                                                <span class="truncate">{{ $q->media->file_name }}</span>
+                                            </div>
+                                            <audio controls preload="metadata" class="w-full h-9">
+                                                <source src="{{ $qMediaUrl }}" type="{{ $qMimeType }}">
+                                                Browser Anda tidak mendukung pemutar audio.
+                                            </audio>
+                                        </div>
+                                    @elseif($qMediaType === 'video' || str_contains($qMimeType, 'video'))
+                                        <div class="p-2.5 bg-white rounded-xl border border-slate-300 max-w-lg space-y-1.5">
+                                            <video controls preload="metadata" class="w-full max-h-64 rounded-lg bg-black">
+                                                <source src="{{ $qMediaUrl }}" type="{{ $qMimeType }}">
+                                                Browser Anda tidak mendukung pemutar video.
+                                            </video>
+                                            <p class="text-[10px] text-slate-500 truncate">{{ $q->media->file_name }}</p>
                                         </div>
                                     @else
-                                        <a href="{{ asset('storage/' . $q->media->file_path) }}" download="{{ $q->media->file_name }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#d1e4da] border border-slate-300 rounded-xl text-xs font-bold text-[#123F35] hover:bg-[#28745B] hover:text-white transition">
-                                            <span>Unduh Lampiran Soal ({{ $q->media->file_name }})</span>
+                                        <a href="{{ $qMediaUrl }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center space-x-2 px-3.5 py-2 bg-[#d1e4da] border border-slate-300 rounded-xl text-xs font-bold text-[#123F35] hover:bg-[#28745B] hover:text-white transition">
+                                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <span>Lihat / Unduh Lampiran ({{ $q->media->file_name }})</span>
                                         </a>
                                     @endif
                                 </div>
                             @endif
                         </div>
 
-                        <!-- Opsi Jawaban -->
+                        <!-- Opsi Jawaban (Teks + Gambar / Audio / Video) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             @foreach($q->options as $optIndex => $opt)
-                                <div class="p-3 rounded-xl border text-xs flex items-center justify-between gap-2 {{ $opt->is_correct ? 'bg-emerald-100/90 border-[#28745B]/50 font-bold text-[#123F35]' : 'bg-white border-slate-300 text-slate-700' }}">
-                                    <div class="flex items-center space-x-2 overflow-hidden pr-2">
-                                        <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 {{ $opt->is_correct ? 'bg-[#28745B] text-white' : 'bg-[#F7F5EE] border border-slate-300 text-slate-700' }}">
-                                            {{ chr(65 + $optIndex) }}
-                                        </span>
-                                        <span class="truncate">{!! e($opt->option_text) !!}</span>
+                                <div class="p-3 rounded-xl border text-xs flex flex-col justify-between gap-2.5 {{ $opt->is_correct ? 'bg-emerald-100/90 border-[#28745B]/50 font-bold text-[#123F35]' : 'bg-white border-slate-300 text-slate-700' }}">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-start space-x-2 min-w-0 pr-1">
+                                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 mt-0.5 {{ $opt->is_correct ? 'bg-[#28745B] text-white' : 'bg-[#F7F5EE] border border-slate-300 text-slate-700' }}">
+                                                {{ chr(65 + $optIndex) }}
+                                            </span>
+                                            @if(filled($opt->option_text))
+                                                <span class="break-words leading-relaxed">{!! nl2br(e($opt->option_text)) !!}</span>
+                                            @else
+                                                <span class="italic text-slate-400 font-normal">(Opsi Media)</span>
+                                            @endif
+                                        </div>
+
+                                        @if($opt->is_correct)
+                                            <span class="text-[10px] bg-[#28745B] text-white px-2.5 py-0.5 rounded-md font-bold flex-shrink-0 shadow-2xs">Kunci Jawaban</span>
+                                        @endif
                                     </div>
-                                    @if($opt->is_correct)
-                                        <span class="text-[10px] bg-[#28745B] text-white px-2.5 py-0.5 rounded-md font-bold flex-shrink-0 shadow-2xs">Kunci Jawaban</span>
+
+                                    <!-- Media Opsi Jawaban -->
+                                    @if($opt->media)
+                                        @php
+                                            $optMediaUrl  = asset('storage/' . $opt->media->file_path);
+                                            $optMediaType = $opt->media->type ?? '';
+                                            $optMimeType  = $opt->media->mime_type ?? '';
+                                        @endphp
+                                        <div class="pl-7">
+                                            @if($optMediaType === 'image' || str_contains($optMimeType, 'image'))
+                                                <a href="{{ $optMediaUrl }}" target="_blank" rel="noopener noreferrer" class="inline-block bg-white p-1.5 rounded-lg border border-slate-300 hover:border-[#28745B] transition">
+                                                    <img src="{{ $optMediaUrl }}" alt="{{ $opt->media->file_name }}" class="max-h-36 rounded-md object-contain">
+                                                </a>
+                                            @elseif($optMediaType === 'audio' || str_contains($optMimeType, 'audio'))
+                                                <div class="p-2 bg-white rounded-lg border border-slate-300 space-y-1">
+                                                    <p class="text-[10px] font-semibold text-slate-500 truncate">{{ $opt->media->file_name }}</p>
+                                                    <audio controls preload="metadata" class="w-full h-8">
+                                                        <source src="{{ $optMediaUrl }}" type="{{ $optMimeType }}">
+                                                        Browser Anda tidak mendukung pemutar audio.
+                                                    </audio>
+                                                </div>
+                                            @elseif($optMediaType === 'video' || str_contains($optMimeType, 'video'))
+                                                <div class="p-1.5 bg-white rounded-lg border border-slate-300 space-y-1">
+                                                    <video controls preload="metadata" class="w-full max-h-44 rounded-md bg-black">
+                                                        <source src="{{ $optMediaUrl }}" type="{{ $optMimeType }}">
+                                                        Browser Anda tidak mendukung pemutar video.
+                                                    </video>
+                                                    <p class="text-[10px] font-normal text-slate-500 truncate">{{ $opt->media->file_name }}</p>
+                                                </div>
+                                            @else
+                                                <a href="{{ $optMediaUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 text-[11px] text-[#28745B] hover:underline font-bold">
+                                                    <span>Lihat Media ({{ $opt->media->file_name }})</span>
+                                                </a>
+                                            @endif
+                                        </div>
                                     @endif
                                 </div>
                             @endforeach
@@ -290,7 +376,7 @@
                 </div>
                 
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs">
+                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
                         Filter
                     </button>
                     <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="w-full bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center shadow-2xs">
