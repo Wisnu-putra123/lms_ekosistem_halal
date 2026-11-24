@@ -81,23 +81,22 @@
             line-height: 1.35;
         }
 
-        /* Area Footer Bawah (Ruang di atasnya dibiarkan kosong untuk TTD & Nama Pejabat) */
-        .footer-area {
-            position: absolute;
-            bottom: 62px; /* Posisi sejajar di bawah garis tanda tangan template */
-            left: 110px;
-            right: 110px;
-            font-size: 11px;
-        }
+        /* Area Footer Kiri & Kanan (Sejajar pada garis bawah bottom: 62px) */
         .footer-left {
-            float: left;
+            position: absolute;
+            bottom: 62px;
+            left: 110px;
             text-align: left;
-            line-height: 1.55;
+            font-size: 11px;
+            line-height: 1.5;
         }
         .footer-right {
-            float: right;
+            position: absolute;
+            bottom: 62px; /* Bagian bawah URL sejajar tepat dengan tanggal terbit */
+            right: 110px;
             text-align: right;
-            line-height: 1.5;
+            font-size: 11px;
+            line-height: 1.35;
         }
         .instansi {
             font-weight: bold;
@@ -106,6 +105,7 @@
         }
         .issued-date {
             color: #64748b;
+            margin-top: 2px;
         }
         .verification-label {
             color: #64748b;
@@ -126,7 +126,7 @@
         .verify-url {
             font-size: 9px;
             color: #94a3b8;
-            margin-top: 4px;
+            margin-top: 3px;
         }
     </style>
 </head>
@@ -149,18 +149,17 @@
         <div class="course-title">{{ $courseTitle }}</div>
     </div>
 
-    <!-- Footer Kiri & Kanan -->
-    <div class="footer-area">
-        <div class="footer-left">
-            <div class="instansi">LPP-JPH Universitas Telkom</div>
-            <div class="issued-date">Diterbitkan: {{ $issuedDate }}</div>
-        </div>
+    <!-- Footer Kiri -->
+    <div class="footer-left">
+        <div class="instansi">LPP-JPH Universitas Telkom</div>
+        <div class="issued-date">Diterbitkan: {{ $issuedDate }}</div>
+    </div>
 
-        <div class="footer-right">
-            <div class="verification-label">Kode Verifikasi:</div>
-            <div class="verification-box">{{ $verificationCode }}</div>
-            <div class="verify-url">Verifikasi: {{ url('/verify-certificate/' . $verificationCode) }}</div>
-        </div>
+    <!-- Footer Kanan -->
+    <div class="footer-right">
+        <div class="verification-label">Kode Verifikasi:</div>
+        <div class="verification-box">{{ $verificationCode }}</div>
+        <div class="verify-url">Verifikasi: {{ url('/verify-certificate/' . $verificationCode) }}</div>
     </div>
 </body>
 </html>

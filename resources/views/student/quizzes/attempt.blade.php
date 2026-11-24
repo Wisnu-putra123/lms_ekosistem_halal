@@ -3,12 +3,10 @@
 @section('title', 'Mengerjakan Quiz - ' . $assignment->title)
 
 @section('content')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <div x-data="quizTimer()" x-init="initTimer()" class="max-w-5xl mx-auto space-y-5 sm:space-y-6">
 
     <!-- Header & Floating Timer Sticky Bar (Gradasi Hijau Tua) -->
-    <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] text-white rounded-2xl p-4 sm:p-5 shadow-md flex items-center justify-between gap-3 sticky top-4 z-40 border border-[#28745B]/40">
+    <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] text-white rounded-2xl p-4 sm:p-5 shadow-md flex items-center justify-between gap-3 top-4 z-40 border border-[#28745B]/40">
         <div class="min-w-0">
             <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase backdrop-blur-xs">
                 Attempt #{{ $attempt->attempt_number }}
@@ -44,13 +42,13 @@
                 <div class="p-4 sm:p-5 space-y-4">
                     <div class="grid grid-cols-5 gap-2">
                         <template x-for="(q, idx) in questions" :key="q.id">
-                            <button type="button" @click="currentIndex = idx"
+                            <button type="button" @click="goToQuestion(idx)"
                                     :class="{
                                         'bg-[#123F35] text-white font-extrabold border-[#123F35] shadow-2xs': currentIndex === idx,
                                         'bg-[#28745B]/15 text-[#28745B] font-bold border-[#28745B]/40': currentIndex !== idx && answers[q.id],
                                         'bg-[#F7F5EE]/60 text-slate-700 border-slate-300 hover:bg-slate-100': currentIndex !== idx && !answers[q.id]
                                     }"
-                                    class="h-9 w-full rounded-xl border text-xs flex items-center justify-center transition">
+                                    class="h-9 w-full rounded-xl border text-xs flex items-center justify-center transition cursor-pointer">
                                 <span x-text="idx + 1"></span>
                             </button>
                         </template>
@@ -73,9 +71,9 @@
                 </div>
             </div>
 
-            <!-- Tombol Selesai & Kumpulkan -->
-            <button type="submit" onclick="return confirm('Apakah Anda yakin ingin mengumpulkan seluruh jawaban Quiz ini?')" class="w-full bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] border border-[#123F35]/20 font-extrabold py-3 px-4 rounded-xl text-xs shadow-2xs transition duration-150 flex items-center justify-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Tombol Selesai & Kumpulkan (Warna #28745B) -->
+            <button type="submit" onclick="return confirm('Apakah Anda yakin ingin mengumpulkan seluruh jawaban Quiz ini?')" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-2xs transition duration-150 flex items-center justify-center space-x-2 cursor-pointer">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
                 <span>Selesai & Kumpulkan</span>
@@ -88,7 +86,7 @@
                 <div x-show="currentIndex === idx" class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
                     
                     <!-- Heading Container Lembar Soal bg-[#28745B] -->
-                    <div class="bg-[#28745B] px-5 py-3.5 border-b border-slate-300 flex items-center justify-between gap-2 text-white">
+                    <div class="bg-[#28745B] px-4 sm:px-5 py-3.5 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2 text-white">
                         <span class="px-2.5 py-1 bg-[#123F35] text-white border border-white/15 rounded-lg font-bold text-xs">
                             Soal No. <span x-text="idx + 1"></span> / <span x-text="questions.length"></span>
                         </span>
@@ -120,35 +118,119 @@
                     </div>
 
                     <!-- Body Soal & Opsi Jawaban -->
-                    <div class="p-5 sm:p-8 space-y-6">
+                    <div class="p-4 sm:p-8 space-y-6">
                         <!-- Pertanyaan Soal -->
                         <div class="space-y-3">
-                            <div class="text-xs sm:text-sm font-bold text-[#123F35] leading-relaxed" x-html="aq.question.question_text"></div>
+                            <div class="text-xs sm:text-sm font-bold text-[#123F35] leading-relaxed whitespace-pre-line break-words" x-text="aq.question.question_text"></div>
 
-                            <!-- Media Soal (Jika Ada) -->
+                            <!-- Media Soal (Gambar / Audio / Video / PDF) -->
                             <template x-if="aq.question.media">
                                 <div class="pt-2">
-                                    <template x-if="aq.question.media.mime_type.includes('image')">
-                                        <div class="p-3 bg-[#F7F5EE]/50 rounded-xl border border-slate-300 inline-block">
-                                            <img :src="'/storage/' + aq.question.media.file_path" class="max-h-64 rounded-lg object-contain shadow-2xs">
+                                    <!-- Gambar -->
+                                    <template x-if="getMediaKind(aq.question.media) === 'image'">
+                                        <div class="p-2.5 sm:p-3 bg-[#F7F5EE]/50 rounded-xl border border-slate-300 inline-block max-w-full">
+                                            <a :href="'/storage/' + aq.question.media.file_path" target="_blank" rel="noopener noreferrer">
+                                                <img :src="'/storage/' + aq.question.media.file_path"
+                                                     :alt="aq.question.media.file_name || 'Media Soal'"
+                                                     class="w-full sm:w-auto max-h-72 rounded-lg object-contain shadow-2xs">
+                                            </a>
                                         </div>
+                                    </template>
+
+                                    <!-- Audio -->
+                                    <template x-if="getMediaKind(aq.question.media) === 'audio'">
+                                        <div class="p-3 bg-[#F7F5EE]/60 rounded-xl border border-slate-300 max-w-lg space-y-1.5">
+                                            <div class="flex items-center space-x-1.5 text-[11px] font-bold text-[#123F35]">
+                                                <svg class="w-4 h-4 text-[#28745B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                                </svg>
+                                                <span class="truncate" x-text="aq.question.media.file_name || 'Audio Soal'"></span>
+                                            </div>
+                                            <audio controls preload="metadata" class="w-full h-9">
+                                                <source :src="'/storage/' + aq.question.media.file_path" :type="aq.question.media.mime_type">
+                                                Browser Anda tidak mendukung pemutar audio.
+                                            </audio>
+                                        </div>
+                                    </template>
+
+                                    <!-- Video -->
+                                    <template x-if="getMediaKind(aq.question.media) === 'video'">
+                                        <div class="p-2.5 bg-[#F7F5EE]/60 rounded-xl border border-slate-300 max-w-xl space-y-1.5">
+                                            <video controls preload="metadata" class="w-full max-h-72 rounded-lg bg-black">
+                                                <source :src="'/storage/' + aq.question.media.file_path" :type="aq.question.media.mime_type">
+                                                Browser Anda tidak mendukung pemutar video.
+                                            </video>
+                                            <p class="text-[10px] text-slate-500 truncate" x-text="aq.question.media.file_name"></p>
+                                        </div>
+                                    </template>
+
+                                    <!-- Dokumen / PDF -->
+                                    <template x-if="getMediaKind(aq.question.media) === 'document'">
+                                        <a :href="'/storage/' + aq.question.media.file_path" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center space-x-2 px-3.5 py-2 bg-[#d1e4da] border border-slate-300 rounded-xl text-xs font-bold text-[#123F35] hover:bg-[#28745B] hover:text-white transition">
+                                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <span class="truncate max-w-xs sm:max-w-md" x-text="'Buka Lampiran (' + (aq.question.media.file_name || 'Dokumen') + ')'"></span>
+                                        </a>
                                     </template>
                                 </div>
                             </template>
                         </div>
 
-                        <!-- Opsi Pilihan Jawaban -->
-                        <div class="space-y-2.5 pt-1">
+                        <!-- Opsi Pilihan Jawaban (Teks + Gambar / Audio / Video) -->
+                        <div class="space-y-3 pt-1">
                             <template x-for="(opt, optIdx) in aq.question.options" :key="opt.id">
                                 <label class="flex items-start p-3.5 rounded-xl border cursor-pointer transition select-none"
-                                       :class="answers[aq.id] === opt.id ? 'bg-emerald-100/80 border-[#28745B] text-[#123F35] font-bold shadow-2xs' : 'bg-[#F7F5EE]/40 border-slate-300 text-slate-700 hover:bg-slate-100/80'">
+                                       :class="Number(answers[aq.id]) === Number(opt.id) ? 'bg-emerald-100/80 border-[#28745B] text-[#123F35] font-bold shadow-2xs' : 'bg-[#F7F5EE]/40 border-slate-300 text-slate-700 hover:bg-slate-100/80'">
                                     <input type="radio" :name="'answers[' + aq.id + ']'" :value="opt.id"
                                            x-model="answers[aq.id]"
                                            @change="saveAnswer(aq.id, opt.id)"
-                                           class="mt-0.5 text-[#28745B] border-slate-300 focus:ring-[#28745B] w-4 h-4">
-                                    <div class="ml-3 flex-1 flex items-start space-x-2">
-                                        <span class="font-extrabold text-xs flex-shrink-0" x-text="String.fromCharCode(65 + optIdx) + '.'"></span>
-                                        <span class="text-xs leading-relaxed" x-text="opt.option_text"></span>
+                                           class="mt-0.5 text-[#28745B] border-slate-300 focus:ring-[#28745B] w-4 h-4 flex-shrink-0 cursor-pointer">
+                                    
+                                    <div class="ml-3 flex-1 min-w-0 space-y-2.5">
+                                        <div class="flex items-start space-x-2">
+                                            <span class="font-extrabold text-xs flex-shrink-0" x-text="String.fromCharCode(65 + optIdx) + '.'"></span>
+                                            <template x-if="opt.option_text && opt.option_text.trim() !== ''">
+                                                <span class="text-xs leading-relaxed whitespace-pre-line break-words" x-text="opt.option_text"></span>
+                                            </template>
+                                        </div>
+
+                                        <!-- Media Opsi Jawaban (Jika Ada) -->
+                                        <template x-if="opt.media">
+                                            <div @click.stop class="cursor-default">
+                                                <!-- Gambar Opsi -->
+                                                <template x-if="getMediaKind(opt.media) === 'image'">
+                                                    <div class="p-2 bg-white rounded-lg border border-slate-300 inline-block max-w-full">
+                                                        <img :src="'/storage/' + opt.media.file_path"
+                                                             :alt="opt.media.file_name || 'Media Opsi'"
+                                                             class="w-full sm:w-auto max-h-44 rounded-md object-contain">
+                                                    </div>
+                                                </template>
+
+                                                <!-- Audio Opsi -->
+                                                <template x-if="getMediaKind(opt.media) === 'audio'">
+                                                    <div class="p-2.5 bg-white rounded-lg border border-slate-300 max-w-md space-y-1">
+                                                        <p class="text-[10px] font-semibold text-slate-500 truncate" x-text="opt.media.file_name || 'Audio Opsi'"></p>
+                                                        <audio controls preload="metadata" class="w-full h-8">
+                                                            <source :src="'/storage/' + opt.media.file_path" :type="opt.media.mime_type">
+                                                            Browser Anda tidak mendukung pemutar audio.
+                                                        </audio>
+                                                    </div>
+                                                </template>
+
+                                                <!-- Video Opsi -->
+                                                <template x-if="getMediaKind(opt.media) === 'video'">
+                                                    <div class="p-2 bg-white rounded-lg border border-slate-300 max-w-md space-y-1">
+                                                        <video controls preload="metadata" class="w-full max-h-48 rounded-md bg-black">
+                                                            <source :src="'/storage/' + opt.media.file_path" :type="opt.media.mime_type">
+                                                            Browser Anda tidak mendukung pemutar video.
+                                                        </video>
+                                                        <p class="text-[10px] font-normal text-slate-500 truncate" x-text="opt.media.file_name"></p>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
                                     </div>
                                 </label>
                             </template>
@@ -156,12 +238,12 @@
 
                         <!-- Tombol Navigasi Next / Prev -->
                         <div class="pt-4 border-t border-slate-300 flex items-center justify-between gap-2">
-                            <button type="button" @click="currentIndex--" x-show="currentIndex > 0" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:text-[#123F35] hover:bg-slate-100 rounded-xl text-xs font-bold transition shadow-2xs">
+                            <button type="button" @click="goToQuestion(currentIndex - 1)" x-show="currentIndex > 0" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:text-[#123F35] hover:bg-slate-100 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
                                 &larr; Soal Sebelumnya
                             </button>
                             <div x-show="currentIndex === 0"></div>
 
-                            <button type="button" @click="currentIndex++" x-show="currentIndex < questions.length - 1" class="px-4 py-2 bg-[#28745B] hover:bg-[#123F35] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                            <button type="button" @click="goToQuestion(currentIndex + 1)" x-show="currentIndex < questions.length - 1" class="px-4 py-2 bg-[#28745B] hover:bg-[#123F35] text-white rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
                                 Soal Berikutnya &rarr;
                             </button>
                         </div>
@@ -221,6 +303,29 @@
                         e.returnValue = 'Jawaban Anda sedang disimpan. Yakin ingin keluar?';
                     }
                 });
+            },
+
+            getMediaKind(media) {
+                if (!media) return null;
+                if (media.type && ['image', 'audio', 'video', 'document'].includes(media.type)) {
+                    return media.type;
+                }
+                const mime = (media.mime_type || '').toLowerCase();
+                if (mime.includes('image')) return 'image';
+                if (mime.includes('audio')) return 'audio';
+                if (mime.includes('video')) return 'video';
+                return 'document';
+            },
+
+            pauseAllMedia() {
+                document.querySelectorAll('audio, video').forEach(el => {
+                    if (!el.paused) el.pause();
+                });
+            },
+
+            goToQuestion(index) {
+                this.pauseAllMedia();
+                this.currentIndex = index;
             },
 
             saveAnswer(attemptQuestionId, optionId) {

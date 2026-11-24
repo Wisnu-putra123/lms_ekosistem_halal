@@ -262,7 +262,7 @@
                         <span>Tenggat Waktu Berakhir</span>
                     </button>
                 @elseif($canSubmitNewAttempt && (!$latestSubmission || $latestSubmission->status === 'graded'))
-                    <button type="button" @click="isCreatingNew = true" class="px-4 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] text-xs font-bold rounded-xl shadow-2xs transition flex items-center space-x-1.5">
+                    <button type="button" @click="isCreatingNew = true" class="px-4 py-2 bg-[#E7C982] hover:bg-[#d8b76e] text-[#123F35] text-xs font-bold rounded-xl shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         <span>Kirim Attempt Baru</span>
                     </button>
@@ -359,7 +359,7 @@
                                         Batal
                                     </button>
                                 @endif
-                                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-2xs transition">
+                                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
                                     Kumpulkan Tugas Sekarang
                                 </button>
                             </div>
