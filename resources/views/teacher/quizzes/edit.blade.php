@@ -23,7 +23,7 @@
     <!-- Form Container -->
     <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-hidden">
         <!-- Card Header Gradasi Hijau Tua -->
-        <div class="bg-gradient-to-r from-[#123F35] via-[#123F35]/95 to-[#195e4f] p-5 sm:p-8 border-b border-slate-300 text-white">
+        <div class="bg-[#28745B] p-5 sm:p-8 border-b border-slate-300 text-white">
             <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-white/10 text-[#E7C982] border border-white/20 uppercase mb-2">
                 Pengaturan Aktivitas Quiz
             </span>
@@ -167,7 +167,7 @@
                 <a href="{{ route('teacher.quizzes.show', $assignment->id) }}" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition text-center shadow-2xs">
                     Batal
                 </a>
-                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center">
+                <button type="submit" class="bg-[#28745B] hover:bg-[#123F35] text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-2xs transition text-center cursor-pointer">
                     Perbarui Konfigurasi Quiz
                 </button>
             </div>

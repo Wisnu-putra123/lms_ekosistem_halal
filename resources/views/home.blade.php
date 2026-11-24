@@ -11,9 +11,6 @@
     @php
         $institutionName = 'LPP-JPH';
         $institutionFullName = 'Lembaga Pelaksana Pelatihan Jaminan Produk Halal';
-        $institutionEmail = 'info@lpp-jph.example';
-        $institutionPhone = '+62 812-0000-0000';
-        $institutionAddress = 'Alamat lembaga, Kota, Provinsi';
 
         $aboutParagraphs = [
             'LPP-JPH merupakan lembaga pelatihan yang berfokus pada pengembangan pengetahuan dan kompetensi di bidang Jaminan Produk Halal.',
@@ -156,7 +153,7 @@
                     <!-- Komponen 1: Profil Singkat (Kolom Kiri) -->
                     <div class="lg:col-span-5 space-y-5">
                         <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                            <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                            <!-- <span class="h-2 w-2 rounded-full bg-[#28745B]"></span> -->
                             Profil &amp; Visi Misi
                         </div>
 
@@ -167,10 +164,6 @@
                         <p class="text-sm sm:text-base leading-relaxed text-[#123F35]/85">
                             Bernaung di bawah <strong>Center of Excellence (CoE) Smart MSME &amp; Halal Ecosystem</strong>, kami hadir sebagai pusat unggulan dalam pemberdayaan UMKM dan pembangunan ekosistem halal nasional berbasis teknologi digital guna mendukung Indonesia sebagai pusat industri halal dunia.
                         </p>
-
-                        <!-- <p class="text-sm leading-relaxed text-slate-600">
-                            LPP-JPH memfokuskan kegiatannya dalam meningkatkan daya saing pelaku usaha dan kualitas sumber daya manusia Jaminan Produk Halal dengan memperhatikan efisiensi, produktivitas, keberlanjutan (<em>sustainability</em>), serta kepatuhan terhadap regulasi nasional.
-                        </p> -->
                     </div>
 
                     <!-- Komponen 2 & 3: Visi & Misi Lembaga (Kolom Kanan) -->
@@ -241,7 +234,7 @@
                 <!-- Header Section -->
                 <div class="mx-auto max-w-3xl text-center space-y-3 mb-14">
                     <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                        <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                        <!-- <span class="h-2 w-2 rounded-full bg-[#28745B]"></span> -->
                         Tata Kelola Lembaga
                     </div>
                     <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl">
@@ -375,7 +368,7 @@
                 <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end border-b border-[#123F35]/10 pb-6">
                     <div class="max-w-2xl space-y-2">
                         <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                            <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                            <!-- <span class="h-2 w-2 rounded-full bg-[#28745B]"></span> -->
                             Layanan &amp; Program Pelatihan
                         </div>
                         <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
@@ -593,7 +586,7 @@
                 <!-- Header Section -->
                 <div class="mx-auto max-w-2xl text-center space-y-3">
                     <div class="inline-flex items-center gap-2 rounded-full border border-[#E7C982]/30 bg-[#E7C982]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#E7C982] backdrop-blur-sm">
-                        <span class="h-2 w-2 rounded-full bg-[#E7C982]"></span>
+                        <!-- <span class="h-2 w-2 rounded-full bg-[#E7C982]"></span> -->
                         Pembelajaran Digital
                     </div>
                     <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -655,7 +648,7 @@
                 <!-- Header Section -->
                 <div class="mx-auto max-w-2xl text-center space-y-3">
                     <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                        <span class="h-2 w-2 rounded-full bg-[#28745B] animate-pulse"></span>
+                        <!-- <span class="h-2 w-2 rounded-full bg-[#28745B] animate-pulse"></span> -->
                         Alur Pelatihan
                     </div>
                     <h2 class="text-3xl font-extrabold tracking-tight text-[#123F35] sm:text-4xl lg:text-5xl">
@@ -729,7 +722,7 @@
                     <!-- Kolom Kiri: Header & Callout -->
                     <div class="lg:col-span-5 space-y-4">
                         <div class="inline-flex items-center gap-2 rounded-full border border-[#28745B]/20 bg-[#28745B]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#123F35]">
-                            <span class="h-2 w-2 rounded-full bg-[#28745B]"></span>
+                            <!-- <span class="h-2 w-2 rounded-full bg-[#28745B]"></span> -->
                             FAQ
                         </div>
 
@@ -797,7 +790,7 @@
                         <!-- Left Side: Heading & Deskripsi -->
                         <div class="lg:col-span-6 space-y-4">
                             <div class="inline-flex items-center gap-2 rounded-full border border-[#E7C982]/30 bg-[#E7C982]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#E7C982] backdrop-blur-sm">
-                                <span class="h-2 w-2 rounded-full bg-[#E7C982]"></span>
+                                <!-- <span class="h-2 w-2 rounded-full bg-[#E7C982]"></span> -->
                                 Hubungi Kami
                             </div>
                             
@@ -812,6 +805,13 @@
 
                         <!-- Right Side: Contact Details Box -->
                         <div class="lg:col-span-6 space-y-5 rounded-2xl border border-white/15 bg-white/5 p-6 sm:p-7 backdrop-blur-md shadow-lg">
+                            @php
+                                $displayEmail   = 'lppjphtelkomuniversity@gmail.com';
+                                $displayPhone   = '+62 813-8097-275';
+                                $waNumber       = preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $displayPhone));
+                                $displayAddress = 'Gedung Bangkit / COE Smart MSME & Halal Ecosystem, Telkom University, Jl. Telekomunikasi No. 1, Terusan Buahbatu, Bandung 40257';
+                            @endphp
+
                             <!-- Email -->
                             <div class="flex items-start gap-4">
                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E7C982] text-[#123F35] font-bold shadow-md">
@@ -821,13 +821,13 @@
                                 </div>
                                 <div>
                                     <p class="text-[11px] font-bold uppercase tracking-wider text-[#E7C982]">Email Resmi</p>
-                                    <a href="mailto:{{ $institutionEmail }}" class="mt-0.5 inline-block font-semibold text-sm sm:text-base text-white hover:text-[#E7C982] transition truncate max-w-xs sm:max-w-md">
-                                        {{ $institutionEmail }}
+                                    <a href="mailto:{{ $displayEmail }}" class="mt-0.5 inline-block font-semibold text-sm sm:text-base text-emerald-100/90 hover:text-[#E7C982] transition truncate max-w-xs sm:max-w-md">
+                                        {{ $displayEmail }}
                                     </a>
                                 </div>
                             </div>
 
-                            <!-- Telepon -->
+                            <!-- Telepon / WhatsApp -->
                             <div class="flex items-start gap-4 pt-3 border-t border-white/10">
                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E7C982] text-[#123F35] font-bold shadow-md">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -836,8 +836,8 @@
                                 </div>
                                 <div>
                                     <p class="text-[11px] font-bold uppercase tracking-wider text-[#E7C982]">Telepon / WhatsApp</p>
-                                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $institutionPhone) }}" class="mt-0.5 inline-block font-semibold text-sm sm:text-base text-white hover:text-[#E7C982] transition">
-                                        {{ $institutionPhone }}
+                                    <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener noreferrer" class="mt-0.5 inline-block font-semibold text-sm sm:text-base text-emerald-100/90 hover:text-[#E7C982] transition">
+                                        {{ $displayPhone }}
                                     </a>
                                 </div>
                             </div>
@@ -853,7 +853,7 @@
                                 <div>
                                     <p class="text-[11px] font-bold uppercase tracking-wider text-[#E7C982]">Kantor / Alamat</p>
                                     <p class="mt-0.5 font-medium text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-                                        {{ $institutionAddress }}
+                                        {{ $displayAddress }}
                                     </p>
                                 </div>
                             </div>

@@ -45,10 +45,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        [x-cloak] { display: none !important; }
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gradient-to-br bg-white text-slate-800 antialiased min-h-screen flex flex-col" x-data="{ sidebarOpen: false }">
+<body class="bg-gradient-to-br bg-white text-slate-800 antialiased min-h-screen flex flex-col"
+      x-data="{ sidebarOpen: false, profileMenuOpen: false, logoutConfirmModal: false }">
 
     <div class="flex h-screen overflow-hidden">
 
@@ -69,7 +71,7 @@
                class="fixed inset-y-0 left-0 z-50 w-64 bg-[#123F35] text-slate-100 flex flex-col flex-shrink-0 shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 border-r border-[#28745B]/30">
             
             <!-- Brand Logo & Mobile Close Button -->
-            <div class="h-16 flex items-center justify-center px-6 border-b border-[#28745B]/40 bg-[#123F35]">
+            <div class="h-16 flex items-center justify-between lg:justify-center px-6 border-b border-[#28745B]/40 bg-[#123F35] shrink-0">
                 <a href="{{ route('home') }}" class="flex items-center space-x-2">
                     <img src="{{ asset('images/logo_telkom_transparan2.png') }}" alt="Logo Telkom" class="w-10 h-10 object-contain">
                     <img src="{{ asset('images/logo_lms_lppjph_transparan_putih - Copy.png') }}" alt="Logo LPP-JPH" class="w-10 h-10 object-contain">
@@ -269,10 +271,10 @@
                         </a>
 
                         <a href="{{ route('admin.enrollments.index') }}"
-                        class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition
-                        {{ request()->routeIs('admin.enrollments.*')
-                            ? 'bg-[#28745B] text-white shadow-sm'
-                            : 'text-emerald-100/85 hover:bg-white/10 hover:text-white' }}">
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition
+                           {{ request()->routeIs('admin.enrollments.*')
+                               ? 'bg-[#28745B] text-white shadow-md'
+                               : 'text-emerald-100/80 hover:bg-[#28745B]/50 hover:text-white' }}">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -303,12 +305,26 @@
                     </a>
                 @endauth
             </nav>
+
+            <!-- Tombol Logout di Bagian Paling Bawah Sidebar -->
+            @auth
+                <div class="p-4 border-t border-[#28745B]/40 bg-[#0F352C] shrink-0">
+                    <button type="button"
+                            @click="logoutConfirmModal = true; sidebarOpen = false"
+                            class="w-full flex items-center justify-center space-x-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-200 bg-red-950/40 hover:bg-red-600 hover:text-white border border-red-400/20 transition cursor-pointer">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            @endauth
         </aside>
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             <!-- Top Navbar -->
-            <header class="h-16 bg-white border-b border-[#28745B]/15 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-2xs">
+            <header class="h-16 bg-white border-b border-[#28745B]/15 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-2xs">
                 
                 <div class="flex items-center space-x-3">
                     <!-- Hamburger Button (Khusus Layar HP/Tablet) -->
@@ -324,21 +340,33 @@
                     </div>
                 </div>
 
-                <!-- User Dropdown & Profile -->
-                <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- User Profile Pop-up Dropdown -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
                     @auth
-                        <div class="flex items-center space-x-2 sm:space-x-3 border-r border-slate-200 pr-2 sm:pr-4">
-                            <!-- Link Profile (Foto/Icon + Nama & Email) -->
-                            <a href="{{ route('profile.edit') }}" class="flex items-center space-x-2 sm:space-x-3 group p-1 sm:p-1.5 rounded-xl hover:bg-[#F7F5EE] transition">
+                        <!-- Role Badge -->
+                        <div class="hidden xs:block">
+                            @if(Auth::user()->role === 'admin')
+                                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-red-100 text-red-800 border border-red-200">Admin</span>
+                            @elseif(Auth::user()->role === 'teacher')
+                                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#E7C982]/30 text-[#123F35] border border-[#E7C982]">Teacher</span>
+                            @else
+                                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#28745B]/15 text-[#123F35] border border-[#28745B]/30">Student</span>
+                            @endif
+                        </div>
+
+                        <!-- Trigger & Pop-up Menu Profil + Logout -->
+                        <div class="relative" @click.away="profileMenuOpen = false">
+                            <button type="button"
+                                    @click="profileMenuOpen = !profileMenuOpen"
+                                    class="flex items-center space-x-2 sm:space-x-3 group p-1.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition focus:outline-none cursor-pointer">
                                 <!-- User Avatar/Icon -->
                                 <div class="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0">
                                     @if(Auth::user()->profile_photo ?? false)
                                         <img src="{{ Auth::user()->profile_photo_url }}" 
-                                        alt="{{ Auth::user()->name }}" 
-                                        class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-[#28745B]/30">
+                                             alt="{{ Auth::user()->name }}" 
+                                             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-[#28745B]/30">
                                     @else
-                                        <!-- Default User Icon Fallback -->
-                                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#F7F5EE] text-[#123F35] flex items-center justify-center font-bold text-xs sm:text-sm border border-[#28745B]/30 group-hover:bg-[#28745B] group-hover:text-white transition">
+                                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#123F35]/10 text-[#123F35] flex items-center justify-center font-bold text-xs sm:text-sm border border-[#28745B]/30 group-hover:bg-[#28745B] group-hover:text-white transition">
                                             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                             </svg>
@@ -348,61 +376,75 @@
 
                                 <!-- User Name & Email -->
                                 <div class="text-right hidden md:block">
-                                    <div class="text-sm font-bold text-[#123F35] group-hover:text-[#28745B] transition truncate max-w-[150px]">{{ Auth::user()->name }}</div>
-                                    <div class="text-xs text-slate-500 truncate max-w-[150px]">{{ Auth::user()->email }}</div>
+                                    <div class="text-sm font-bold text-[#123F35] group-hover:text-[#28745B] transition truncate max-w-[160px]">
+                                        {{ Auth::user()->name }}
+                                    </div>
+                                    <div class="text-xs text-slate-500 truncate max-w-[160px]">
+                                        {{ Auth::user()->email }}
+                                    </div>
                                 </div>
-                            </a>
 
-                            <!-- Role Badge -->
-                            <div class="hidden xs:block">
-                                @if(Auth::user()->role === 'admin')
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-red-100 text-red-800 border border-red-200">Admin</span>
-                                @elseif(Auth::user()->role === 'teacher')
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#E7C982]/30 text-[#123F35] border border-[#E7C982]">Teacher</span>
-                                @else
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#28745B]/15 text-[#123F35] border border-[#28745B]/30">Student</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Logout Button -->
-                        <form action="{{ route('logout') }}" method="POST" class="m-0">
-                            @csrf
-                            <button type="submit" class="p-1.5 sm:p-2 text-slate-400 hover:text-red-600 transition rounded-xl hover:bg-red-50 cursor-pointer" title="Logout">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                <!-- Chevron Indicator -->
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200"
+                                     :class="profileMenuOpen ? 'rotate-180 text-[#123F35]' : ''"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
-                        </form>
+
+                            <!-- Pop-up Dropdown Menu -->
+                            <div x-show="profileMenuOpen"
+                                 x-cloak
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                 class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 overflow-hidden">
+                                
+                                <!-- Header Info User di Pop-up -->
+                                <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+                                    <p class="text-sm font-bold text-[#123F35] truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email }}</p>
+                                    <div class="mt-1.5">
+                                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#28745B]/15 text-[#123F35]">
+                                            {{ Auth::user()->role }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Menu Profil -->
+                                <div class="p-1.5">
+                                    <a href="{{ route('profile.edit') }}"
+                                       @click="profileMenuOpen = false"
+                                       class="flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-[#28745B]/10 hover:text-[#123F35] transition">
+                                        <svg class="w-4 h-4 text-[#28745B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        <span>Profil & Pengaturan Akun</span>
+                                    </a>
+                                </div>
+
+                                <!-- Tombol Logout (Memicu Modal Peringatan) -->
+                                <div class="p-1.5 border-t border-slate-100">
+                                    <button type="button"
+                                            @click="profileMenuOpen = false; logoutConfirmModal = true"
+                                            class="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     @endauth
                 </div>
             </header>
 
             <!-- Content -->
             <main class="flex-1 overflow-y-auto p-4 sm:p-6">
-                <!-- Notifications -->
-                <!-- @if(session('success'))
-                    <div class="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-[#123F35] text-sm flex items-center justify-between shadow-2xs">
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-5 h-5 text-[#28745B] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-medium">{{ session('success') }}</span>
-                        </div>
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-center justify-between shadow-2xs">
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-medium">{{ session('error') }}</span>
-                        </div>
-                    </div>
-                @endif -->
-
                 @yield('content')
             </main>
 
@@ -412,6 +454,59 @@
             </footer>
         </div>
     </div>
+
+    <!-- Modal Peringatan Konfirmasi Logout -->
+    @auth
+        <div x-show="logoutConfirmModal"
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div @click.away="logoutConfirmModal = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+                
+                <div class="flex items-start space-x-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-[#123F35]">Konfirmasi Logout</h3>
+                        <p class="mt-1 text-xs text-slate-600 leading-relaxed">
+                            Apakah Anda yakin ingin keluar dari sesi akun <strong class="text-slate-800">{{ Auth::user()->name }}</strong>? Pastikan seluruh perubahan Anda telah tersimpan.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-2.5 pt-2 border-t border-slate-100">
+                    <button type="button"
+                            @click="logoutConfirmModal = false"
+                            class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                        Batal
+                    </button>
+
+                    <form action="{{ route('logout') }}" method="POST" class="m-0">
+                        @csrf
+                        <button type="submit"
+                                class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition cursor-pointer">
+                            Ya, Logout Sekarang
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endauth
 
     @stack('scripts')
 </body>

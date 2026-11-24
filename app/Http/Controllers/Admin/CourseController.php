@@ -67,19 +67,20 @@ class CourseController extends Controller
      * Tampilkan form pembuatan pelatihan baru.
      */
     public function create()
-    {   
+    {
         $generatedKey = Course::generateEnrollmentKey();
-
         $teachers = User::where('role', 'teacher')->orderBy('name')->get();
 
         return view('admin.courses.create', compact('generatedKey', 'teachers'));
     }
 
     /**
-     * Simpan data pelatihan baru beserta thumbnail, background sertifikat, dan assign instruktur.
+     * Simpan data pelatihan baru beserta thumbnail, background sertifikat (wajib), dan assign instruktur.
      */
     public function store(Request $request)
     {
+        $bgField = $request->hasFile('certificate_background') ? 'certificate_background' : 'certificate_bg';
+
         $validated = $request->validate([
             'title'          => ['required', 'string', 'max:255'],
             'code'           => ['required', 'string', 'max:255', 'unique:courses,code'],
@@ -90,10 +91,23 @@ class CourseController extends Controller
             'instructors'    => ['nullable', 'array'],
             'instructors.*'  => ['exists:users,id'],
             'thumbnail'      => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'certificate_bg' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            $bgField         => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'title.required'          => 'Judul pelatihan wajib diisi.',
+            'code.required'           => 'Kode pelatihan wajib diisi.',
+            'code.unique'             => 'Kode pelatihan sudah digunakan.',
+            'category.required'       => 'Kategori pelatihan wajib dipilih.',
+            'category.in'             => 'Kategori pelatihan tidak valid.',
+            'status.required'         => 'Status pelatihan wajib dipilih.',
+            'thumbnail.image'         => 'Berkas thumbnail harus berupa gambar.',
+            'thumbnail.max'           => 'Ukuran thumbnail maksimal 2MB.',
+            "{$bgField}.required"     => 'Template background sertifikat wajib diunggah.',
+            "{$bgField}.image"        => 'Background sertifikat harus berupa gambar.',
+            "{$bgField}.mimes"        => 'Format background sertifikat harus JPG, JPEG, PNG, atau WEBP.',
+            "{$bgField}.max"          => 'Ukuran background sertifikat maksimal 5MB.',
         ]);
 
-        DB::transaction(function () use ($request, $validated) {
+        DB::transaction(function () use ($request, $validated, $bgField) {
             $thumbnailMediaId = null;
             if ($request->hasFile('thumbnail')) {
                 $thumbnailMediaId = $this->uploadCourseMedia(
@@ -103,9 +117,9 @@ class CourseController extends Controller
             }
 
             $certificateBgMediaId = null;
-            if ($request->hasFile('certificate_bg')) {
+            if ($request->hasFile($bgField)) {
                 $certificateBgMediaId = $this->uploadCourseMedia(
-                    $request->file('certificate_bg'),
+                    $request->file($bgField),
                     'courses/certificate_backgrounds'
                 )->id;
             }
@@ -117,7 +131,7 @@ class CourseController extends Controller
                 'description'             => $validated['description'] ?? null,
                 'thumbnail_media_id'      => $thumbnailMediaId,
                 'certificate_bg_media_id' => $certificateBgMediaId,
-                'enrollment_key'          => $validated['enrollment_key'] ?? null,
+                'enrollment_key'          => !empty($validated['enrollment_key']) ? strtoupper(trim($validated['enrollment_key'])) : Course::generateEnrollmentKey(),
                 'status'                  => $validated['status'],
                 'created_by'              => Auth::id(),
             ]);
@@ -170,25 +184,50 @@ class CourseController extends Controller
     }
 
     /**
-     * Perbarui data pelatihan, media visual, dan daftar instruktur.
+     * Perbarui data pelatihan, media visual (termasuk hapus thumbnail), dan daftar instruktur.
      */
     public function update(Request $request, Course $course)
     {
+        $bgField = $request->hasFile('certificate_background') || $request->exists('certificate_background')
+            ? 'certificate_background'
+            : 'certificate_bg';
+
         $validated = $request->validate([
-            'title'          => ['required', 'string', 'max:255'],
-            'code'           => ['required', 'string', 'max:255', Rule::unique('courses', 'code')->ignore($course->id)],
-            'category'       => ['required', Rule::in(['penyelia_halal', 'juleha', 'auditor_halal'])],
-            'description'    => ['nullable', 'string'],
-            'enrollment_key' => ['nullable', 'string', 'max:100'],
-            'status'         => ['required', Rule::in(['draft', 'published', 'archived'])],
-            'instructors'    => ['nullable', 'array'],
-            'instructors.*'  => ['exists:users,id'],
-            'thumbnail'      => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'certificate_bg' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'title'            => ['required', 'string', 'max:255'],
+            'code'             => ['required', 'string', 'max:255', Rule::unique('courses', 'code')->ignore($course->id)],
+            'category'         => ['required', Rule::in(['penyelia_halal', 'juleha', 'auditor_halal'])],
+            'description'      => ['nullable', 'string'],
+            'enrollment_key'   => ['nullable', 'string', 'max:100'],
+            'status'           => ['required', Rule::in(['draft', 'published', 'archived'])],
+            'instructors'      => ['nullable', 'array'],
+            'instructors.*'    => ['exists:users,id'],
+            'thumbnail'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_thumbnail' => ['nullable', 'boolean'],
+            $bgField           => [
+                $course->certificate_bg_media_id ? 'nullable' : 'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+        ], [
+            'title.required'          => 'Judul pelatihan wajib diisi.',
+            'code.required'           => 'Kode pelatihan wajib diisi.',
+            'code.unique'             => 'Kode pelatihan sudah digunakan.',
+            'category.required'       => 'Kategori pelatihan wajib dipilih.',
+            'category.in'             => 'Kategori pelatihan tidak valid.',
+            'status.required'         => 'Status pelatihan wajib dipilih.',
+            'thumbnail.image'         => 'Berkas thumbnail harus berupa gambar.',
+            'thumbnail.max'           => 'Ukuran thumbnail maksimal 2MB.',
+            "{$bgField}.required"     => 'Template background sertifikat wajib diunggah.',
+            "{$bgField}.image"        => 'Background sertifikat harus berupa gambar.',
+            "{$bgField}.mimes"        => 'Format background sertifikat harus JPG, JPEG, PNG, atau WEBP.',
+            "{$bgField}.max"          => 'Ukuran background sertifikat maksimal 5MB.',
         ]);
 
-        DB::transaction(function () use ($request, $validated, $course) {
+        DB::transaction(function () use ($request, $validated, $course, $bgField) {
             $thumbnailMediaId = $course->thumbnail_media_id;
+
+            // 1. Jika mengunggah thumbnail baru
             if ($request->hasFile('thumbnail')) {
                 $oldThumbnail = $course->thumbnail;
                 $thumbnailMediaId = $this->uploadCourseMedia(
@@ -197,20 +236,32 @@ class CourseController extends Controller
                 )->id;
 
                 if ($oldThumbnail) {
+                    $course->update(['thumbnail_media_id' => $thumbnailMediaId]);
                     Storage::disk('public')->delete($oldThumbnail->file_path);
                     $oldThumbnail->delete();
                 }
             }
+            // 2. Jika memilih menghapus thumbnail tanpa mengganti yang baru
+            elseif ($request->boolean('remove_thumbnail') && $course->thumbnail) {
+                $oldThumbnail = $course->thumbnail;
+                $course->update(['thumbnail_media_id' => null]);
+                Storage::disk('public')->delete($oldThumbnail->file_path);
+                $oldThumbnail->delete();
 
+                $thumbnailMediaId = null;
+            }
+
+            // 3. Jika mengganti template background sertifikat
             $certificateBgMediaId = $course->certificate_bg_media_id;
-            if ($request->hasFile('certificate_bg')) {
-                $oldCertificateBg = $course->certificateBg;
+            if ($request->hasFile($bgField)) {
+                $oldCertificateBg = $course->certificateBackground;
                 $certificateBgMediaId = $this->uploadCourseMedia(
-                    $request->file('certificate_bg'),
+                    $request->file($bgField),
                     'courses/certificate_backgrounds'
                 )->id;
 
                 if ($oldCertificateBg) {
+                    $course->update(['certificate_bg_media_id' => $certificateBgMediaId]);
                     Storage::disk('public')->delete($oldCertificateBg->file_path);
                     $oldCertificateBg->delete();
                 }
@@ -223,7 +274,7 @@ class CourseController extends Controller
                 'description'             => $validated['description'] ?? null,
                 'thumbnail_media_id'      => $thumbnailMediaId,
                 'certificate_bg_media_id' => $certificateBgMediaId,
-                'enrollment_key'          => $validated['enrollment_key'] ?? null,
+                'enrollment_key'          => !empty($validated['enrollment_key']) ? strtoupper(trim($validated['enrollment_key'])) : $course->enrollment_key,
                 'status'                  => $validated['status'],
             ]);
 
@@ -247,7 +298,7 @@ class CourseController extends Controller
 
         DB::transaction(function () use ($course) {
             $thumbnail = $course->thumbnail;
-            $certificateBg = $course->certificateBg;
+            $certificateBg = $course->certificateBackground;
 
             $course->instructors()->detach();
             $course->delete();

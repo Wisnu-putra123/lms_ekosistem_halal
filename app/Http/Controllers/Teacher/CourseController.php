@@ -101,7 +101,7 @@ class CourseController extends Controller
             'enrollment_key' => ['required', 'string', 'max:100', 'unique:courses,enrollment_key'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
             'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'certificate_background' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'certificate_background' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
             'instructors' => ['nullable', 'array'],
             'instructors.*' => ['exists:users,id'],
         ], [
@@ -116,6 +116,7 @@ class CourseController extends Controller
             'status.in' => 'Status kursus tidak valid.',
             'thumbnail.image' => 'Berkas thumbnail harus berupa gambar.',
             'thumbnail.max' => 'Ukuran thumbnail maksimal 2MB.',
+            'certificate_background.required' => 'Template background sertifikat wajib diunggah.',
             'certificate_background.image' => 'Background sertifikat harus berupa gambar.',
             'certificate_background.max' => 'Ukuran background sertifikat maksimal 3MB.',
         ]);
@@ -215,7 +216,13 @@ class CourseController extends Controller
             'enrollment_key' => ['required', 'string', 'max:100', Rule::unique('courses', 'enrollment_key')->ignore($course->id)],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
             'thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'certificate_background' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'remove_thumbnail' => ['nullable', 'boolean'],
+            'certificate_background' => [
+                $course->certificate_bg_media_id ? 'nullable' : 'required',
+                'image',
+                'mimes:jpeg,png,jpg,webp',
+                'max:3072',
+            ],
             'instructors' => ['nullable', 'array'],
             'instructors.*' => ['exists:users,id'],
         ], [
@@ -230,6 +237,7 @@ class CourseController extends Controller
             'status.in' => 'Status kursus tidak valid.',
             'thumbnail.image' => 'Berkas thumbnail harus berupa gambar.',
             'thumbnail.max' => 'Ukuran thumbnail maksimal 2MB.',
+            'certificate_background.required' => 'Template background sertifikat wajib diunggah.',
             'certificate_background.image' => 'Background sertifikat harus berupa gambar.',
             'certificate_background.max' => 'Ukuran background sertifikat maksimal 3MB.',
         ]);
@@ -240,7 +248,9 @@ class CourseController extends Controller
         if ($request->hasFile('thumbnail')) {
             if ($course->thumbnail) {
                 Storage::disk('public')->delete($course->thumbnail->file_path);
-                $course->thumbnail->delete();
+                $oldThumb = $course->thumbnail;
+                $course->update(['thumbnail_media_id' => null]);
+                $oldThumb->delete();
             }
 
             $file = $request->file('thumbnail');
@@ -256,12 +266,21 @@ class CourseController extends Controller
             ]);
 
             $thumbnailMediaId = $media->id;
+        } elseif ($request->boolean('remove_thumbnail') && $course->thumbnail) {
+            Storage::disk('public')->delete($course->thumbnail->file_path);
+            $oldThumb = $course->thumbnail;
+            $course->update(['thumbnail_media_id' => null]);
+            $oldThumb->delete();
+
+            $thumbnailMediaId = null;
         }
 
         if ($request->hasFile('certificate_background')) {
             if ($course->certificateBackground) {
                 Storage::disk('public')->delete($course->certificateBackground->file_path);
-                $course->certificateBackground->delete();
+                $oldBg = $course->certificateBackground;
+                $course->update(['certificate_bg_media_id' => null]);
+                $oldBg->delete();
             }
 
             $file = $request->file('certificate_background');
