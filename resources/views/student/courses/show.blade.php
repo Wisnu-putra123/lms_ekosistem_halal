@@ -8,6 +8,8 @@
 
 <div class="space-y-5 sm:space-y-6">
 
+
+
     <!-- Tombol Navigasi Atas (Kembali & Gradebook) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <a href="{{ route('student.courses.index') }}" class="inline-flex items-center justify-center sm:justify-start space-x-2 text-xs font-semibold text-slate-700 hover:text-[#123F35] transition bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs">
@@ -56,6 +58,29 @@
                     <span>Unduh Sertifikat</span>
                 </a>
             @endif
+        </div>
+    @endif
+
+        {{-- Alert Pesan Gagal Akses Pertemuan Terkunci --}}
+    @if(session('error'))
+        <div x-data="{ show: true }" x-show="show" x-transition
+             class="p-4 bg-red-50 border border-red-300 rounded-2xl shadow-2xs flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 border border-red-200 mt-0.5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <div class="space-y-0.5">
+                    <h3 class="text-xs sm:text-sm font-bold text-red-800">Akses Pertemuan Terkunci</h3>
+                    <p class="text-xs text-red-700 leading-relaxed">{{ session('error') }}</p>
+                </div>
+            </div>
+            <button type="button" @click="show = false" class="text-red-500 hover:text-red-700 p-1 rounded-lg transition flex-shrink-0" aria-label="Tutup">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     @endif
 
