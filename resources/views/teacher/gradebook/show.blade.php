@@ -91,7 +91,7 @@
                     </select>
                 </div>
                 <div class="w-full sm:w-1/2 flex space-x-1.5">
-                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white font-bold text-xs py-2 rounded-xl transition shadow-2xs">
+                    <button type="submit" class="w-full bg-[#28745B] hover:bg-[#123F35] text-white font-bold text-xs py-2 rounded-xl transition shadow-2xs cursor-pointer">
                         Filter
                     </button>
                     @if(request()->anyFilled(['search', 'enrollment_status', 'sort', 'direction']))

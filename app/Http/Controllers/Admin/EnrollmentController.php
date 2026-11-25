@@ -403,22 +403,112 @@ class EnrollmentController extends Controller
     }
 
     /**
-     * Menghapus data enrollment beserta seluruh file fisiknya (jika belum punya sertifikat resmi).
+     * Menghapus data enrollment apapun statusnya beserta seluruh data dan file fisik terkait
+     * secara berurutan (dari tabel anak ke induk) agar aman dari constraint database.
      */
     public function destroy(Enrollment $enrollment)
     {
-        if ($enrollment->certificate && $enrollment->certificate->status === 'published') {
-            return back()->with('error', 'Enrollment tidak dapat dihapus karena sertifikat resmi sudah diterbitkan.');
-        }
+        $filesToDeleteAfterCommit = [];
 
-        DB::transaction(function () use ($enrollment) {
-            $this->deleteEnrollmentFiles($enrollment);
+        DB::transaction(function () use ($enrollment, &$filesToDeleteAfterCommit) {
+            // 1. Hapus lampiran jawaban peserta & lampiran feedback instruktur (beserta record media-nya)
+            $submissions = AssignmentSubmission::with(['attachments.media', 'feedbackAttachments.media'])
+                ->where('enrollment_id', $enrollment->id)
+                ->get();
+
+            foreach ($submissions as $submission) {
+                foreach ($submission->attachments as $attachment) {
+                    $media = $attachment->media;
+                    $attachment->delete();
+
+                    if ($media && $this->detachAndDeleteMediaRecord($media)) {
+                        $filesToDeleteAfterCommit[] = $media->file_path;
+                    }
+                }
+
+                foreach ($submission->feedbackAttachments as $fbAttachment) {
+                    $media = $fbAttachment->media;
+                    $fbAttachment->delete();
+
+                    if ($media && $this->detachAndDeleteMediaRecord($media)) {
+                        $filesToDeleteAfterCommit[] = $media->file_path;
+                    }
+                }
+            }
+
+            // 2. Hapus seluruh record assignment_submissions milik enrollment ini
+            AssignmentSubmission::where('enrollment_id', $enrollment->id)->delete();
+
+            // 3. Hapus seluruh detail jawaban kuis (quiz_attempt_questions) lalu quiz_attempts
+            $quizAttemptIds = QuizAttempt::where('enrollment_id', $enrollment->id)->pluck('id');
+            if ($quizAttemptIds->isNotEmpty()) {
+                \App\Models\QuizAttemptQuestion::whereIn('attempt_id', $quizAttemptIds)->delete();
+                QuizAttempt::whereIn('id', $quizAttemptIds)->delete();
+            }
+
+            // 4. Hapus record riwayat akses materi (material_views) & progres (course_progress)
+            \App\Models\MaterialView::where('enrollment_id', $enrollment->id)->delete();
+            CourseProgress::where('enrollment_id', $enrollment->id)->delete();
+
+            // 5. Hapus record sertifikat (draft maupun published) lalu record media PDF-nya
+            $certificates = \App\Models\Certificate::where('enrollment_id', $enrollment->id)->get();
+            foreach ($certificates as $certificate) {
+                $certMedia = $certificate->certificate_media_id
+                    ? \App\Models\Media::find($certificate->certificate_media_id)
+                    : null;
+                $signedMedia = $certificate->signed_media_id
+                    ? \App\Models\Media::find($certificate->signed_media_id)
+                    : null;
+
+                $certificate->delete();
+
+                if ($certMedia && $this->detachAndDeleteMediaRecord($certMedia)) {
+                    $filesToDeleteAfterCommit[] = $certMedia->file_path;
+                }
+
+                if ($signedMedia && $this->detachAndDeleteMediaRecord($signedMedia)) {
+                    $filesToDeleteAfterCommit[] = $signedMedia->file_path;
+                }
+            }
+
+            // 6. Hapus record utama enrollment
             $enrollment->delete();
         });
 
+        // 7. Hapus file fisik dari storage setelah transaksi database sukses (commit)
+        foreach (array_unique(array_filter($filesToDeleteAfterCommit)) as $filePath) {
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+            if (Storage::disk('local')->exists($filePath)) {
+                Storage::disk('local')->delete($filePath);
+            }
+        }
+
         return redirect()
             ->route('admin.enrollments.index')
-            ->with('success', 'Data enrollment dan seluruh berkas terkait berhasil dihapus.');
+            ->with('success', 'Data enrollment beserta seluruh riwayat aktivitas dan berkas terkait berhasil dihapus.');
+    }
+
+    /**
+     * Menghapus record pada tabel media jika sudah tidak dirujuk oleh tabel manapun.
+     */
+    private function detachAndDeleteMediaRecord(\App\Models\Media $media): bool
+    {
+        $stillUsed = \App\Models\SubmissionAttachment::where('media_id', $media->id)->exists()
+            || \App\Models\SubmissionFeedbackAttachment::where('media_id', $media->id)->exists()
+            || \App\Models\AssignmentAttachment::where('media_id', $media->id)->exists()
+            || \App\Models\Certificate::where('certificate_media_id', $media->id)
+                ->orWhere('signed_media_id', $media->id)
+                ->exists();
+
+        if ($stillUsed) {
+            return false;
+        }
+
+        $media->delete();
+
+        return true;
     }
 
     /**
