@@ -194,7 +194,7 @@
                         <span class="text-[11px] font-medium text-slate-500 truncate max-w-[140px]">Pengajar: {{ $course->creator->name ?? 'Instruktur' }}</span>
                         <!-- Tombol Ambil Kursus -->
                         <button @click="selectedCourse = { id: '{{ $course->id }}', title: '{{ addslashes($course->title) }}', code: '{{ $course->code }}' }; enrollModal = true"
-                                class="bg-[#28745B] hover:bg-[#123F35] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs">
+                                class="bg-[#28745B] hover:bg-[#123F35] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
                             + Ambil Kursus
                         </button>
                     </div>

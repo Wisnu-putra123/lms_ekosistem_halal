@@ -187,7 +187,7 @@
                     <div>
                         <label for="ktp" class="block text-xs font-bold text-[#123F35] mb-1">Perbarui Berkas KTP</label>
                         <input type="file" id="ktp" name="ktp" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
-                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
+                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#28745B]/10 file:text-[#123F35] hover:file:bg-[#28745B]/20 border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
                         @error('ktp')
                             <p class="text-xs text-red-600 mt-1 font-semibold">{{ $message }}</p>
                         @enderror
@@ -215,7 +215,7 @@
                     <div>
                         <label for="kk" class="block text-xs font-bold text-[#123F35] mb-1">Perbarui Berkas KK</label>
                         <input type="file" id="kk" name="kk" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
-                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
+                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#28745B]/10 file:text-[#123F35] hover:file:bg-[#28745B]/20 border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
                         @error('kk')
                             <p class="text-xs text-red-600 mt-1 font-semibold">{{ $message }}</p>
                         @enderror
@@ -244,7 +244,7 @@
                     <div>
                         <label for="ijazah" class="block text-xs font-bold text-[#123F35] mb-1">Perbarui Berkas Ijazah</label>
                         <input type="file" id="ijazah" name="ijazah" accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
-                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#123F35] file:text-white hover:file:bg-[#28745B] border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
+                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#28745B]/10 file:text-[#123F35] hover:file:bg-[#28745B]/20 border border-slate-300 rounded-xl bg-slate-50/60 focus:outline-none cursor-pointer transition">
                         @error('ijazah')
                             <p class="text-xs text-red-600 mt-1 font-semibold">{{ $message }}</p>
                         @enderror

@@ -71,7 +71,15 @@
 
             <div class="flex items-center gap-2 sm:gap-3">
                 @auth
-                    <a href="{{ route('home') }}" class="rounded-lg bg-emerald-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800">Dashboard</a>
+                    @php
+                        $dashboardRoute = match (auth()->user()->role) {
+                            'admin'   => route('admin.dashboard'),
+                            'teacher' => route('teacher.dashboard'),
+                            'student' => route('student.dashboard'),
+                            default   => route('home'),
+                        };
+                    @endphp
+                    <a href="{{ $dashboardRoute }}" class="rounded-lg bg-emerald-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800">Dashboard</a>
                 @else
                     <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50">Masuk</a>
                     @if (Route::has('register'))
@@ -109,7 +117,15 @@
                         Jelajahi Program
                     </a>
                     @auth
-                        <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-7 py-3.5 font-semibold text-white backdrop-blur-sm transition hover:bg-white/15 sm:w-auto">
+                        @php
+                            $dashboardRoute = match (auth()->user()->role) {
+                                'admin'   => route('admin.dashboard'),
+                                'teacher' => route('teacher.dashboard'),
+                                'student' => route('student.dashboard'),
+                                default   => route('home'),
+                            };
+                        @endphp
+                        <a href="{{ $dashboardRoute }}" class="w-full inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-7 py-3.5 font-semibold text-white backdrop-blur-sm transition hover:bg-white/15 sm:w-auto">
                             Masuk ke Dashboard
                         </a>
                     @else

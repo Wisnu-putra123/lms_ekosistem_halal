@@ -98,7 +98,8 @@
 
                 <input type="file" id="thumbnail" name="thumbnail" accept="image/jpeg,image/png,image/jpg,image/webp"
                        @change="if ($event.target.files.length > 0) removeThumbnail = false"
-                       class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/15 file:text-[#123F35] hover:file:bg-[#28745B]/25 bg-[#F7F5EE]/60 border border-slate-300 rounded-xl cursor-pointer">
+                                              class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B]/15 file:text-[#123F35] hover:file:bg-[#28745B]/25 bg-[#F7F5EE]/60 border border-slate-300 rounded-xl cursor-pointer">
+                       <!-- class="w-full text-xs text-slate-500 file:mr-4 file:py-2 py-1 px-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#28745B] file:text-white hover:file:bg-[#123F35] bg-[#F7F5EE]/60 border border-slate-300 rounded-xl cursor-pointer"> -->
                 <p class="text-[11px] text-slate-400 mt-1">Biarkan kosong jika tidak ingin mengubah thumbnail, atau klik "Hapus Thumbnail" untuk menghapus gambar yang ada.</p>
                 @error('thumbnail')
                     <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
